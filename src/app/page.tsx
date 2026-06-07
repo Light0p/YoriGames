@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
@@ -6,13 +5,22 @@ import { Hero } from '@/components/sections/Hero';
 import { GameStrip } from '@/components/sections/GameStrip';
 import { ArcadeInsightTool } from '@/components/ai/ArcadeInsightTool';
 import { Footer } from '@/components/layout/Footer';
-import gamesData from '@/data/games.json';
+import { getFeaturedGames, getTrendingGames, getNewArrivals } from '@/lib/games';
 import Link from 'next/link';
 
 export default function Home() {
-  const featuredGames = gamesData.filter(g => g.featured);
-  const trendingGames = gamesData.filter(g => g.trending);
-  const newGames = [...gamesData].sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()).slice(0, 5);
+  const featuredGames = getFeaturedGames();
+  const trendingGames = getTrendingGames();
+  const newGames = getNewArrivals();
+
+  const categories = [
+    { name: 'Action', color: 'hover:border-neon-pink hover:bg-neon-pink/10' },
+    { name: 'RPG', color: 'hover:border-neon-purple hover:bg-neon-purple/10' },
+    { name: 'Puzzle', color: 'hover:border-neon-cyan hover:bg-neon-cyan/10' },
+    { name: 'Sports', color: 'hover:border-neon-gold hover:bg-neon-gold/10' },
+    { name: 'Racing', color: 'hover:border-neon-pink hover:bg-neon-pink/10' },
+    { name: 'Adventure', color: 'hover:border-neon-cyan hover:bg-neon-cyan/10' },
+  ];
 
   return (
     <main className="min-h-screen selection:bg-neon-purple selection:text-white">
@@ -42,14 +50,17 @@ export default function Home() {
                <div className="font-pixel text-[8px] text-neon-cyan uppercase mb-4">EXPLORE UNIVERSE</div>
                <h2 className="font-pixel text-3xl text-white uppercase">Browse Categories</h2>
              </div>
-             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-               {['Action', 'RPG', 'Puzzle', 'Sports', 'Racing', 'Strategy', 'Adventure', 'Arcade'].map((cat) => (
+             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+               {categories.map((cat) => (
                  <Link 
-                   key={cat} 
-                   href={`/categories/${cat.toLowerCase()}`} 
-                   className="h-24 bg-[#1B123D] border-2 border-[#140A2E] font-pixel text-[10px] text-white hover:border-neon-purple hover:bg-neon-purple/10 transition-all uppercase group flex flex-col items-center justify-center gap-2"
+                   key={cat.name} 
+                   href={`/categories/${cat.name.toLowerCase()}`} 
+                   className={cn(
+                     "h-24 bg-[#1B123D] border-2 border-[#140A2E] font-pixel text-[10px] text-white transition-all uppercase group flex flex-col items-center justify-center gap-2",
+                     cat.color
+                   )}
                  >
-                   <span className="group-hover:scale-110 transition-transform block">{cat}</span>
+                   <span className="group-hover:scale-110 transition-transform block">{cat.name}</span>
                  </Link>
                ))}
              </div>

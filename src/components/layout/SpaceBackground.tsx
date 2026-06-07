@@ -8,7 +8,8 @@ export const SpaceBackground = () => {
     asteroids: any[];
     planets: any[];
     ships: any[];
-  }>({ stars: [], asteroids: [], planets: [], ships: [] });
+    mounted: boolean;
+  }>({ stars: [], asteroids: [], planets: [], ships: [], mounted: false });
 
   useEffect(() => {
     // Distant stars
@@ -46,8 +47,10 @@ export const SpaceBackground = () => {
       delay: i * 5,
     }));
 
-    setElements({ stars, asteroids, planets, ships });
+    setElements({ stars, asteroids, planets, ships, mounted: true });
   }, []);
+
+  if (!elements.mounted) return <div className="fixed inset-0 z-[-1] bg-[#09061B]" />;
 
   return (
     <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#09061B] pointer-events-none select-none">
@@ -89,7 +92,6 @@ export const SpaceBackground = () => {
             animationDuration: `${planet.duration}s`,
           }}
         >
-          {/* Surface Detail */}
           <div className="absolute top-1/4 left-1/4 w-1/3 h-1/3 bg-white/5 rounded-full blur-md" />
         </div>
       ))}
@@ -130,13 +132,7 @@ export const SpaceBackground = () => {
         </div>
       ))}
 
-      {/* Shooting Stars */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="shooting-star" style={{ top: '20%', left: '80%', animationDelay: '0s' }} />
-        <div className="shooting-star" style={{ top: '60%', left: '40%', animationDelay: '4s' }} />
-      </div>
-
-      <style jsx>{`
+      <style jsx global>{`
         @keyframes flyBy {
           from { left: -10%; }
           to { left: 110%; }
@@ -153,14 +149,6 @@ export const SpaceBackground = () => {
           border-radius: 50%;
           box-shadow: 0 0 20px #fff;
           animation: shooting 5s linear infinite;
-        }
-        .shooting-star::before {
-          content: '';
-          position: absolute;
-          width: 100px;
-          height: 1px;
-          background: linear-gradient(90deg, #fff, transparent);
-          right: 0;
         }
         @keyframes shooting {
           0% { transform: rotate(315deg) translateX(0); opacity: 0; }

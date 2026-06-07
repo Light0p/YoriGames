@@ -24,61 +24,37 @@ export function GameView({ game, allGames }: GameViewProps) {
     .filter(g => g.id !== game.id && g.category === game.category)
     .slice(0, 4);
 
-  // Simulated play count tracking
   useEffect(() => {
-    // In a real production environment, this would call a Firebase Function or update Firestore
-    const trackPlay = () => {
-      console.log(`Tracking play for: ${game.title}`);
-    };
-    trackPlay();
-  }, [game.id, game.title]);
+    // Analytics tracking for play count
+    console.log(`[YoriGames] tracking play: ${game.title} (${game.slug})`);
+  }, [game.id, game.title, game.slug]);
 
   const toggleFullscreen = () => {
     if (iframeRef.current) {
       if (iframeRef.current.requestFullscreen) {
         iframeRef.current.requestFullscreen();
+      } else if ((iframeRef.current as any).webkitRequestFullscreen) {
+        (iframeRef.current as any).webkitRequestFullscreen();
       }
     }
   };
 
   const handleShare = () => {
+    const url = window.location.href;
     if (navigator.share) {
       navigator.share({
         title: `Play ${game.title} on YoriGames`,
         text: game.description,
-        url: window.location.href,
-      });
+        url: url,
+      }).catch(console.error);
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
-  };
-
-  // Schema.org Structured Data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "VideoGame",
-    "name": game.title,
-    "description": game.description,
-    "genre": game.category,
-    "image": game.thumbnail,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": game.rating,
-      "reviewCount": game.likes || 1
-    },
-    "author": {
-      "@type": "Organization",
-      "name": "YoriGames"
+      navigator.clipboard.writeText(url);
+      alert('Link copied to navigation clipboard!');
     }
   };
 
   return (
     <main className="min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
       <SpaceBackground />
       <Navbar />
 
@@ -99,14 +75,14 @@ export function GameView({ game, allGames }: GameViewProps) {
               {loading && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#09061B]">
                   <Loader2 className="w-12 h-12 text-neon-purple animate-spin mb-4" />
-                  <div className="font-pixel text-[10px] text-white uppercase animate-pulse">Initializing System...</div>
+                  <div className="font-pixel text-[10px] text-white uppercase animate-pulse">Initializing Core Engine...</div>
                 </div>
               )}
               <iframe 
                 ref={iframeRef}
                 src={game.iframe_url}
                 className="w-full h-full border-none z-10"
-                allowFullScreen
+                allow="fullscreen; autoplay; gamepad"
                 onLoad={() => setLoading(false)}
                 loading="lazy"
               />
@@ -122,14 +98,14 @@ export function GameView({ game, allGames }: GameViewProps) {
             </div>
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#140A2E] p-8 border-2 border-[#1B123D]">
-              <div>
+              <div className="flex-1">
                 <h1 className="font-pixel text-3xl text-white mb-2 uppercase tracking-tighter">{game.title}</h1>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-neon-gold fill-neon-gold" />
                     <span className="font-pixel text-xs text-neon-gold">{game.rating.toFixed(1)}</span>
                   </div>
-                  <div className="font-pixel text-[10px] text-muted uppercase">{(game.play_count || 0).toLocaleString()} Plays</div>
+                  <div className="font-pixel text-[10px] text-muted uppercase">{(game.play_count || 0).toLocaleString()} Global Plays</div>
                 </div>
               </div>
               <div className="flex gap-4 w-full md:w-auto">
@@ -138,7 +114,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                   className="flex-1 md:flex-none"
                   onClick={() => iframeRef.current?.focus()}
                 >
-                  <Play className="w-4 h-4 fill-white" /> PLAY
+                  <Play className="w-4 h-4 fill-white" /> FOCUS PLAYER
                 </PixelButton>
                 <PixelButton 
                   variant="secondary" 
@@ -151,15 +127,15 @@ export function GameView({ game, allGames }: GameViewProps) {
             </div>
 
             <div className="bg-[#140A2E] p-8 border-2 border-[#1B123D]">
-              <h3 className="font-pixel text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2">Description</h3>
+              <h3 className="font-pixel text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2">Mission Log</h3>
               <p className="font-body text-muted leading-relaxed">
                 {game.description}
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
                 {game.tags.map(tag => (
-                  <span key={tag} className="font-pixel text-[8px] px-3 py-1 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple uppercase">
+                  <Link href={`/search?q=${tag}`} key={tag} className="font-pixel text-[8px] px-3 py-1 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple uppercase hover:bg-neon-purple hover:text-white transition-colors">
                     #{tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -167,12 +143,12 @@ export function GameView({ game, allGames }: GameViewProps) {
 
           <div className="lg:col-span-1 space-y-8">
             <div className="bg-[#1B123D] border-4 border-[#140A2E] p-6 shadow-[4px_4px_0_0_#000]">
-              <h3 className="font-pixel text-xs text-neon-pink uppercase mb-6 tracking-widest">Recommended</h3>
+              <h3 className="font-pixel text-xs text-neon-pink uppercase mb-6 tracking-widest">Nearby Systems</h3>
               <div className="space-y-6">
                 {relatedGames.length > 0 ? (
                   relatedGames.map(g => (
                     <Link key={g.id} href={`/games/${g.slug}`} className="flex gap-4 group">
-                      <div className="relative w-24 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
+                      <div className="relative w-20 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
                         <Image 
                           src={g.thumbnail} 
                           alt={g.title} 
@@ -191,23 +167,23 @@ export function GameView({ game, allGames }: GameViewProps) {
                     </Link>
                   ))
                 ) : (
-                  <p className="font-pixel text-[8px] text-muted uppercase">No similar games found</p>
+                  <p className="font-pixel text-[8px] text-muted uppercase">Scanning for related anomalies...</p>
                 )}
               </div>
               <Link href="/arcade" className="block mt-8 text-center font-pixel text-[8px] text-neon-cyan hover:underline uppercase">
-                View All Games
+                View All Missions
               </Link>
             </div>
 
             <div className="bg-[#09061B] border-2 border-[#1B123D] p-6 text-center">
-              <div className="font-pixel text-[10px] text-muted uppercase mb-4">Community Rating</div>
+              <div className="font-pixel text-[10px] text-muted uppercase mb-4">Player Satisfaction</div>
               <div className="text-4xl font-pixel text-white mb-2">{game.rating}</div>
               <div className="flex justify-center gap-1 mb-6">
                 {[1,2,3,4,5].map(i => (
                   <Star key={i} className={cn("w-4 h-4", i <= Math.floor(game.rating) ? "text-neon-gold fill-neon-gold" : "text-white/10")} />
                 ))}
               </div>
-              <PixelButton variant="gold" className="w-full text-xs">RATE THIS GAME</PixelButton>
+              <PixelButton variant="gold" className="w-full text-xs">LOG RATING</PixelButton>
             </div>
           </div>
         </div>
