@@ -3,6 +3,6 @@ export const firebaseConfig = {
   authDomain: "studio-3271687317-7deb5.firebaseapp.com",
   projectId: "studio-3271687317-7deb5",
   storageBucket: "studio-3271687317-7deb5.firebasestorage.app",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  messagingSenderId: "858727746326",
+  appId: "1:858727746326:web:9cf1e496278243daa85e37"
 };
