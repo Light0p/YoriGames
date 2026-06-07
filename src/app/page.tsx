@@ -7,10 +7,12 @@ import { GameStrip } from '@/components/sections/GameStrip';
 import { ArcadeInsightTool } from '@/components/ai/ArcadeInsightTool';
 import { Footer } from '@/components/layout/Footer';
 import gamesData from '@/data/games.json';
+import Link from 'next/link';
 
 export default function Home() {
   const featuredGames = gamesData.filter(g => g.featured);
   const trendingGames = gamesData.filter(g => g.trending);
+  const newGames = [...gamesData].sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime()).slice(0, 5);
 
   return (
     <main className="min-h-screen selection:bg-neon-purple selection:text-white">
@@ -20,6 +22,7 @@ export default function Home() {
       <Hero />
 
       <div className="relative z-10 -mt-20">
+        <GameStrip title="New Arrivals" category="LATEST" games={newGames} />
         
         <GameStrip title="Trending Now" category="POPULAR" games={trendingGames} />
 
@@ -33,8 +36,6 @@ export default function Home() {
           <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-neon-purple to-transparent" />
         </div>
 
-        <GameStrip title="Curated Picks" category="RECOMMENDED" games={gamesData.slice(0, 5)} />
-
         <section className="py-24 px-4 sm:px-8">
           <div className="mx-auto max-w-7xl">
              <div className="text-center mb-12">
@@ -42,8 +43,12 @@ export default function Home() {
                <h2 className="font-pixel text-3xl text-white uppercase">Browse Categories</h2>
              </div>
              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-               {['Action', 'RPG', 'Puzzle', 'Sports', 'Racing', 'Strategy'].map((cat) => (
-                 <Link key={cat} href={`/categories?cat=${cat.toLowerCase()}`} className="h-20 bg-[#1B123D] border-2 border-[#140A2E] font-pixel text-xs text-white hover:border-neon-purple hover:bg-neon-purple/10 transition-all uppercase group flex items-center justify-center">
+               {['Action', 'RPG', 'Puzzle', 'Sports', 'Racing', 'Strategy', 'Adventure', 'Arcade'].map((cat) => (
+                 <Link 
+                   key={cat} 
+                   href={`/categories/${cat.toLowerCase()}`} 
+                   className="h-24 bg-[#1B123D] border-2 border-[#140A2E] font-pixel text-[10px] text-white hover:border-neon-purple hover:bg-neon-purple/10 transition-all uppercase group flex flex-col items-center justify-center gap-2"
+                 >
                    <span className="group-hover:scale-110 transition-transform block">{cat}</span>
                  </Link>
                ))}
@@ -56,5 +61,3 @@ export default function Home() {
     </main>
   );
 }
-
-import Link from 'next/link';

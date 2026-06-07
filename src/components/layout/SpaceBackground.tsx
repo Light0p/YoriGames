@@ -12,6 +12,7 @@ export const SpaceBackground = () => {
   }>({ stars: [], asteroids: [], planets: [], ships: [] });
 
   useEffect(() => {
+    // Distant stars
     const stars = Array.from({ length: 150 }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -20,36 +21,43 @@ export const SpaceBackground = () => {
       duration: Math.random() * 3 + 2,
     }));
 
-    const asteroids = Array.from({ length: 8 }).map((_, i) => ({
+    // Drifting Asteroids
+    const asteroids = Array.from({ length: 12 }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 20 + 10,
-      duration: Math.random() * 20 + 20,
-      delay: Math.random() * 10,
+      size: Math.random() * 15 + 10,
+      speed: Math.random() * 40 + 60,
+      delay: Math.random() * -10,
+      rotation: Math.random() * 360,
     }));
 
-    const planets = Array.from({ length: 3 }).map((_, i) => ({
+    // Rotating Planets
+    const planets = [
+      { id: 1, x: 15, y: 20, size: 80, color: '#2E1A47', glow: '#A855F7', duration: 45 },
+      { id: 2, x: 80, y: 70, size: 120, color: '#1B123D', glow: '#EC4899', duration: 60 },
+      { id: 3, x: 60, y: 35, size: 40, color: '#140A2E', glow: '#22D3EE', duration: 30 },
+    ];
+
+    // Flying Ships
+    const ships = Array.from({ length: 3 }).map((_, i) => ({
       id: i,
-      x: [15, 85, 70][i],
-      y: [20, 75, 40][i],
-      size: [60, 40, 100][i],
-      color: ['#1B123D', '#2E1A47', '#140A2E'][i],
-      borderColor: ['#3B2263', '#4E2B7A', '#1B123D'][i],
-      duration: [40, 60, 80][i],
+      y: 20 + i * 25,
+      speed: Math.random() * 10 + 15,
+      delay: i * 5,
     }));
 
-    setElements({ stars, asteroids, planets, ships: [] });
+    setElements({ stars, asteroids, planets, ships });
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#09061B] pointer-events-none">
+    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#09061B] pointer-events-none select-none">
       {/* Dynamic Noise Overlay */}
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       
-      {/* Distant Nebula Glows */}
-      <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[80%] rounded-full bg-neon-purple/5 blur-[150px] animate-pulse-glow" />
-      <div className="absolute bottom-[-10%] left-[-20%] w-[70%] h-[70%] rounded-full bg-neon-pink/5 blur-[150px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
+      {/* Nebula Glows */}
+      <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[80%] rounded-full bg-neon-purple/5 blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] left-[-20%] w-[70%] h-[70%] rounded-full bg-neon-pink/5 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
 
       {/* Twinkling Stars */}
       {elements.stars.map((star) => (
@@ -67,23 +75,23 @@ export const SpaceBackground = () => {
         />
       ))}
 
-      {/* Rotating Planets */}
+      {/* Parallax Planets */}
       {elements.planets.map((planet) => (
         <div
           key={`planet-${planet.id}`}
-          className="absolute rounded-full border-4 animate-float"
+          className="absolute rounded-full border-2 border-white/5 animate-float"
           style={{
             left: `${planet.x}%`,
             top: `${planet.y}%`,
             width: `${planet.size}px`,
             height: `${planet.size}px`,
             backgroundColor: planet.color,
-            borderColor: planet.borderColor,
+            boxShadow: `inset -20px -20px 40px rgba(0,0,0,0.8), 0 0 40px ${planet.glow}22`,
             animationDuration: `${planet.duration}s`,
-            opacity: 0.4,
           }}
         >
-          <div className="absolute top-1/4 left-1/4 w-1/4 h-1/4 bg-white/5 rounded-full" />
+          {/* Surface Detail */}
+          <div className="absolute top-1/4 left-1/4 w-1/3 h-1/3 bg-white/5 rounded-full blur-md" />
         </div>
       ))}
 
@@ -91,50 +99,75 @@ export const SpaceBackground = () => {
       {elements.asteroids.map((ast) => (
         <div
           key={`ast-${ast.id}`}
-          className="absolute bg-[#1B123D] border-2 border-[#140A2E] opacity-20"
+          className="absolute bg-[#1B123D] border-2 border-white/5"
           style={{
             left: `${ast.x}%`,
             top: `${ast.y}%`,
             width: `${ast.size}px`,
             height: `${ast.size}px`,
-            transform: 'rotate(45deg)',
-            animation: `float ${ast.duration}s infinite linear`,
+            transform: `rotate(${ast.rotation}deg)`,
+            opacity: 0.3,
+            animation: `drift ${ast.speed}s linear infinite`,
             animationDelay: `${ast.delay}s`,
           }}
         />
       ))}
 
+      {/* Pixel Ships */}
+      {elements.ships.map((ship) => (
+        <div
+          key={`ship-${ship.id}`}
+          className="absolute w-8 h-4 bg-neon-cyan flex items-center justify-center"
+          style={{
+            top: `${ship.y}%`,
+            left: '-10%',
+            animation: `flyBy ${ship.speed}s linear infinite`,
+            animationDelay: `${ship.delay}s`,
+            boxShadow: '0 0 10px #22D3EE',
+          }}
+        >
+          <div className="w-2 h-full bg-neon-pink absolute left-full opacity-50 blur-sm" />
+          <div className="font-pixel text-[4px] text-black">UFO</div>
+        </div>
+      ))}
+
       {/* Shooting Stars */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="shooting-star" />
-        <div className="shooting-star" style={{ animationDelay: '5s', top: '30%', left: '70%' }} />
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="shooting-star" style={{ top: '20%', left: '80%', animationDelay: '0s' }} />
+        <div className="shooting-star" style={{ top: '60%', left: '40%', animationDelay: '4s' }} />
       </div>
 
       <style jsx>{`
+        @keyframes flyBy {
+          from { left: -10%; }
+          to { left: 110%; }
+        }
+        @keyframes drift {
+          from { transform: translate(0, 0) rotate(0deg); }
+          to { transform: translate(200px, 200px) rotate(360deg); }
+        }
         .shooting-star {
           position: absolute;
-          top: 0;
-          left: 50%;
           width: 2px;
           height: 2px;
           background: #fff;
           border-radius: 50%;
-          box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 0 0 8px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 1);
-          animation: animate 3s linear infinite;
+          box-shadow: 0 0 20px #fff;
+          animation: shooting 5s linear infinite;
         }
         .shooting-star::before {
           content: '';
           position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 300px;
+          width: 100px;
           height: 1px;
           background: linear-gradient(90deg, #fff, transparent);
+          right: 0;
         }
-        @keyframes animate {
-          0% { transform: rotate(315deg) translateX(0); opacity: 1; }
-          70% { opacity: 1; }
-          100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
+        @keyframes shooting {
+          0% { transform: rotate(315deg) translateX(0); opacity: 0; }
+          10% { opacity: 1; }
+          30% { transform: rotate(315deg) translateX(-600px); opacity: 0; }
+          100% { transform: rotate(315deg) translateX(-600px); opacity: 0; }
         }
       `}</style>
     </div>

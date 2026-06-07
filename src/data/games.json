@@ -95,5 +95,21 @@
     "play_count": 7200,
     "likes": 280,
     "rating": 4.4
+  },
+  {
+    "id": "7",
+    "title": "Retro Racer",
+    "slug": "retro-racer",
+    "description": "A high-speed racing game with classic pixel graphics. Drift through neon-lit streets and upgrade your car to become the ultimate racer.",
+    "thumbnail": "https://picsum.photos/seed/racing/600/400",
+    "category": "Racing",
+    "tags": ["Racing", "Cars", "Arcade"],
+    "iframe_url": "https://www.retrogames.cc/embed/40238-super-mario-bros.html",
+    "featured": true,
+    "trending": true,
+    "date_added": "2024-03-15",
+    "play_count": 9800,
+    "likes": 410,
+    "rating": 4.6
   }
 ]

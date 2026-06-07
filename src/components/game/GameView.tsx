@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -21,8 +22,31 @@ export function GameView({ game, allGames }: GameViewProps) {
     .filter(g => g.id !== game.id && g.category === game.category)
     .slice(0, 4);
 
+  // Schema.org Structured Data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": game.title,
+    "description": game.description,
+    "genre": game.category,
+    "image": game.thumbnail,
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": game.rating,
+      "reviewCount": game.likes
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "YoriGames"
+    }
+  };
+
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SpaceBackground />
       <Navbar />
 
