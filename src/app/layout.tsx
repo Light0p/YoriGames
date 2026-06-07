@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import { Inter, Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import './globals.css';

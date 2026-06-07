@@ -1,4 +1,3 @@
-
 import gamesData from '@/data/games.json';
 import { Game } from '@/types/game';
 
