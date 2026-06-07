@@ -35,6 +35,12 @@
       "description": "Starry pixel space background with planets",
       "imageUrl": "https://picsum.photos/seed/starry/1920/1080",
       "imageHint": "pixel space"
+    },
+    {
+      "id": "soccer-art",
+      "description": "World Cup Soccer Caps promotional art",
+      "imageUrl": "https://picsum.photos/seed/world-cup-soccer/600/400",
+      "imageHint": "soccer game"
     }
   ]
 }
