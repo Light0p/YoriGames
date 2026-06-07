@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -99,10 +100,12 @@ export default function RootLayout({
         pixelify.variable,
         pressStart.variable
       )}>
-        <GalaxyBackground />
-        <div className="relative z-10 overflow-x-hidden w-full">
-          {children}
-        </div>
+        <FirebaseClientProvider>
+          <GalaxyBackground />
+          <div className="relative z-10 overflow-x-hidden w-full">
+            {children}
+          </div>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
