@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "game-1",
+      "description": "Retro space shooter arcade cabinet view",
+      "imageUrl": "https://picsum.photos/seed/space1/400/300",
+      "imageHint": "space arcade"
+    },
+    {
+      "id": "game-2",
+      "description": "Vibrant neon cyberpunk platformer city",
+      "imageUrl": "https://picsum.photos/seed/cyber/400/300",
+      "imageHint": "cyberpunk pixel"
+    },
+    {
+      "id": "game-3",
+      "description": "Cosmic runner game with stars and purple nebula",
+      "imageUrl": "https://picsum.photos/seed/runner/400/300",
+      "imageHint": "cosmic game"
+    },
+    {
+      "id": "game-4",
+      "description": "Fantasy pixel art forest background",
+      "imageUrl": "https://picsum.photos/seed/forest/400/300",
+      "imageHint": "pixel forest"
+    },
+    {
+      "id": "game-5",
+      "description": "Underwater pixel treasure hunting game",
+      "imageUrl": "https://picsum.photos/seed/ocean/400/300",
+      "imageHint": "pixel ocean"
+    },
+    {
+      "id": "hero-bg",
+      "description": "Starry pixel space background with planets",
+      "imageUrl": "https://picsum.photos/seed/starry/1920/1080",
+      "imageHint": "pixel space"
+    }
+  ]
 }
