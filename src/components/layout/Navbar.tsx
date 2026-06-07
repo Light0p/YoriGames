@@ -79,12 +79,9 @@ export const Navbar = () => {
             user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group">
-                  <div className="hidden sm:flex flex-col items-end">
-                    <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[100px]">
+                  <div className="hidden sm:flex items-center">
+                    <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
                       {user.displayName || 'PLAYER'}
-                    </span>
-                    <span className="font-pixel text-[6px] text-muted uppercase truncate max-w-[100px]">
-                      {user.email}
                     </span>
                   </div>
                   <div className="relative">
@@ -102,7 +99,6 @@ export const Navbar = () => {
                 <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
                   <div className="px-3 py-3 border-b border-[#1B123D] bg-[#09061B]/50">
                     <p className="font-pixel text-[8px] text-white uppercase truncate">{user.displayName || 'UNNAMED PLAYER'}</p>
-                    <p className="font-pixel text-[6px] text-muted uppercase mt-1 truncate">{user.email}</p>
                   </div>
                   <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
                     <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
