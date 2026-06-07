@@ -1,6 +1,8 @@
+
 "use client"
 
 import React from 'react';
+import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight, Zap } from 'lucide-react';
 
@@ -34,15 +36,19 @@ export const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <PixelButton variant="primary" size="lg" className="w-full sm:w-auto">
-            <Gamepad2 className="w-6 h-6" />
-            <span>PLAY NOW</span>
-          </PixelButton>
+          <Link href="/arcade" className="w-full sm:w-auto">
+            <PixelButton variant="primary" size="lg" className="w-full">
+              <Gamepad2 className="w-6 h-6" />
+              <span>PLAY NOW</span>
+            </PixelButton>
+          </Link>
           
-          <PixelButton variant="gold" size="lg" className="w-full sm:w-auto">
-            <span>BROWSE LIBRARY</span>
-            <ChevronRight className="w-6 h-6" />
-          </PixelButton>
+          <Link href="/arcade" className="w-full sm:w-auto">
+            <PixelButton variant="gold" size="lg" className="w-full">
+              <span>BROWSE LIBRARY</span>
+              <ChevronRight className="w-6 h-6" />
+            </PixelButton>
+          </Link>
         </div>
 
         <div className="mt-16 flex items-center justify-center gap-12 opacity-50">

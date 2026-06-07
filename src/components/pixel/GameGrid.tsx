@@ -18,7 +18,7 @@ interface GameGridProps {
 
 export const GameGrid = ({ games, columns = { default: 2, md: 3, lg: 4, xl: 5 } }: GameGridProps) => {
   return (
-    <div className={`grid grid-cols-${columns.default} md:grid-cols-${columns.md} lg:grid-cols-${columns.lg} xl:grid-cols-${columns.xl} gap-6 md:gap-8`}>
+    <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8`}>
       {games.map((game) => (
         <Link key={game.id} href={`/games/${game.slug}`} className="block">
           <GameCard 

@@ -1,6 +1,8 @@
+
 "use client"
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Search, Sparkles, Loader2, Gamepad2 } from 'lucide-react';
 import { gameSearchByDescription, type GameSearchByDescriptionOutput } from '@/ai/flows/game-search-by-description';
 import { PixelButton } from '@/components/pixel/PixelButton';
@@ -79,9 +81,12 @@ export const ArcadeInsightTool = () => {
                 <h4 className="font-headline text-xl text-white mb-2 uppercase group-hover:text-neon-cyan transition-colors">{game.name}</h4>
                 <div className="font-pixel text-[8px] text-neon-pink mb-4 uppercase">{game.genre}</div>
                 <p className="text-sm text-muted line-clamp-4">{game.summary}</p>
-                <button className="mt-6 font-pixel text-[10px] text-neon-cyan hover:underline uppercase flex items-center gap-2">
+                <Link 
+                  href={`/search?q=${encodeURIComponent(game.name)}`}
+                  className="mt-6 font-pixel text-[10px] text-neon-cyan hover:underline uppercase flex items-center gap-2"
+                >
                   Launch Game <span>→</span>
-                </button>
+                </Link>
               </div>
             ))}
           </div>
