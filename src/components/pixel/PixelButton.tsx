@@ -24,7 +24,7 @@ export const PixelButton = ({
   };
 
   const sizes = {
-    sm: 'px-4 py-3 sm:py-2 text-[10px] sm:text-xs min-h-[44px] sm:min-h-0',
+    sm: 'px-4 py-3 sm:py-2 text-[10px] sm:text-xs min-h-[44px]',
     md: 'px-6 py-4 sm:py-3 text-xs sm:text-sm min-h-[48px]',
     lg: 'px-8 sm:px-10 py-5 sm:py-4 text-sm sm:text-base min-h-[56px]',
   };

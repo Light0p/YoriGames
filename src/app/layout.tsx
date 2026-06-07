@@ -3,6 +3,7 @@ import { Inter, Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -93,11 +94,12 @@ export default function RootLayout({
         />
       </head>
       <body className={cn(
-        "min-h-screen bg-background font-body antialiased selection:bg-neon-purple selection:text-white overflow-x-hidden",
+        "min-h-screen bg-background font-body antialiased selection:bg-neon-purple selection:text-white overflow-x-hidden w-full",
         inter.variable,
         pixelify.variable,
         pressStart.variable
       )}>
+        <GalaxyBackground />
         {children}
       </body>
     </html>
