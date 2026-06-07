@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -5,9 +6,10 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { useAuth, useUser, useStorage } from '@/firebase';
+import { useAuth, useUser, useStorage, useFirestore } from '@/firebase';
 import { updateProfile, signOut } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Loader2, Camera, User, Mail, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +19,7 @@ export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
   const storage = useStorage();
+  const db = useFirestore();
   const router = useRouter();
 
   const [username, setUsername] = useState('');
@@ -37,6 +40,18 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router]);
 
+  const syncToFirestore = async (name: string, url: string) => {
+    if (!user) return;
+    const userRef = doc(db, 'users', user.uid);
+    await setDoc(userRef, {
+      uid: user.uid,
+      displayName: name,
+      photoURL: url,
+      email: user.email || '',
+      lastUpdated: serverTimestamp()
+    }, { merge: true });
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -50,6 +65,7 @@ export default function ProfilePage() {
         displayName: username,
         photoURL: photoURL
       });
+      await syncToFirestore(username, photoURL);
       setSuccess('PROFILE DATA UPDATED SUCCESSFULLY');
     } catch (err: any) {
       setError(err.message || 'FAILED TO UPDATE PROFILE');
@@ -66,19 +82,13 @@ export default function ProfilePage() {
     setError(null);
 
     try {
-      // 1. Compress Image client-side
       const compressedBlob = await compressImage(file);
-      
-      // 2. Upload to Firebase Storage
       const storageRef = ref(storage, `avatars/${user.uid}`);
       await uploadBytes(storageRef, compressedBlob);
-      
-      // 3. Get Download URL
       const url = await getDownloadURL(storageRef);
       setPhotoURL(url);
-      
-      // 4. Update Profile Photo URL immediately
       await updateProfile(user, { photoURL: url });
+      await syncToFirestore(username || user.displayName || '', url);
       setSuccess('AVATAR TRANSMITTED SUCCESSFULLY');
     } catch (err: any) {
       setError(err.message || 'FAILED TO UPLOAD AVATAR');

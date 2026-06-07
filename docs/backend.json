@@ -25,13 +25,27 @@
     },
     "UserProfile": {
       "title": "UserProfile",
-      "description": "User specific data including favorites and play history.",
+      "description": "User specific data including favorites and public profile info.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "email": { "type": "string" },
         "favorites": { "type": "array", "items": { "type": "string" }, "description": "Array of game slugs" },
         "recent_plays": { "type": "array", "items": { "type": "string" }, "description": "Array of game slugs" },
         "xp": { "type": "number" }
+      }
+    },
+    "FriendRequest": {
+      "title": "FriendRequest",
+      "description": "A request sent from one user to another to become friends.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined"] },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -41,11 +55,15 @@
   "firestore": {
     "/games/{gameId}": {
       "schema": "#/backend/entities/Game",
-      "description": "Global game database for tracking real-time stats like play_count."
+      "description": "Global game database."
     },
     "/users/{userId}": {
       "schema": "#/backend/entities/UserProfile",
-      "description": "User profiles for saved games and history."
+      "description": "Public and private user profiles."
+    },
+    "/friendRequests/{requestId}": {
+      "schema": "#/backend/entities/FriendRequest",
+      "description": "Collection of friend requests between users."
     }
   }
 }

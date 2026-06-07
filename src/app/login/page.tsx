@@ -16,9 +16,11 @@ import {
   getRedirectResult,
   linkWithCredential,
   fetchSignInMethodsForEmail,
-  AuthCredential
+  AuthCredential,
+  User
 } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useUser, useFirestore } from '@/firebase';
 
 export default function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -30,31 +32,45 @@ export default function LoginPage() {
   const [pendingCred, setPendingCred] = useState<AuthCredential | null>(null);
   
   const auth = useAuth();
+  const db = useFirestore();
   const { user, loading: authLoading } = useUser();
   const router = useRouter();
 
+  const syncUserToFirestore = async (user: User) => {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, {
+        uid: user.uid,
+        displayName: user.displayName || 'Unnamed Player',
+        photoURL: user.photoURL || '',
+        email: user.email || '',
+        lastSeen: serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      console.error("Firestore sync failed", err);
+    }
+  };
+
   useEffect(() => {
-    // Redirect when user is authenticated and no pending linking is needed
     if (user && !authLoading && !pendingCred) {
-      router.push('/');
+      syncUserToFirestore(user).then(() => {
+        router.push('/');
+      });
     }
   }, [user, authLoading, router, pendingCred]);
 
   useEffect(() => {
-    // Handle redirect result for Google Auth
     const handleRedirect = async () => {
       try {
         const result = await getRedirectResult(auth);
-        if (result) {
+        if (result && result.user) {
+          await syncUserToFirestore(result.user);
           router.push('/');
         }
       } catch (err: any) {
         if (err.code === 'auth/account-exists-with-different-credential') {
-          // 1. Grab the Google credential from the error
           const credential = GoogleAuthProvider.credentialFromError(err);
           setPendingCred(credential);
-          
-          // 2. Fetch sign-in methods to verify (as requested)
           if (err.customData?.email) {
             setEmail(err.customData.email);
             try {
@@ -63,10 +79,8 @@ export default function LoginPage() {
               console.error("Method fetch failed", fetchErr);
             }
           }
-
-          // 3. Prompt user to authenticate with existing password
           setError("AN ACCOUNT ALREADY EXISTS WITH THIS EMAIL. PLEASE SIGN IN WITH YOUR PASSWORD TO LINK YOUR GOOGLE ACCOUNT.");
-          setIsRegistering(false); // Force login mode
+          setIsRegistering(false);
         } else {
           setError(err.message || 'AUTHENTICATION FAILED');
         }
@@ -83,11 +97,12 @@ export default function LoginPage() {
 
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await syncUserToFirestore(result.user);
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await syncUserToFirestore(userCredential.user);
         
-        // If we have a pending Google credential, link it now
         if (pendingCred) {
           await linkWithCredential(userCredential.user, pendingCred);
           setPendingCred(null);
@@ -107,7 +122,6 @@ export default function LoginPage() {
     setSuccess(null);
     try {
       const provider = new GoogleAuthProvider();
-      // Redirect method is more reliable in iframe/restricted environments
       await signInWithRedirect(auth, provider);
     } catch (err: any) {
       setError(err.message || 'GOOGLE AUTHENTICATION FAILED');
@@ -235,4 +249,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

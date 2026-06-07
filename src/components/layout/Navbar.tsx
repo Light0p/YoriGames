@@ -1,12 +1,13 @@
+
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Search, User, Menu, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Gamepad2, Search, User, Menu, LogOut, Settings, ChevronDown, UserPlus, Check, X, Loader2 } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore } from '@/firebase';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -15,11 +16,20 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, limit, startAt, endAt, orderBy } from 'firebase/firestore';
 
 export const Navbar = () => {
   const pathname = usePathname();
   const { user, loading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
     { href: '/arcade', label: 'Arcade', color: 'text-neon-purple' },
@@ -27,6 +37,64 @@ export const Navbar = () => {
     { href: '/categories', label: 'Categories', color: 'text-neon-cyan' },
     { href: '/store', label: 'Store', color: 'text-neon-gold' },
   ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const usersRef = collection(db, 'users');
+        // Simple case-sensitive prefix search
+        const q = query(
+          usersRef, 
+          orderBy('displayName'),
+          startAt(searchQuery), 
+          endAt(searchQuery + '\uf8ff'),
+          limit(5)
+        );
+        const querySnapshot = await getDocs(q);
+        const results = querySnapshot.docs
+          .map(doc => doc.data())
+          .filter(u => u.uid !== user?.uid); // Don't show current user
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search failed", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, db, user?.uid]);
+
+  const handleSendFriendRequest = async (receiverId: string) => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'friendRequests'), {
+        senderId: user.uid,
+        receiverId: receiverId,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      setSentRequests(prev => new Set(prev).add(receiverId));
+    } catch (error) {
+      console.error("Failed to send request", error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -64,12 +132,75 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link 
-            href="/search" 
-            className="p-3 sm:p-2 text-muted hover:text-white hover:bg-white/5 rounded-none border-b-2 border-transparent hover:border-neon-purple transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
-          >
-            <Search className="w-5 h-5" />
-          </Link>
+          <div className="relative" ref={searchRef}>
+            <button 
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className={cn(
+                "p-3 sm:p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
+                isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
+              )}
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
+            {isSearchOpen && (
+              <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[350px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2">
+                <div className="relative mb-4">
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="SCAN FOR PLAYERS..."
+                    autoFocus
+                    className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-2 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple"
+                  />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
+                  )}
+                </div>
+
+                <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {searchResults.map((player) => (
+                    <div key={player.uid} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8 border border-neon-purple">
+                          <AvatarImage src={player.photoURL} />
+                          <AvatarFallback className="bg-neon-purple text-white text-[10px] font-pixel">
+                            {player.displayName?.charAt(0) || 'P'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-pixel text-[8px] text-white truncate max-w-[120px] uppercase">
+                          {player.displayName}
+                        </span>
+                      </div>
+                      
+                      {sentRequests.has(player.uid) ? (
+                        <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 flex items-center gap-1 border border-green-500">
+                          <Check className="w-3 h-3" /> SENT
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => handleSendFriendRequest(player.uid)}
+                          className="p-2 bg-neon-cyan text-black hover:scale-110 transition-transform border-b-2 border-r-2 border-black"
+                          title="Add Friend"
+                        >
+                          <UserPlus className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {searchQuery && !isSearching && searchResults.length === 0 && (
+                    <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">No players detected.</p>
+                  )}
+                  
+                  {!searchQuery && (
+                    <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">Awaiting coordinates...</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           
           <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
 
@@ -91,15 +222,9 @@ export const Navbar = () => {
                         {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 bg-[#140A2E] border border-[#1B123D] rounded-full p-0.5 sm:hidden">
-                      <ChevronDown className="w-2 h-2 text-white" />
-                    </div>
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
-                  <div className="px-3 py-3 border-b border-[#1B123D] bg-[#09061B]/50">
-                    <p className="font-pixel text-[8px] text-white uppercase truncate">{user.displayName || 'UNNAMED PLAYER'}</p>
-                  </div>
                   <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
                     <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
                       <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
