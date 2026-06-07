@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -7,9 +7,12 @@ import { GameCard } from '@/components/pixel/GameCard';
 import gamesData from '@/data/games.json';
 import Link from 'next/link';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Game Categories | YoriGames',
   description: 'Browse games by category. Action, Arcade, Platformer, and more.',
+  alternates: {
+    canonical: '/categories',
+  },
 };
 
 export default function CategoriesPage() {

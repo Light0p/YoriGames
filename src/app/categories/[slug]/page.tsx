@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -12,12 +12,17 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
+  const decodedSlug = decodeURIComponent(slug).toLowerCase();
+  const categoryName = decodedSlug.charAt(0).toUpperCase() + decodedSlug.slice(1);
+  
   return {
     title: `${categoryName} Games | YoriGames`,
     description: `Browse the best ${categoryName} pixel-art games on YoriGames. Play instantly in your browser.`,
+    alternates: {
+      canonical: `/categories/${decodedSlug}`,
+    },
   };
 }
 
@@ -28,7 +33,6 @@ export default async function CategoryPage({ params }: Props) {
   const games: Game[] = gamesData.filter(g => g.category.toLowerCase() === decodedSlug);
   
   if (games.length === 0) {
-    // If no games, check if category exists at all in our data
     const allCategories = gamesData.map(g => g.category.toLowerCase());
     if (!allCategories.includes(decodedSlug)) {
        notFound();

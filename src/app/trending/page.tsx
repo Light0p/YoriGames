@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -8,9 +8,12 @@ import gamesData from '@/data/games.json';
 import { Game } from '@/types/game';
 import { TrendingUp } from 'lucide-react';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Trending Games | YoriGames',
   description: 'Check out the hottest pixel-art games trending right now on YoriGames.',
+  alternates: {
+    canonical: '/trending',
+  },
 };
 
 export default function TrendingPage() {

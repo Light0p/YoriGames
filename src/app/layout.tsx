@@ -1,8 +1,8 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://yorigames.app'),
   title: {
     template: '%s | YoriGames Arcade',
     default: 'YoriGames | Play Instantly. No Downloads.',
@@ -16,9 +16,10 @@ export const metadata: Metadata = {
     siteName: 'YoriGames',
     images: [
       {
-        url: 'https://picsum.photos/seed/yorigames-og/1200/630',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
+        alt: 'YoriGames Arcade',
       },
     ],
     locale: 'en_US',
@@ -28,11 +29,22 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'YoriGames | Play Instantly',
     description: 'The ultimate pixel-art arcade and game launcher.',
-    images: ['https://picsum.photos/seed/yorigames-og/1200/630'],
+    images: ['/og-image.png'],
+    creator: '@yorigames',
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: '/',
   },
 };
 
