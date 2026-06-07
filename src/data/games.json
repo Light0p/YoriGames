@@ -1,6 +1,22 @@
 
 [
   {
+    "id": "8",
+    "title": "World Cup Soccer Caps",
+    "slug": "world-cup-soccer-caps",
+    "description": "Play World Cup Soccer Caps online for free directly in your browser. Choose your favorite team and compete in the ultimate chiptune-style soccer tournament. Precise controls and tactical gameplay await in this pixel-perfect sports challenge.",
+    "thumbnail": "https://picsum.photos/seed/world-cup-soccer-caps/600/400",
+    "category": "Sports",
+    "tags": ["soccer", "football", "sports", "world-cup"],
+    "iframe_url": "https://html5.gamedistribution.com/040ff13a2a9f44b98009750960a523ae/",
+    "featured": true,
+    "trending": true,
+    "date_added": "2024-03-20",
+    "play_count": 0,
+    "likes": 0,
+    "rating": 5.0
+  },
+  {
     "id": "1",
     "title": "Star Dash",
     "slug": "star-dash",

@@ -1,13 +1,13 @@
 
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Game } from '@/types/game';
-import { Star, Play, Share2, Maximize2, ArrowLeft } from 'lucide-react';
+import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -18,9 +18,42 @@ interface GameViewProps {
 }
 
 export function GameView({ game, allGames }: GameViewProps) {
+  const [loading, setLoading] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
   const relatedGames = allGames
     .filter(g => g.id !== game.id && g.category === game.category)
     .slice(0, 4);
+
+  // Simulated play count tracking
+  useEffect(() => {
+    // In a real production environment, this would call a Firebase Function or update Firestore
+    const trackPlay = () => {
+      console.log(`Tracking play for: ${game.title}`);
+    };
+    trackPlay();
+  }, [game.id, game.title]);
+
+  const toggleFullscreen = () => {
+    if (iframeRef.current) {
+      if (iframeRef.current.requestFullscreen) {
+        iframeRef.current.requestFullscreen();
+      }
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `Play ${game.title} on YoriGames`,
+        text: game.description,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
 
   // Schema.org Structured Data
   const jsonLd = {
@@ -33,7 +66,7 @@ export function GameView({ game, allGames }: GameViewProps) {
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": game.rating,
-      "reviewCount": game.likes
+      "reviewCount": game.likes || 1
     },
     "author": {
       "@type": "Organization",
@@ -52,23 +85,38 @@ export function GameView({ game, allGames }: GameViewProps) {
 
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-8">
         <div className="mb-8 flex items-center gap-4">
-          <Link href="/arcade" className="font-pixel text-[10px] text-muted hover:text-white flex items-center gap-2 uppercase">
+          <Link href="/arcade" className="font-pixel text-[10px] text-muted hover:text-white flex items-center gap-2 uppercase transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Arcade
           </Link>
           <div className="w-1 h-1 bg-muted rounded-full" />
-          <span className="font-pixel text-[10px] text-neon-purple uppercase">{game.category}</span>
+          <Link href={`/categories/${game.category.toLowerCase()}`} className="font-pixel text-[10px] text-neon-purple hover:underline uppercase transition-all">
+            {game.category}
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-8">
             <div className="relative aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group">
+              {loading && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#09061B]">
+                  <Loader2 className="w-12 h-12 text-neon-purple animate-spin mb-4" />
+                  <div className="font-pixel text-[10px] text-white uppercase animate-pulse">Initializing System...</div>
+                </div>
+              )}
               <iframe 
+                ref={iframeRef}
                 src={game.iframe_url}
-                className="w-full h-full border-none"
+                className="w-full h-full border-none z-10"
                 allowFullScreen
+                onLoad={() => setLoading(false)}
+                loading="lazy"
               />
-              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="bg-black/80 p-2 border-2 border-white/20 hover:border-white transition-all">
+              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+                <button 
+                  onClick={toggleFullscreen}
+                  className="bg-black/80 p-2 border-2 border-white/20 hover:border-white transition-all backdrop-blur-sm"
+                  title="Fullscreen"
+                >
                   <Maximize2 className="w-5 h-5 text-white" />
                 </button>
               </div>
@@ -82,14 +130,22 @@ export function GameView({ game, allGames }: GameViewProps) {
                     <Star className="w-4 h-4 text-neon-gold fill-neon-gold" />
                     <span className="font-pixel text-xs text-neon-gold">{game.rating.toFixed(1)}</span>
                   </div>
-                  <div className="font-pixel text-[10px] text-muted uppercase">{game.play_count.toLocaleString()} Plays</div>
+                  <div className="font-pixel text-[10px] text-muted uppercase">{(game.play_count || 0).toLocaleString()} Plays</div>
                 </div>
               </div>
               <div className="flex gap-4 w-full md:w-auto">
-                <PixelButton variant="primary" className="flex-1 md:flex-none">
+                <PixelButton 
+                  variant="primary" 
+                  className="flex-1 md:flex-none"
+                  onClick={() => iframeRef.current?.focus()}
+                >
                   <Play className="w-4 h-4 fill-white" /> PLAY
                 </PixelButton>
-                <PixelButton variant="secondary" className="px-4">
+                <PixelButton 
+                  variant="secondary" 
+                  className="px-4"
+                  onClick={handleShare}
+                >
                   <Share2 className="w-4 h-4" />
                 </PixelButton>
               </div>
@@ -114,26 +170,30 @@ export function GameView({ game, allGames }: GameViewProps) {
             <div className="bg-[#1B123D] border-4 border-[#140A2E] p-6 shadow-[4px_4px_0_0_#000]">
               <h3 className="font-pixel text-xs text-neon-pink uppercase mb-6 tracking-widest">Recommended</h3>
               <div className="space-y-6">
-                {relatedGames.map(g => (
-                  <Link key={g.id} href={`/games/${g.slug}`} className="flex gap-4 group">
-                    <div className="relative w-24 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
-                      <Image 
-                        src={g.thumbnail} 
-                        alt={g.title} 
-                        fill 
-                        className="object-cover group-hover:scale-110 transition-transform" 
-                      />
-                    </div>
-                    <div>
-                      <h4 className="font-headline text-lg text-white group-hover:text-neon-cyan transition-colors">{g.title}</h4>
-                      <span className="font-pixel text-[8px] text-muted uppercase">{g.category}</span>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="w-2 h-2 text-neon-gold fill-neon-gold" />
-                        <span className="font-pixel text-[8px] text-neon-gold">{g.rating}</span>
+                {relatedGames.length > 0 ? (
+                  relatedGames.map(g => (
+                    <Link key={g.id} href={`/games/${g.slug}`} className="flex gap-4 group">
+                      <div className="relative w-24 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
+                        <Image 
+                          src={g.thumbnail} 
+                          alt={g.title} 
+                          fill 
+                          className="object-cover group-hover:scale-110 transition-transform" 
+                        />
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="min-w-0">
+                        <h4 className="font-headline text-lg text-white group-hover:text-neon-cyan transition-colors truncate">{g.title}</h4>
+                        <span className="font-pixel text-[8px] text-muted uppercase">{g.category}</span>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="w-2 h-2 text-neon-gold fill-neon-gold" />
+                          <span className="font-pixel text-[8px] text-neon-gold">{g.rating}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="font-pixel text-[8px] text-muted uppercase">No similar games found</p>
+                )}
               </div>
               <Link href="/arcade" className="block mt-8 text-center font-pixel text-[8px] text-neon-cyan hover:underline uppercase">
                 View All Games
