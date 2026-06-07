@@ -1,5 +1,34 @@
-import type { Metadata } from 'next';
+
+import type { Metadata, Viewport } from 'next';
+import { Inter, Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import './globals.css';
+import { cn } from '@/lib/utils';
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const pixelify = Pixelify_Sans({ 
+  subsets: ['latin'],
+  variable: '--font-pixelify',
+  display: 'swap',
+});
+
+const pressStart = Press_Start_2P({ 
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-press-start',
+  display: 'swap',
+});
+
+export const viewport: Viewport = {
+  themeColor: '#09061B',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://yorigames.app'),
@@ -55,12 +84,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased bg-background text-foreground overflow-x-hidden">
+      <body className={cn(
+        "min-h-screen bg-background font-body antialiased selection:bg-neon-purple selection:text-white overflow-x-hidden",
+        inter.variable,
+        pixelify.variable,
+        pressStart.variable
+      )}>
         {children}
       </body>
     </html>
