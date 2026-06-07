@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signInWithPopup, 
+  signInWithRedirect, 
   GoogleAuthProvider 
 } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
@@ -57,11 +57,10 @@ export default function LoginPage() {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/');
+      // Using Redirect instead of Popup to avoid browser blockers
+      await signInWithRedirect(auth, provider);
     } catch (err: any) {
       setError(err.message || 'Google authentication failed');
-    } finally {
       setLoading(false);
     }
   };
