@@ -7,6 +7,7 @@ import { ArcadeInsightTool } from '@/components/ai/ArcadeInsightTool';
 import { Footer } from '@/components/layout/Footer';
 import { getFeaturedGames, getTrendingGames, getNewArrivals } from '@/lib/games';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const featuredGames = getFeaturedGames();
