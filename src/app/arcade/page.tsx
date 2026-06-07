@@ -3,7 +3,7 @@ import React from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { GameCard } from '@/components/pixel/GameCard';
+import { GameGrid } from '@/components/pixel/GameGrid';
 import gamesData from '@/data/games.json';
 import { Game } from '@/types/game';
 
@@ -30,23 +30,10 @@ export default function ArcadePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-          {games.map((game) => (
-            <Link key={game.id} href={`/games/${game.slug}`}>
-              <GameCard 
-                title={game.title}
-                genre={game.category}
-                rating={game.rating}
-                imageUrl={game.thumbnail}
-              />
-            </Link>
-          ))}
-        </div>
+        <GameGrid games={games} />
       </div>
 
       <Footer />
     </main>
   );
 }
-
-import Link from 'next/link';
