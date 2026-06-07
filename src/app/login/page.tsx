@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +6,6 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Mail, Lock, Gamepad2, Loader2, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   signInWithEmailAndPassword, 
@@ -29,6 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Reactive redirect: If the user becomes authenticated, move them home
     if (user && !authLoading) {
       router.push('/');
     }
@@ -44,10 +43,9 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      router.push('/');
+      // No manual router.push here; useEffect handles the reactive redirect
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -57,7 +55,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      // Using Redirect instead of Popup to avoid browser blockers
+      // Redirect method handles cross-origin authentication
       await signInWithRedirect(auth, provider);
     } catch (err: any) {
       setError(err.message || 'Google authentication failed');
@@ -85,10 +83,10 @@ export default function LoginPage() {
             <div className="bg-neon-purple p-3 border-b-4 border-r-4 border-black mb-6">
               <Gamepad2 className="w-10 h-10 text-white" />
             </div>
-            <h1 className="font-pixel text-2xl text-white uppercase tracking-tighter">
+            <h1 className="font-pixel text-2xl text-white uppercase tracking-tighter text-center">
               {isRegistering ? 'NEW PLAYER' : 'PLAYER LOGIN'}
             </h1>
-            <p className="font-pixel text-[8px] text-muted mt-2 uppercase tracking-widest">
+            <p className="font-pixel text-[8px] text-muted mt-2 uppercase tracking-widest text-center">
               {isRegistering ? 'START YOUR ADVENTURE' : 'CONTINUE YOUR ADVENTURE'}
             </p>
           </div>
@@ -150,7 +148,7 @@ export default function LoginPage() {
             <button 
               onClick={handleGoogleAuth}
               disabled={loading}
-              className="w-full bg-white text-black font-pixel text-[10px] py-3 flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="w-full bg-white text-black font-pixel text-[10px] py-4 flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

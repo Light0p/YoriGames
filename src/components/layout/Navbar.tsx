@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Search, User, Menu, LogOut, Settings } from 'lucide-react';
+import { Gamepad2, Search, User, Menu, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth } from '@/firebase';
@@ -28,8 +28,12 @@ export const Navbar = () => {
     { href: '/store', label: 'Store', color: 'text-neon-gold' },
   ];
 
-  const handleLogout = () => {
-    auth.signOut();
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
@@ -44,7 +48,7 @@ export const Navbar = () => {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
+        <div className="hidden lg:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
           {navLinks.map((link) => (
             <Link 
               key={link.href} 
@@ -69,34 +73,49 @@ export const Navbar = () => {
           
           <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
 
-          {!loading && (
+          {loading ? (
+            <div className="w-10 h-10 border-2 border-[#1B123D] animate-pulse rounded-full" />
+          ) : (
             user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="focus:outline-none">
-                  <Avatar className="border-2 border-neon-purple cursor-pointer hover:scale-105 transition-transform">
-                    <AvatarImage src={user.photoURL || undefined} />
-                    <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
-                      {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[180px]">
-                  <div className="px-3 py-2 border-b border-[#1B123D]">
-                    <p className="font-pixel text-[8px] text-muted uppercase truncate">{user.email}</p>
-                    <p className="font-pixel text-[10px] text-white uppercase mt-1 truncate">{user.displayName || 'PLAYER'}</p>
+                <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group">
+                  <div className="hidden sm:flex flex-col items-end">
+                    <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[100px]">
+                      {user.displayName || 'PLAYER'}
+                    </span>
+                    <span className="font-pixel text-[6px] text-muted uppercase truncate max-w-[100px]">
+                      {user.email}
+                    </span>
                   </div>
-                  <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-3" asChild>
+                  <div className="relative">
+                    <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
+                      <AvatarImage src={user.photoURL || undefined} />
+                      <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
+                        {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-1 -right-1 bg-[#140A2E] border border-[#1B123D] rounded-full p-0.5 sm:hidden">
+                      <ChevronDown className="w-2 h-2 text-white" />
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
+                  <div className="px-3 py-3 border-b border-[#1B123D] bg-[#09061B]/50">
+                    <p className="font-pixel text-[8px] text-white uppercase truncate">{user.displayName || 'UNNAMED PLAYER'}</p>
+                    <p className="font-pixel text-[6px] text-muted uppercase mt-1 truncate">{user.email}</p>
+                  </div>
+                  <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
                     <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
-                      <Settings className="w-3 h-3" /> PROFILE
+                      <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-[#1B123D]" />
                   <DropdownMenuItem 
-                    className="hover:bg-destructive/20 focus:bg-destructive/20 cursor-pointer py-3 text-destructive"
+                    className="hover:bg-destructive/20 focus:bg-destructive/20 cursor-pointer py-4 text-destructive"
                     onClick={handleLogout}
                   >
                     <div className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
-                      <LogOut className="w-3 h-3" /> LOGOUT
+                      <LogOut className="w-3 h-3" /> EXIT SYSTEM
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -105,13 +124,14 @@ export const Navbar = () => {
               <Link href="/login" className="block">
                 <PixelButton variant="primary" size="sm">
                   <User className="w-4 h-4" />
-                  <span>LOGIN</span>
+                  <span className="hidden sm:inline">PLAYER LOGIN</span>
+                  <span className="sm:hidden">LOGIN</span>
                 </PixelButton>
               </Link>
             )
           )}
 
-          <button className="md:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center">
+          <button className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center">
             <Menu className="w-6 h-6" />
           </button>
         </div>
