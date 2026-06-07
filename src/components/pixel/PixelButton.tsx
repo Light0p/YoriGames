@@ -24,15 +24,15 @@ export const PixelButton = ({
   };
 
   const sizes = {
-    sm: 'px-4 py-1 text-xs',
-    md: 'px-6 py-2 text-sm',
-    lg: 'px-10 py-4 text-base',
+    sm: 'px-4 py-3 sm:py-2 text-[10px] sm:text-xs min-h-[44px] sm:min-h-0',
+    md: 'px-6 py-4 sm:py-3 text-xs sm:text-sm min-h-[48px]',
+    lg: 'px-8 sm:px-10 py-5 sm:py-4 text-sm sm:text-base min-h-[56px]',
   };
 
   return (
     <button
       className={cn(
-        'relative inline-block font-pixel transition-transform active:scale-95 group',
+        'relative inline-block font-pixel transition-transform active:scale-95 group overflow-hidden touch-manipulation',
         variants[variant],
         sizes[size],
         'border-b-4 border-r-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]',
@@ -40,7 +40,7 @@ export const PixelButton = ({
       )}
       {...props}
     >
-      <span className="relative z-10 flex items-center justify-center gap-2">
+      <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
         {children}
       </span>
       {/* Pixel highlight */}

@@ -23,7 +23,7 @@
     --border: 252 55% 25%;
     --input: 252 55% 25%;
     --ring: 270 91% 65%;
-    --radius: 0rem; /* Pixel art style uses sharp corners often, but we can keep small radius for some parts */
+    --radius: 0rem;
   }
 }
 
@@ -32,7 +32,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-[#09061B] text-foreground;
+    @apply bg-[#09061B] text-foreground overflow-x-hidden w-full;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
