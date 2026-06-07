@@ -16,10 +16,10 @@ export const GameStrip = ({ title, category = "FEATURED", games = [] }: GameStri
   return (
     <div className="w-full py-8 sm:py-12 px-4 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-end justify-between mb-6 sm:mb-8">
+        <div className="flex items-end justify-between mb-8">
           <div className="flex-1">
             <div className="font-pixel text-[8px] text-neon-pink uppercase tracking-[0.2em] mb-2">{category}</div>
-            <h2 className="font-pixel text-xl sm:text-2xl text-white uppercase flex items-center gap-3">
+            <h2 className="font-pixel text-lg sm:text-2xl text-white uppercase flex items-center gap-3">
               {title}
               <div className="hidden sm:block h-1 flex-1 min-w-[50px] bg-gradient-to-r from-neon-purple to-transparent opacity-30" />
             </h2>
@@ -29,9 +29,9 @@ export const GameStrip = ({ title, category = "FEATURED", games = [] }: GameStri
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8">
           {games.map((game: any) => (
-            <Link key={game.id} href={`/games/${game.slug}`}>
+            <Link key={game.id} href={`/games/${game.slug}`} className="block">
               <GameCard 
                 title={game.title}
                 genre={game.category}

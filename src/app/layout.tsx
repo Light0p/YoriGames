@@ -94,13 +94,15 @@ export default function RootLayout({
         />
       </head>
       <body className={cn(
-        "min-h-screen bg-background font-body antialiased selection:bg-neon-purple selection:text-white overflow-x-hidden w-full",
+        "min-h-screen bg-background font-body antialiased selection:bg-neon-purple selection:text-white overflow-x-hidden w-full relative",
         inter.variable,
         pixelify.variable,
         pressStart.variable
       )}>
         <GalaxyBackground />
-        {children}
+        <div className="relative z-10 overflow-x-hidden w-full">
+          {children}
+        </div>
       </body>
     </html>
   );
