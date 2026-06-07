@@ -1,0 +1,51 @@
+
+{
+  "entities": {
+    "Game": {
+      "title": "Game",
+      "description": "Metadata for a playable arcade game.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "iframe_url": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "trending": { "type": "boolean" },
+        "date_added": { "type": "string", "format": "date" },
+        "play_count": { "type": "number" },
+        "likes": { "type": "number" },
+        "rating": { "type": "number" }
+      },
+      "required": ["id", "title", "slug", "iframe_url"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User specific data including favorites and play history.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "favorites": { "type": "array", "items": { "type": "string" }, "description": "Array of game slugs" },
+        "recent_plays": { "type": "array", "items": { "type": "string" }, "description": "Array of game slugs" },
+        "xp": { "type": "number" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/games/{gameId}": {
+      "schema": "#/backend/entities/Game",
+      "description": "Global game database for tracking real-time stats like play_count."
+    },
+    "/users/{userId}": {
+      "schema": "#/backend/entities/UserProfile",
+      "description": "User profiles for saved games and history."
+    }
+  }
+}

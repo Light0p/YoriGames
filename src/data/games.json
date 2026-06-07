@@ -1,7 +1,7 @@
 
 [
   {
-    "id": "8",
+    "id": "world-cup-soccer-caps",
     "title": "World Cup Soccer Caps",
     "slug": "world-cup-soccer-caps",
     "description": "Play World Cup Soccer Caps online for free directly in your browser. Choose your favorite team and compete in the ultimate chiptune-style soccer tournament. Precise controls and tactical gameplay await in this pixel-perfect sports challenge.",
@@ -17,7 +17,7 @@
     "rating": 5.0
   },
   {
-    "id": "1",
+    "id": "star-dash",
     "title": "Star Dash",
     "slug": "star-dash",
     "description": "Navigate your pixel starship through a treacherous asteroid field. Collect power-ups and survive as long as possible in this high-octane cosmic runner. Challenge your reflexes in a beautiful chiptune environment.",
@@ -33,7 +33,7 @@
     "rating": 4.8
   },
   {
-    "id": "2",
+    "id": "neon-city",
     "title": "Neon City",
     "slug": "neon-city",
     "description": "A cyberpunk platformer where speed is everything. Jump, slide, and hack your way through a futuristic metropolis. Collect data fragments to unlock new abilities and reach the core of the city.",
@@ -49,7 +49,7 @@
     "rating": 4.5
   },
   {
-    "id": "3",
+    "id": "cosmo-quest",
     "title": "Cosmo Quest",
     "slug": "cosmo-quest",
     "description": "Explore strange new worlds in this pixelated adventure. Solve puzzles and uncover the mysteries of the universe. Every planet has its own ecosystem and hidden secrets waiting to be discovered.",
@@ -65,7 +65,7 @@
     "rating": 4.9
   },
   {
-    "id": "4",
+    "id": "cyber-punks",
     "title": "Cyber Punks",
     "slug": "cyber-punks",
     "description": "Retro-style top-down shooter. Battle waves of rogue robots and save the city from digital chaos. Upgrade your arsenal and face massive bosses in this neon-drenched combat zone.",
@@ -81,7 +81,7 @@
     "rating": 4.2
   },
   {
-    "id": "5",
+    "id": "ocean-deep",
     "title": "Ocean Deep",
     "slug": "ocean-deep",
     "description": "Dive into the pixelated depths of the ocean. Search for lost treasures and avoid dangerous sea creatures. Manage your oxygen levels and discover ancient civilizations buried under the waves.",
@@ -97,7 +97,7 @@
     "rating": 4.7
   },
   {
-    "id": "6",
+    "id": "pixel-kicks",
     "title": "Pixel Kicks",
     "slug": "pixel-kicks",
     "description": "Fast-paced arcade soccer. Dribble, pass, and shoot your way to glory in this chiptune sports simulator. Multiple teams and tournaments to conquer.",
@@ -113,7 +113,7 @@
     "rating": 4.4
   },
   {
-    "id": "7",
+    "id": "retro-racer",
     "title": "Retro Racer",
     "slug": "retro-racer",
     "description": "A high-speed racing game with classic pixel graphics. Drift through neon-lit streets and upgrade your car to become the ultimate racer.",
