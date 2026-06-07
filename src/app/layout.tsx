@@ -1,9 +1,39 @@
-import type {Metadata} from 'next';
+
+import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'YoriGames | Play Instantly',
-  description: 'The ultimate pixel-art arcade and game launcher.',
+  title: {
+    template: '%s | YoriGames Arcade',
+    default: 'YoriGames | Play Instantly. No Downloads.',
+  },
+  description: 'Experience the galaxy\'s most curated collection of premium indie pixel-art arcade games. Play instantly in your browser.',
+  keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games'],
+  openGraph: {
+    title: 'YoriGames | Play Instantly',
+    description: 'The ultimate pixel-art arcade and game launcher.',
+    url: 'https://yorigames.app',
+    siteName: 'YoriGames',
+    images: [
+      {
+        url: 'https://picsum.photos/seed/yorigames-og/1200/630',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'YoriGames | Play Instantly',
+    description: 'The ultimate pixel-art arcade and game launcher.',
+    images: ['https://picsum.photos/seed/yorigames-og/1200/630'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
