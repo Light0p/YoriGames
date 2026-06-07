@@ -27,7 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Reactive redirect: If the user becomes authenticated, move them home
+    // Redirect when user is authenticated
     if (user && !authLoading) {
       router.push('/');
     }
@@ -43,7 +43,6 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      // No manual router.push here; useEffect handles the reactive redirect
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
       setLoading(false);
@@ -55,7 +54,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      // Redirect method handles cross-origin authentication
+      // Redirect method is more reliable in iframe/restricted environments
       await signInWithRedirect(auth, provider);
     } catch (err: any) {
       setError(err.message || 'Google authentication failed');
