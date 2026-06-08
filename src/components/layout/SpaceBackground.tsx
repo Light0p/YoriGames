@@ -7,14 +7,12 @@ export const SpaceBackground = () => {
     stars: any[];
     asteroids: any[];
     planets: any[];
-    ships: any[];
     shootingStars: any[];
     mounted: boolean;
   }>({ 
     stars: [], 
     asteroids: [], 
     planets: [], 
-    ships: [], 
     shootingStars: [],
     mounted: false 
   });
@@ -58,15 +56,7 @@ export const SpaceBackground = () => {
       left: Math.random() * 100,
     }));
 
-    // Rare Flying Pixel Ships
-    const ships = Array.from({ length: 2 }).map((_, i) => ({
-      id: i,
-      y: 15 + i * 40,
-      speed: Math.random() * 15 + 20,
-      delay: i * 8,
-    }));
-
-    setElements({ stars, asteroids, planets, ships, shootingStars, mounted: true });
+    setElements({ stars, asteroids, planets, shootingStars, mounted: true });
   }, []);
 
   if (!elements.mounted) return <div className="fixed inset-0 z-[-1] bg-[#09061B]" />;
@@ -150,29 +140,7 @@ export const SpaceBackground = () => {
         />
       ))}
 
-      {/* Pixel Spaceships Layer */}
-      {elements.ships.map((ship) => (
-        <div
-          key={`ship-${ship.id}`}
-          className="absolute w-12 h-6 bg-neon-cyan/80 flex items-center justify-center border-b-2 border-r-2 border-black"
-          style={{
-            top: `${ship.y}%`,
-            left: '-10%',
-            animation: `flyBy ${ship.speed}s linear infinite`,
-            animationDelay: `${ship.delay}s`,
-            boxShadow: '0 0 15px #22D3EE',
-          }}
-        >
-          <div className="w-4 h-full bg-neon-pink/40 absolute left-full opacity-50 blur-md animate-pulse" />
-          <div className="font-pixel text-[6px] text-black font-bold">YORI</div>
-        </div>
-      ))}
-
       <style jsx global>{`
-        @keyframes flyBy {
-          from { left: -15%; }
-          to { left: 115%; }
-        }
         @keyframes drift {
           from { transform: translate(0, 0) rotate(0deg); }
           to { transform: translate(300px, 300px) rotate(360deg); }

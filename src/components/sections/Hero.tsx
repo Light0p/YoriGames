@@ -1,11 +1,36 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight, Zap } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { getAllGames } from '@/lib/games';
 
 export const Hero = () => {
+  const db = useFirestore();
+  const [playerCount, setPlayerCount] = useState<number>(0);
+  const games = getAllGames();
+  const gameCount = games.length;
+
+  useEffect(() => {
+    // Real-time listener for user count
+    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+      setPlayerCount(snapshot.size);
+    }, (error) => {
+      console.error("Failed to sync player stats:", error);
+    });
+
+    return () => unsubscribe();
+  }, [db]);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return num.toString();
+  };
+
   return (
     <section className="relative w-full min-h-[80vh] flex items-center justify-center overflow-hidden px-4 py-16 sm:py-32">
       {/* Decorative Pixel Elements */}
@@ -50,13 +75,14 @@ export const Hero = () => {
           </Link>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 opacity-60 px-4 max-w-lg mx-auto border-t border-white/10 pt-8 sm:border-t-0 sm:pt-0">
+        {/* Real-time Stats Grid */}
+        <div className="relative z-20 mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 opacity-60 px-4 max-w-lg mx-auto border-t border-white/10 pt-8 sm:border-t-0 sm:pt-0">
           <div className="flex flex-col items-center">
-            <span className="font-pixel text-xl sm:text-2xl text-white">500+</span>
+            <span className="font-pixel text-xl sm:text-2xl text-white">{gameCount}+</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">GAMES</span>
           </div>
           <div className="flex flex-col items-center sm:border-x sm:border-white/20">
-            <span className="font-pixel text-xl sm:text-2xl text-white">10K</span>
+            <span className="font-pixel text-xl sm:text-2xl text-white">{formatNumber(playerCount)}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">PLAYERS</span>
           </div>
           <div className="flex flex-col items-center">
