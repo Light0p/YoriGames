@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Hero } from '@/components/sections/Hero';
 import { GameStrip } from '@/components/sections/GameStrip';
-import { ArcadeInsightTool } from '@/components/ai/ArcadeInsightTool';
 import { Footer } from '@/components/layout/Footer';
 import { getFeaturedGames, getTrendingGames, getNewArrivals } from '@/lib/games';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ArcadeInsightWrapper } from '@/components/ai/ArcadeInsightWrapper';
 
 export default function Home() {
   const featuredGames = getFeaturedGames();
@@ -36,7 +37,7 @@ export default function Home() {
         <GameStrip title="Trending Now" category="POPULAR" games={trendingGames} />
 
         <section className="py-20 px-4">
-          <ArcadeInsightTool />
+          <ArcadeInsightWrapper />
         </section>
 
         <GameStrip title="Featured Hits" category="FEATURED" games={featuredGames} />

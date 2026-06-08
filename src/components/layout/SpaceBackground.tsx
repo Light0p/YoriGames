@@ -92,7 +92,7 @@ export const SpaceBackground = () => {
       {elements.shootingStars.map((ss) => (
         <div 
           key={`ss-${ss.id}`}
-          className="shooting-star"
+          className="shooting-star animate-shooting"
           style={{
             top: `${ss.top}%`,
             left: `${ss.left}%`,
@@ -126,7 +126,7 @@ export const SpaceBackground = () => {
       {elements.asteroids.map((ast) => (
         <div
           key={`ast-${ast.id}`}
-          className="absolute bg-[#1B123D] border-2 border-white/10"
+          className="absolute bg-[#1B123D] border-2 border-white/10 animate-drift"
           style={{
             left: `${ast.x}%`,
             top: `${ast.y}%`,
@@ -134,34 +134,11 @@ export const SpaceBackground = () => {
             height: `${ast.size}px`,
             transform: `rotate(${ast.rotation}deg)`,
             opacity: 0.2,
-            animation: `drift ${ast.speed}s linear infinite`,
+            animationDuration: `${ast.speed}s`,
             animationDelay: `${ast.delay}s`,
           }}
         />
       ))}
-
-      <style jsx global>{`
-        @keyframes drift {
-          from { transform: translate(0, 0) rotate(0deg); }
-          to { transform: translate(300px, 300px) rotate(360deg); }
-        }
-        .shooting-star {
-          position: absolute;
-          width: 3px;
-          height: 3px;
-          background: linear-gradient(to right, #fff, transparent);
-          border-radius: 50%;
-          filter: drop-shadow(0 0 10px #fff);
-          animation: shooting linear infinite;
-          opacity: 0;
-        }
-        @keyframes shooting {
-          0% { transform: rotate(315deg) translateX(0); opacity: 0; }
-          5% { opacity: 1; }
-          15% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
-          100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };

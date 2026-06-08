@@ -43,7 +43,7 @@ export const GalaxyBackground = () => {
 
       {/* Galaxy Core / Spiral Effect */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] md:w-[100vw] md:h-[100vw] opacity-30 mix-blend-screen pointer-events-none">
-        <div className="w-full h-full relative animate-[spin-slow_60s_linear_infinite]">
+        <div className="w-full h-full relative animate-spin-slow">
           {/* Simulated Spiral Arms with Pixel Dots */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-none shadow-[0_0_20px_10px_rgba(168,85,247,0.6)]" />
@@ -71,13 +71,6 @@ export const GalaxyBackground = () => {
       {/* Decorative Glows */}
       <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[80%] rounded-full bg-neon-purple/5 blur-[120px] animate-pulse will-change-transform" />
       <div className="absolute bottom-[-10%] left-[-20%] w-[70%] h-[70%] rounded-full bg-neon-pink/5 blur-[120px] animate-pulse will-change-transform" style={{ animationDelay: '2s' }} />
-
-      <style jsx>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

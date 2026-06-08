@@ -1,19 +1,42 @@
-
 import React from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
-import { Loader2 } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
+/**
+ * High-performance, themed fallback for dynamic route transitions.
+ * Using Tailwind classes for animations to avoid styled-jsx Server Component issues.
+ */
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#09061B] overflow-hidden">
       <SpaceBackground />
-      <div className="flex flex-col items-center gap-6">
+      
+      <div className="relative z-50 flex flex-col items-center gap-8">
+        {/* Animated Core */}
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-neon-purple/20 border-t-neon-purple rounded-full animate-spin" />
-          <Loader2 className="absolute inset-0 m-auto w-6 h-6 text-neon-purple animate-pulse" />
+          {/* Pulsing Outer Ring */}
+          <div className="absolute inset-0 -m-4 border-4 border-neon-purple/10 rounded-full animate-ping" />
+          
+          {/* Rotating Spinner */}
+          <div className="w-20 h-20 border-4 border-[#1B123D] border-t-neon-purple rounded-full animate-spin" />
+          
+          {/* Inner Icon */}
+          <div className="absolute inset-0 m-auto w-8 h-8 flex items-center justify-center">
+            <Zap className="w-6 h-6 text-neon-cyan animate-pulse" />
+          </div>
         </div>
-        <div className="font-pixel text-[10px] text-white uppercase tracking-[0.3em] animate-pulse">
-          Loading Universe...
+
+        {/* Status Text */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="font-pixel text-[10px] text-white uppercase tracking-[0.5em] animate-pulse">
+            LOADING UNIVERSE...
+          </div>
+          <div className="w-48 h-1 bg-[#1B123D] overflow-hidden">
+            <div className="h-full bg-neon-purple animate-loading-bar" />
+          </div>
+          <div className="font-pixel text-[6px] text-muted-foreground uppercase tracking-widest mt-2">
+            Establishing Secure Link to Nexus-6
+          </div>
         </div>
       </div>
     </div>
