@@ -53,11 +53,10 @@ export default function LoginPage() {
     }
   };
 
+  // Immediate redirect if already logged in
   useEffect(() => {
     if (user && !authLoading && !pendingCred) {
-      syncUserToFirestore(user).then(() => {
-        router.push('/');
-      });
+      router.push('/');
     }
   }, [user, authLoading, router, pendingCred]);
 
@@ -70,6 +69,7 @@ export default function LoginPage() {
           router.push('/');
         }
       } catch (err: any) {
+        setLoading(false);
         if (err.code === 'auth/account-exists-with-different-credential') {
           const credential = GoogleAuthProvider.credentialFromError(err);
           setPendingCred(credential);
@@ -101,6 +101,7 @@ export default function LoginPage() {
       if (isRegistering) {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         await syncUserToFirestore(result.user);
+        // Redirect handled by useEffect
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         await syncUserToFirestore(userCredential.user);
@@ -110,10 +111,14 @@ export default function LoginPage() {
           setPendingCred(null);
           setSuccess("GOOGLE ACCOUNT LINKED SUCCESSFULLY! REDIRECTING...");
           setTimeout(() => router.push('/'), 2000);
+        } else {
+          router.push('/');
         }
       }
     } catch (err: any) {
       setError(err.message || 'AUTHENTICATION FAILED');
+    } finally {
+      // Ensure loading is cleared regardless of outcome if we haven't redirected
       setLoading(false);
     }
   };
@@ -125,6 +130,7 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithRedirect(auth, provider);
+      // Page will redirect away, so no need for setLoading(false) here unless redirect fails
     } catch (err: any) {
       setError(err.message || 'GOOGLE AUTHENTICATION FAILED');
       setLoading(false);

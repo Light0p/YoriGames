@@ -49,7 +49,7 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (!searchQuery.trim() || !user) {
       setSearchResults([]);
       setIsSearching(false);
       return;
@@ -140,75 +140,78 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <div className="relative" ref={searchRef}>
-            <button 
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className={cn(
-                "p-3 sm:p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
-                isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
-              )}
-            >
-              <Search className="w-5 h-5" />
-            </button>
+          {/* Search feature restricted to authenticated users */}
+          {user && (
+            <div className="relative" ref={searchRef}>
+              <button 
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className={cn(
+                  "p-3 sm:p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
+                  isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
+                )}
+              >
+                <Search className="w-5 h-5" />
+              </button>
 
-            {isSearchOpen && (
-              <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[350px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2">
-                <div className="relative mb-4">
-                  <input 
-                    type="text" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="SCAN FOR PLAYERS..."
-                    autoFocus
-                    className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-2 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple"
-                  />
-                  {isSearching && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
-                  )}
-                </div>
+              {isSearchOpen && (
+                <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[350px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2">
+                  <div className="relative mb-4">
+                    <input 
+                      type="text" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="SCAN FOR PLAYERS..."
+                      autoFocus
+                      className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-2 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple"
+                    />
+                    {isSearching && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
+                    )}
+                  </div>
 
-                <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                  {searchResults.map((player) => (
-                    <div key={player.id} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8 border border-neon-purple">
-                          <AvatarImage src={player.photoURL} />
-                          <AvatarFallback className="bg-neon-purple text-white text-[10px] font-pixel">
-                            {player.displayName?.charAt(0) || 'P'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-pixel text-[8px] text-white truncate max-w-[120px] uppercase">
-                          {player.displayName}
-                        </span>
-                      </div>
-                      
-                      {sentRequests.has(player.uid) ? (
-                        <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 flex items-center gap-1 border border-green-500">
-                          <Check className="w-3 h-3" /> SENT
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    {searchResults.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8 border border-neon-purple">
+                            <AvatarImage src={player.photoURL} />
+                            <AvatarFallback className="bg-neon-purple text-white text-[10px] font-pixel">
+                              {player.displayName?.charAt(0) || 'P'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-pixel text-[8px] text-white truncate max-w-[120px] uppercase">
+                            {player.displayName}
+                          </span>
                         </div>
-                      ) : (
-                        <button 
-                          onClick={() => handleSendFriendRequest(player.uid)}
-                          className="p-2 bg-neon-cyan text-black hover:scale-110 transition-transform border-b-2 border-r-2 border-black"
-                          title="Add Friend"
-                        >
-                          <UserPlus className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                        
+                        {sentRequests.has(player.uid) ? (
+                          <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 flex items-center gap-1 border border-green-500">
+                            <Check className="w-3 h-3" /> SENT
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => handleSendFriendRequest(player.uid)}
+                            className="p-2 bg-neon-cyan text-black hover:scale-110 transition-transform border-b-2 border-r-2 border-black"
+                            title="Add Friend"
+                          >
+                            <UserPlus className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
 
-                  {searchQuery && !isSearching && searchResults.length === 0 && (
-                    <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">No players detected.</p>
-                  )}
-                  
-                  {!searchQuery && (
-                    <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">Awaiting coordinates...</p>
-                  )}
+                    {searchQuery && !isSearching && searchResults.length === 0 && (
+                      <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">No players detected.</p>
+                    )}
+                    
+                    {!searchQuery && (
+                      <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">Awaiting coordinates...</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           
           <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
 
