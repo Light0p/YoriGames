@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2, X } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { PixelGamepad } from '@/components/pixel/PixelGamepad';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth, useFirestore } from '@/firebase';
 import { 
@@ -33,10 +32,10 @@ export const Navbar = () => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
-    { href: '/arcade', label: 'Arcade', color: 'text-neon-purple' },
-    { href: '/trending', label: 'Trending', color: 'text-neon-pink' },
-    { href: '/categories', label: 'Categories', color: 'text-neon-cyan' },
-    { href: '/store', label: 'Store', color: 'text-neon-gold' },
+    { href: '/arcade', label: 'Arcade', label_key: 'arcade', color: 'text-neon-purple' },
+    { href: '/trending', label: 'Trending', label_key: 'trending', color: 'text-neon-pink' },
+    { href: '/categories', label: 'Categories', label_key: 'categories', color: 'text-neon-cyan' },
+    { href: '/store', label: 'Store', label_key: 'store', color: 'text-neon-gold' },
   ];
 
   useEffect(() => {
@@ -117,9 +116,16 @@ export const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4">
       <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/80 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMobileMenuOpen(false)} aria-label="Home">
-          <div className="bg-neon-purple p-2 border-b-4 border-r-4 border-black group-hover:scale-110 transition-transform">
-            <PixelGamepad className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
-          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0 group-hover:scale-110 transition-transform" shapeRendering="crispEdges">
+            <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
+            <path fill="#FFFFFF" d="M6 10h2v2h2v2h-2v2H6v-2H4v-2h2v-2z"/>
+            <rect x="16" y="10" width="2" height="2" fill="#00F0FF"/>
+            <rect x="14" y="12" width="2" height="2" fill="#E046B1"/>
+            <rect x="18" y="12" width="2" height="2" fill="#E046B1"/>
+            <rect x="16" y="14" width="2" height="2" fill="#00F0FF"/>
+            <rect x="10" y="14" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+            <rect x="13" y="14" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+          </svg>
           <span className="font-pixel text-sm sm:text-xl tracking-tighter text-white group-hover:text-neon-cyan transition-colors">
             YORI<span className="text-neon-pink">GAMES</span>
           </span>

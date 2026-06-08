@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Twitter, Github, Globe } from 'lucide-react';
-import { PixelGamepad } from '@/components/pixel/PixelGamepad';
 import Link from 'next/link';
 
 export const Footer = () => {
@@ -12,10 +11,17 @@ export const Footer = () => {
     <footer className="w-full bg-[#140A2E] border-t-4 border-[#1B123D] mt-20 py-12 sm:py-16 px-4 sm:px-8">
       <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-1">
-          <Link href="/" className="flex items-center gap-3 mb-6">
-            <div className="bg-neon-purple p-2 border-b-4 border-r-4 border-black">
-              <PixelGamepad className="w-6 h-6" />
-            </div>
+          <Link href="/" className="flex items-center gap-3 mb-6 group">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-8 h-8 shrink-0 group-hover:scale-110 transition-transform" shapeRendering="crispEdges">
+              <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
+              <path fill="#FFFFFF" d="M6 10h2v2h2v2h-2v2H6v-2H4v-2h2v-2z"/>
+              <rect x="16" y="10" width="2" height="2" fill="#00F0FF"/>
+              <rect x="14" y="12" width="2" height="2" fill="#E046B1"/>
+              <rect x="18" y="12" width="2" height="2" fill="#E046B1"/>
+              <rect x="16" y="14" width="2" height="2" fill="#00F0FF"/>
+              <rect x="10" y="14" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+              <rect x="13" y="14" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
+            </svg>
             <span className="font-pixel text-xl text-white uppercase">YORIGAMES</span>
           </Link>
           <p className="font-body text-muted text-sm leading-relaxed mb-6">
