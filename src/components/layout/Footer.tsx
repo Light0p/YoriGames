@@ -5,6 +5,8 @@ import { Gamepad2, Twitter, Github, Globe } from 'lucide-react';
 import Link from 'next/link';
 
 export const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="w-full bg-[#140A2E] border-t-4 border-[#1B123D] mt-20 py-12 sm:py-16 px-4 sm:px-8">
       <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -20,15 +22,15 @@ export const Footer = () => {
             Play instantly on any device.
           </p>
           <div className="flex items-center gap-4">
-            <button className="p-3 border-2 border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <Link href="#" className="p-3 border-2 border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Twitter className="w-5 h-5" />
-            </button>
-            <button className="p-3 border-2 border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
+            </Link>
+            <Link href="#" className="p-3 border-2 border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Github className="w-5 h-5" />
-            </button>
-            <button className="p-3 border-2 border-[#1B123D] hover:border-neon-cyan hover:text-neon-cyan transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
+            </Link>
+            <Link href="#" className="p-3 border-2 border-[#1B123D] hover:border-neon-cyan hover:text-neon-cyan transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Globe className="w-5 h-5" />
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -37,19 +39,19 @@ export const Footer = () => {
             <h4 className="font-pixel text-[12px] text-white uppercase mb-6 tracking-widest">Navigation</h4>
             <ul className="space-y-4 font-headline text-muted text-sm uppercase">
               <li><Link href="/arcade" className="hover:text-neon-purple transition-colors block py-1">Arcade</Link></li>
-              <li><Link href="/trending" className="hover:text-neon-pink transition-colors block py-1">Leaderboards</Link></li>
-              <li><Link href="/categories" className="hover:text-neon-cyan transition-colors block py-1">Tournaments</Link></li>
-              <li><Link href="/store" className="hover:text-neon-gold transition-colors block py-1">Achievements</Link></li>
+              <li><Link href="/leaderboards" className="hover:text-neon-pink transition-colors block py-1">Leaderboards</Link></li>
+              <li><Link href="/tournaments" className="hover:text-neon-cyan transition-colors block py-1">Tournaments</Link></li>
+              <li><Link href="/achievements" className="hover:text-neon-gold transition-colors block py-1">Achievements</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-pixel text-[12px] text-white uppercase mb-6 tracking-widest">Support</h4>
             <ul className="space-y-4 font-headline text-muted text-sm uppercase">
-              <li><Link href="#" className="hover:text-neon-purple transition-colors block py-1">FAQ</Link></li>
-              <li><Link href="#" className="hover:text-neon-pink transition-colors block py-1">Help Center</Link></li>
-              <li><Link href="#" className="hover:text-neon-cyan transition-colors block py-1">Developers</Link></li>
-              <li><Link href="#" className="hover:text-neon-gold transition-colors block py-1">API</Link></li>
+              <li><Link href="/faq" className="hover:text-neon-purple transition-colors block py-1">FAQ</Link></li>
+              <li><Link href="/help" className="hover:text-neon-pink transition-colors block py-1">Help Center</Link></li>
+              <li><Link href="/developers" className="hover:text-neon-cyan transition-colors block py-1">Developers</Link></li>
+              <li><Link href="/api" className="hover:text-neon-gold transition-colors block py-1">API</Link></li>
             </ul>
           </div>
         </div>
@@ -62,11 +64,11 @@ export const Footer = () => {
       </div>
       
       <div className="mx-auto max-w-7xl mt-12 sm:mt-16 pt-8 border-t border-[#1B123D] flex flex-col md:flex-row items-center justify-between gap-6">
-        <p className="font-pixel text-[8px] text-muted uppercase tracking-widest">© 2024 YORIGAMES - PIXEL POWERED</p>
+        <p className="font-pixel text-[8px] text-muted uppercase tracking-widest">© {currentYear} YORIGAMES - PIXEL POWERED</p>
         <div className="flex flex-wrap justify-center gap-6 sm:gap-8 font-pixel text-[8px] text-muted uppercase tracking-widest">
-          <Link href="#" className="hover:text-white transition-colors py-2">Privacy</Link>
-          <Link href="#" className="hover:text-white transition-colors py-2">Terms</Link>
-          <Link href="#" className="hover:text-white transition-colors py-2">Cookies</Link>
+          <Link href="/privacy" className="hover:text-white transition-colors py-2">Privacy</Link>
+          <Link href="/terms" className="hover:text-white transition-colors py-2">Terms</Link>
+          <Link href="/cookies" className="hover:text-white transition-colors py-2">Cookies</Link>
         </div>
       </div>
     </footer>
