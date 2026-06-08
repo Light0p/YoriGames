@@ -1,11 +1,7 @@
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { app, firebaseConfig } from './config';
-
-let db: Firestore;
-let auth: Auth;
-let storage: FirebaseStorage;
+import { Firestore } from 'firebase/firestore';
+import { Auth } from 'firebase/auth';
+import { FirebaseStorage } from 'firebase/storage';
+import { app, auth, db, storage, firebaseConfig } from './config';
 
 export function initializeFirebase(): {
   app: any;
@@ -13,10 +9,7 @@ export function initializeFirebase(): {
   auth: Auth;
   storage: FirebaseStorage;
 } {
-  db = getFirestore(app);
-  auth = getAuth(app);
-  storage = getStorage(app);
-
+  // These are already initialized in config.ts, we just return them
   return { app, db, auth, storage };
 }
 
