@@ -1,8 +1,18 @@
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+
 export const firebaseConfig = {
-  apiKey: "AIzaSyD5mkMZbHgZHsZvoSNPOMbEZWAfSRsQ6YA",
-  authDomain: "studio-3271687317-7deb5.firebaseapp.com",
-  projectId: "studio-3271687317-7deb5",
-  storageBucket: "studio-3271687317-7deb5.firebasestorage.app",
-  messagingSenderId: "858727746326",
-  appId: "1:858727746326:web:9cf1e496278243daa85e37"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
+
+// Initialize Firebase only once
+export const app: FirebaseApp =
+  getApps().length === 0
+    ? initializeApp(firebaseConfig)
+    : getApp();
+
+export default app;
