@@ -1,10 +1,9 @@
-
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2 } from 'lucide-react';
+import { Gamepad2, Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2, X } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth, useFirestore } from '@/firebase';
@@ -25,6 +24,7 @@ export const Navbar = () => {
   const db = useFirestore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -69,7 +69,6 @@ export const Navbar = () => {
         limit(10)
       );
       
-      // Set up real-time listener
       unsubscribe = onSnapshot(q, (snapshot) => {
         const results = snapshot.docs
           .map(doc => ({ ...doc.data(), id: doc.id }))
@@ -107,6 +106,7 @@ export const Navbar = () => {
   const handleLogout = async () => {
     try {
       await auth.signOut();
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -114,8 +114,8 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4">
-      <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/80 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000]">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+      <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/80 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="bg-neon-purple p-2 border-b-4 border-r-4 border-black group-hover:scale-110 transition-transform">
             <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
@@ -124,6 +124,7 @@ export const Navbar = () => {
           </span>
         </Link>
 
+        {/* Desktop Links */}
         <div className="hidden lg:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
           {navLinks.map((link) => (
             <Link 
@@ -140,7 +141,6 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Search feature restricted to authenticated users */}
           {user && (
             <div className="relative" ref={searchRef}>
               <button 
@@ -219,57 +219,121 @@ export const Navbar = () => {
             <div className="w-10 h-10 border-2 border-[#1B123D] animate-pulse rounded-full" />
           ) : (
             user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
-                  <button className="flex items-center gap-3">
-                    <div className="hidden sm:flex items-center">
-                      <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
-                        {user.displayName || 'PLAYER'}
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
-                        <AvatarImage src={user.photoURL || undefined} />
-                        <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
-                          {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
-                  <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
-                    <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
-                      <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-[#1B123D]" />
-                  <DropdownMenuItem 
-                    className="hover:bg-destructive/20 focus:bg-destructive/20 cursor-pointer py-4 text-destructive"
-                    onClick={handleLogout}
-                  >
-                    <div className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
-                      <LogOut className="w-3 h-3" /> EXIT SYSTEM
-                    </div>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="hidden sm:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
+                    <button className="flex items-center gap-3">
+                      <div className="hidden sm:flex items-center">
+                        <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
+                          {user.displayName || 'PLAYER'}
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
+                          <AvatarImage src={user.photoURL || undefined} />
+                          <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
+                            {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
+                    <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
+                      <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
+                        <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-[#1B123D]" />
+                    <DropdownMenuItem 
+                      className="hover:bg-destructive/20 focus:bg-destructive/20 cursor-pointer py-4 text-destructive"
+                      onClick={handleLogout}
+                    >
+                      <div className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
+                        <LogOut className="w-3 h-3" /> EXIT SYSTEM
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
-              <Link href="/login" className="block">
+              <Link href="/login" className="hidden sm:block">
                 <PixelButton variant="primary" size="sm">
                   <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">PLAYER LOGIN</span>
-                  <span className="sm:hidden">LOGIN</span>
+                  <span>PLAYER LOGIN</span>
                 </PixelButton>
               </Link>
             )
           )}
 
-          <button className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center">
-            <Menu className="w-6 h-6" />
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[45] bg-[#140A2E] flex flex-col pt-24 px-6 animate-in fade-in slide-in-from-top-4">
+          <div className="flex flex-col gap-6 items-center w-full">
+            {user && (
+              <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-[#1B123D] w-full">
+                <Avatar className="w-20 h-20 border-4 border-neon-purple">
+                  <AvatarImage src={user.photoURL || undefined} />
+                  <AvatarFallback className="bg-neon-purple text-white font-pixel text-lg uppercase">
+                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-pixel text-xs text-white uppercase">{user.displayName || 'PLAYER'}</span>
+                <Link 
+                  href="/profile" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="font-pixel text-[8px] text-neon-cyan uppercase hover:underline"
+                >
+                  Dossier Settings
+                </Link>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-8 items-center w-full font-pixel text-xs tracking-[0.2em] uppercase">
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.href} 
+                  href={link.href} 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "transition-all py-2 w-full text-center",
+                    pathname === link.href ? link.color : "text-muted active:text-white"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-12 w-full">
+              {user ? (
+                <PixelButton 
+                  variant="secondary" 
+                  className="w-full py-6"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-5 h-5" /> EXIT SYSTEM
+                </PixelButton>
+              ) : (
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <PixelButton variant="primary" className="w-full py-6">
+                    <User className="w-5 h-5" /> PLAYER LOGIN
+                  </PixelButton>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
