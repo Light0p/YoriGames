@@ -32,6 +32,7 @@
         "displayName": { "type": "string" },
         "photoURL": { "type": "string" },
         "email": { "type": "string" },
+        "searchName": { "type": "string", "description": "Lowercase version of displayName for case-insensitive searching." },
         "favorites": { "type": "array", "items": { "type": "string" }, "description": "Array of game slugs" },
         "recent_plays": { "type": "array", "items": { "type": "string" }, "description": "Array of game slugs" },
         "xp": { "type": "number" }

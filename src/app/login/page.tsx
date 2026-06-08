@@ -43,7 +43,7 @@ export default function LoginPage() {
       await setDoc(userRef, {
         uid: user.uid,
         displayName: displayName,
-        username: displayName.toLowerCase(), // Added for case-insensitive search
+        searchName: displayName.toLowerCase(),
         photoURL: user.photoURL || '',
         email: user.email || '',
         lastSeen: serverTimestamp()

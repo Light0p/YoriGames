@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -49,7 +49,7 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.length < 1) {
+    if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
     }
@@ -58,13 +58,12 @@ export const Navbar = () => {
       setIsSearching(true);
       try {
         const usersRef = collection(db, 'users');
-        const searchInput = searchQuery.toLowerCase();
+        const normalizedInput = searchQuery.toLowerCase();
         
-        // Case-insensitive prefix matching using range query
         const q = query(
           usersRef, 
-          where('username', '>=', searchInput),
-          where('username', '<=', searchInput + '\uf8ff'),
+          where('searchName', '>=', normalizedInput),
+          where('searchName', '<=', normalizedInput + '\uf8ff'),
           limit(10)
         );
         
@@ -75,12 +74,11 @@ export const Navbar = () => {
           
         setSearchResults(results);
       } catch (error) {
-        // Silent themed error handling
         setSearchResults([]);
       } finally {
         setIsSearching(false);
       }
-    }, 300); // Updated to 300ms debounce
+    }, 300);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, db, user?.uid]);
