@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +5,8 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { Mail, Lock, Gamepad2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PixelGamepad } from '@/components/pixel/PixelGamepad';
+import { Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { 
   signInWithEmailAndPassword, 
@@ -155,7 +155,7 @@ export default function LoginPage() {
         <div className="bg-[#140A2E] border-4 border-[#1B123D] p-8 shadow-[8px_8px_0_0_#000]">
           <div className="flex flex-col items-center mb-10">
             <div className="bg-neon-purple p-3 border-b-4 border-r-4 border-black mb-6">
-              <Gamepad2 className="w-10 h-10 text-white" />
+              <PixelGamepad className="w-10 h-10" />
             </div>
             <h1 className="font-pixel text-2xl text-white uppercase tracking-tighter text-center">
               {isRegistering ? 'NEW PLAYER' : 'PLAYER LOGIN'}

@@ -1,7 +1,8 @@
 "use client"
 
 import React from 'react';
-import { Gamepad2, Twitter, Github, Globe } from 'lucide-react';
+import { Twitter, Github, Globe } from 'lucide-react';
+import { PixelGamepad } from '@/components/pixel/PixelGamepad';
 import Link from 'next/link';
 
 export const Footer = () => {
@@ -13,7 +14,7 @@ export const Footer = () => {
         <div className="col-span-1 md:col-span-1">
           <Link href="/" className="flex items-center gap-3 mb-6">
             <div className="bg-neon-purple p-2 border-b-4 border-r-4 border-black">
-              <Gamepad2 className="w-6 h-6 text-white" />
+              <PixelGamepad className="w-6 h-6" />
             </div>
             <span className="font-pixel text-xl text-white uppercase">YORIGAMES</span>
           </Link>

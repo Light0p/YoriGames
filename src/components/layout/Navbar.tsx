@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2, X } from 'lucide-react';
+import { Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2, X } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
+import { PixelGamepad } from '@/components/pixel/PixelGamepad';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth, useFirestore } from '@/firebase';
 import { 
@@ -117,7 +118,7 @@ export const Navbar = () => {
       <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/80 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMobileMenuOpen(false)} aria-label="Home">
           <div className="bg-neon-purple p-2 border-b-4 border-r-4 border-black group-hover:scale-110 transition-transform">
-            <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
+            <PixelGamepad className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
           </div>
           <span className="font-pixel text-sm sm:text-xl tracking-tighter text-white group-hover:text-neon-cyan transition-colors">
             YORI<span className="text-neon-pink">GAMES</span>
