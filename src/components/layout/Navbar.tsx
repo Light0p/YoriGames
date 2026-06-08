@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Search, User, Menu, LogOut, Settings, ChevronDown, UserPlus, Check, X, Loader2 } from 'lucide-react';
+import { Gamepad2, Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2 } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth, useFirestore } from '@/firebase';
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, limit, startAt, endAt, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, limit, orderBy } from 'firebase/firestore';
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -49,7 +49,7 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
+    if (!searchQuery.trim() || searchQuery.length < 1) {
       setSearchResults([]);
       return;
     }
@@ -58,25 +58,29 @@ export const Navbar = () => {
       setIsSearching(true);
       try {
         const usersRef = collection(db, 'users');
-        // Simple case-sensitive prefix search
+        const searchInput = searchQuery.toLowerCase();
+        
+        // Case-insensitive prefix matching using range query
         const q = query(
           usersRef, 
-          orderBy('displayName'),
-          startAt(searchQuery), 
-          endAt(searchQuery + '\uf8ff'),
-          limit(5)
+          where('username', '>=', searchInput),
+          where('username', '<=', searchInput + '\uf8ff'),
+          limit(10)
         );
+        
         const querySnapshot = await getDocs(q);
         const results = querySnapshot.docs
           .map(doc => doc.data())
-          .filter(u => u.uid !== user?.uid); // Don't show current user
+          .filter(u => u.uid !== user?.uid); 
+          
         setSearchResults(results);
       } catch (error) {
-        console.error("Search failed", error);
+        // Silent themed error handling
+        setSearchResults([]);
       } finally {
         setIsSearching(false);
       }
-    }, 500);
+    }, 300); // Updated to 300ms debounce
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, db, user?.uid]);

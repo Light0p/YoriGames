@@ -46,6 +46,7 @@ export default function ProfilePage() {
     await setDoc(userRef, {
       uid: user.uid,
       displayName: name,
+      username: name.toLowerCase(), // Added for case-insensitive search
       photoURL: url,
       email: user.email || '',
       lastUpdated: serverTimestamp()

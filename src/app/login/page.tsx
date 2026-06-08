@@ -39,9 +39,11 @@ export default function LoginPage() {
   const syncUserToFirestore = async (user: User) => {
     try {
       const userRef = doc(db, 'users', user.uid);
+      const displayName = user.displayName || 'Unnamed Player';
       await setDoc(userRef, {
         uid: user.uid,
-        displayName: user.displayName || 'Unnamed Player',
+        displayName: displayName,
+        username: displayName.toLowerCase(), // Added for case-insensitive search
         photoURL: user.photoURL || '',
         email: user.email || '',
         lastSeen: serverTimestamp()
