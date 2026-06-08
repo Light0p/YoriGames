@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Fallback strings prevent Next.js server-side build crashes
+// Fallback strings to prevent build-time crashes if envs are missing
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock_key",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "mock_domain",
@@ -17,7 +17,8 @@ let app;
 try {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 } catch (error) {
-  console.warn("Firebase initialization bypassed during build step:", error);
+  // Silent fallback for CI/CD environments
+  console.warn("Firebase initialization skipped during build:", error);
 }
 
 const auth = app ? getAuth(app) : null;

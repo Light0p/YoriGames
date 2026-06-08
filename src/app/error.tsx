@@ -14,7 +14,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an analytics service
+    // TODO: Connect error reporting service like Sentry
     console.error('System Critical Failure:', error);
   }, [error]);
 

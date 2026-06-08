@@ -1,15 +1,9 @@
 'use server';
-/**
- * @fileOverview A Genkit flow for searching games based on a natural language description.
- *
- * - gameSearchByDescription - A function that handles the game search process.
- * - GameSearchByDescriptionInput - The input type for the gameSearchByDescription function.
- * - GameSearchByDescriptionOutput - The return type for the gameSearchByDescription function.
- */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// Genkit flow for natural language game discovery
 const GameSearchByDescriptionInputSchema = z.object({
   description: z
     .string()

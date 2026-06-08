@@ -16,7 +16,6 @@ export default function APIPage() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 py-24 sm:px-8 flex flex-col lg:flex-row gap-16">
-        {/* Sidebar Nav */}
         <aside className="lg:w-64 flex-shrink-0">
           <div className="sticky top-32 space-y-10">
             <div>
@@ -38,7 +37,6 @@ export default function APIPage() {
           </div>
         </aside>
 
-        {/* Content Area */}
         <div className="flex-1 max-w-4xl">
           <div className="mb-16">
             <h1 className="font-pixel text-4xl text-white uppercase tracking-tighter mb-6">
