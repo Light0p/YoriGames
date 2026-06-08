@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -51,36 +51,42 @@ export const Navbar = () => {
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
-    const delayDebounceFn = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const usersRef = collection(db, 'users');
-        const normalizedInput = searchQuery.toLowerCase();
-        
-        const q = query(
-          usersRef, 
-          where('searchName', '>=', normalizedInput),
-          where('searchName', '<=', normalizedInput + '\uf8ff'),
-          limit(10)
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const results = querySnapshot.docs
-          .map(doc => doc.data())
-          .filter(u => u.uid !== user?.uid); 
+    let unsubscribe: () => void;
+    setIsSearching(true);
+
+    const delayDebounceFn = setTimeout(() => {
+      const usersRef = collection(db, 'users');
+      const normalizedInput = searchQuery.toLowerCase();
+      
+      const q = query(
+        usersRef, 
+        where('searchName', '>=', normalizedInput),
+        where('searchName', '<=', normalizedInput + '\uf8ff'),
+        limit(10)
+      );
+      
+      // Set up real-time listener
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const results = snapshot.docs
+          .map(doc => ({ ...doc.data(), id: doc.id }))
+          .filter((u: any) => u.uid !== user?.uid); 
           
         setSearchResults(results);
-      } catch (error) {
-        setSearchResults([]);
-      } finally {
         setIsSearching(false);
-      }
+      }, (error) => {
+        console.error("Real-time player search failed:", error);
+        setIsSearching(false);
+      });
     }, 300);
 
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      clearTimeout(delayDebounceFn);
+      if (unsubscribe) unsubscribe();
+    };
   }, [searchQuery, db, user?.uid]);
 
   const handleSendFriendRequest = async (receiverId: string) => {
@@ -163,7 +169,7 @@ export const Navbar = () => {
 
                 <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
                   {searchResults.map((player) => (
-                    <div key={player.uid} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
+                    <div key={player.id} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8 border border-neon-purple">
                           <AvatarImage src={player.photoURL} />
@@ -211,20 +217,22 @@ export const Navbar = () => {
           ) : (
             user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group">
-                  <div className="hidden sm:flex items-center">
-                    <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
-                      {user.displayName || 'PLAYER'}
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
-                      <AvatarImage src={user.photoURL || undefined} />
-                      <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
-                        {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
+                <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
+                  <button className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center">
+                      <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
+                        {user.displayName || 'PLAYER'}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
+                        <AvatarImage src={user.photoURL || undefined} />
+                        <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
+                          {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
                   <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
