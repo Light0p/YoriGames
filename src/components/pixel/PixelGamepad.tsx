@@ -7,8 +7,6 @@ export const PixelGamepad = ({ className }: { className?: string }) => (
     className={className}
     shapeRendering="crispEdges"
   >
-    <rect width="24" height="24" fill="#1A153A" rx="4"/>
-    
     <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
     
     <path fill="#FFFFFF" d="M6 10h2v2h2v2h-2v2H6v-2H4v-2h2v-2z"/>
