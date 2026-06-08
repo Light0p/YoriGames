@@ -115,9 +115,9 @@ export const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4">
       <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/80 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMobileMenuOpen(false)}>
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMobileMenuOpen(false)} aria-label="Home">
           <div className="bg-neon-purple p-2 border-b-4 border-r-4 border-black group-hover:scale-110 transition-transform">
-            <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
           </div>
           <span className="font-pixel text-sm sm:text-xl tracking-tighter text-white group-hover:text-neon-cyan transition-colors">
             YORI<span className="text-neon-pink">GAMES</span>
@@ -145,6 +145,7 @@ export const Navbar = () => {
             <div className="relative" ref={searchRef}>
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
+                aria-label="Search Players"
                 className={cn(
                   "p-3 sm:p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
                   isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
@@ -174,7 +175,7 @@ export const Navbar = () => {
                       <div key={player.id} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8 border border-neon-purple">
-                            <AvatarImage src={player.photoURL} />
+                            <AvatarImage src={player.photoURL} alt={player.displayName} />
                             <AvatarFallback className="bg-neon-purple text-white text-[10px] font-pixel">
                               {player.displayName?.charAt(0) || 'P'}
                             </AvatarFallback>
@@ -192,7 +193,7 @@ export const Navbar = () => {
                           <button 
                             onClick={() => handleSendFriendRequest(player.uid)}
                             className="p-2 bg-neon-cyan text-black hover:scale-110 transition-transform border-b-2 border-r-2 border-black"
-                            title="Add Friend"
+                            aria-label={`Send friend request to ${player.displayName}`}
                           >
                             <UserPlus className="w-3 h-3" />
                           </button>
@@ -222,7 +223,7 @@ export const Navbar = () => {
               <div className="hidden sm:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
-                    <button className="flex items-center gap-3">
+                    <button className="flex items-center gap-3" aria-label="User Menu">
                       <div className="hidden sm:flex items-center">
                         <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
                           {user.displayName || 'PLAYER'}
@@ -230,7 +231,7 @@ export const Navbar = () => {
                       </div>
                       <div className="relative">
                         <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
-                          <AvatarImage src={user.photoURL || undefined} />
+                          <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User Avatar'} />
                           <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
                             {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
                           </AvatarFallback>
@@ -268,6 +269,8 @@ export const Navbar = () => {
 
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
             className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -282,7 +285,7 @@ export const Navbar = () => {
             {user && (
               <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-[#1B123D] w-full">
                 <Avatar className="w-20 h-20 border-4 border-neon-purple">
-                  <AvatarImage src={user.photoURL || undefined} />
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User Avatar'} />
                   <AvatarFallback className="bg-neon-purple text-white font-pixel text-lg uppercase">
                     {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
                   </AvatarFallback>
