@@ -98,6 +98,16 @@
     100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
   }
 
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; filter: brightness(1); }
+    50% { opacity: 0.8; filter: brightness(1.5); }
+  }
+
   .animate-spin-slow {
     animation: spin-slow 60s linear infinite;
   }
@@ -107,11 +117,19 @@
   }
 
   .animate-drift {
-    animation: drift var(--drift-duration, 50s) linear infinite;
+    animation: drift 50s linear infinite;
   }
 
   .animate-shooting {
-    animation: shooting linear infinite;
+    animation: shooting 4s linear infinite;
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 
   .shooting-star {
@@ -122,5 +140,18 @@
     border-radius: 50%;
     filter: drop-shadow(0 0 10px #fff);
     opacity: 0;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #09061B;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #1B123D;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #A855F7;
   }
 }

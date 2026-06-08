@@ -79,8 +79,7 @@ export default function HelpPage() {
             </div>
           </div>
           <div className="hidden md:block">
-            <div className="w-48 h-48 bg-[#140A2E] border-4 border-neon-pink p-8 flex items-center justify-center animate-float">
-               {/* Replaced unimported Radio icon with native SVG signal icon */}
+            <div className="w-48 h-48 bg-[#140A2E] border-4 border-neon-pink p-8 flex items-center justify-center">
                <svg 
                  viewBox="0 0 24 24" 
                  fill="none" 
@@ -88,7 +87,7 @@ export default function HelpPage() {
                  strokeWidth="2" 
                  strokeLinecap="round" 
                  strokeLinejoin="round" 
-                 className="w-20 h-20 text-neon-pink"
+                 className="w-20 h-20 text-neon-pink animate-pulse"
                >
                  <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" />
                  <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" />
