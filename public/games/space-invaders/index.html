@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Space Invaders - YoriGames</title>
+  <style>
+    body { background: #000; color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: monospace; overflow: hidden; }
+    canvas { background: #000; border: 4px solid #1B123D; }
+    #score { font-size: 24px; margin-bottom: 10px; color: #22D3EE; }
+  </style>
+</head>
+<body>
+  <div id="score">SCORE: 0</div>
+  <canvas id="game" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+
+    let score = 0, player = { x: 280, y: 360, w: 40, h: 20 }, bullets = [], enemies = [];
+    let enemyRows = 4, enemyCols = 8, enemyW = 40, enemyH = 20, enemyDir = 1, enemySpeed = 1;
+
+    for (let r=0; r<enemyRows; r++) {
+      for (let c=0; c<enemyCols; c++) {
+        enemies.push({ x: 50 + c*60, y: 30 + r*40, w: enemyW, h: enemyH, alive: true });
+      }
+    }
+
+    document.onkeydown = e => {
+      if (e.keyCode === 37 && player.x > 0) player.x -= 20;
+      if (e.keyCode === 39 && player.x < 560) player.x += 20;
+      if (e.keyCode === 32) bullets.push({ x: player.x + 18, y: player.y, w: 4, h: 10 });
+    };
+
+    function loop() {
+      ctx.clearRect(0,0,600,400);
+      ctx.fillStyle = '#0F0'; ctx.fillRect(player.x, player.y, player.w, player.h);
+      
+      let moveDown = false;
+      enemies.forEach(e => {
+        if (!e.alive) return;
+        ctx.fillStyle = '#F00'; ctx.fillRect(e.x, e.y, e.w, e.h);
+        e.x += enemyDir * enemySpeed;
+        if (e.x > 560 || e.x < 0) moveDown = true;
+        if (e.y > 340) { alert('GAME OVER'); document.location.reload(); }
+      });
+
+      if (moveDown) { enemyDir *= -1; enemies.forEach(e => e.y += 10); }
+
+      bullets.forEach((b, bi) => {
+        ctx.fillStyle = '#FF0'; ctx.fillRect(b.x, b.y, b.w, b.h);
+        b.y -= 5;
+        if (b.y < 0) bullets.splice(bi, 1);
+        enemies.forEach(e => {
+          if (e.alive && b.x > e.x && b.x < e.x + e.w && b.y > e.y && b.y < e.y + e.h) {
+            e.alive = false; bullets.splice(bi, 1); score += 100;
+            scoreEl.innerText = 'SCORE: ' + score;
+          }
+        });
+      });
+
+      if (enemies.every(e => !e.alive)) { alert('VICTORY!'); document.location.reload(); }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

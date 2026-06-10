@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pong - YoriGames</title>
+  <style>
+    body { background: #000; color: #fff; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: monospace; }
+    canvas { border: 2px solid #fff; }
+    #score { position: absolute; top: 20px; font-size: 32px; }
+  </style>
+</head>
+<body>
+  <div id="score">0 - 0</div>
+  <canvas id="pong" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('pong');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+
+    const ball = { x: 300, y: 200, dx: 4, dy: 4, radius: 10 };
+    const p1 = { x: 10, y: 150, w: 10, h: 100, score: 0 };
+    const p2 = { x: 580, y: 150, w: 10, h: 100, score: 0 };
+
+    function draw() {
+      ctx.fillStyle = '#000'; ctx.fillRect(0,0,600,400);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(p1.x, p1.y, p1.w, p1.h);
+      ctx.fillRect(p2.x, p2.y, p2.w, p2.h);
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2); ctx.fill();
+    }
+
+    function update() {
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.y < 0 || ball.y > 400) ball.dy *= -1;
+      
+      if (ball.x < 0) { p2.score++; reset(); }
+      if (ball.x > 600) { p1.score++; reset(); }
+
+      if (ball.x < p1.x + p1.w && ball.y > p1.y && ball.y < p1.y + p1.h) ball.dx *= -1;
+      if (ball.x > p2.x - ball.radius && ball.y > p2.y && ball.y < p2.y + p2.h) ball.dx *= -1;
+
+      p2.y += (ball.y - (p2.y + p2.h/2)) * 0.1;
+      scoreEl.innerText = p1.score + ' - ' + p2.score;
+    }
+
+    function reset() {
+      ball.x = 300; ball.y = 200; ball.dx *= -1;
+    }
+
+    window.addEventListener('mousemove', e => {
+      let rect = canvas.getBoundingClientRect();
+      p1.y = e.clientY - rect.top - p1.h/2;
+    });
+
+    function loop() { draw(); update(); requestAnimationFrame(loop); }
+    loop();
+  </script>
+</body>
+</html>

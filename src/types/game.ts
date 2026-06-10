@@ -13,4 +13,5 @@ export interface Game {
   play_count: number;
   likes: number;
   rating: number;
+  game_source: 'local' | 'gamedistribution';
 }

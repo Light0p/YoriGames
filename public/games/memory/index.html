@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Memory Match - YoriGames</title>
+  <style>
+    body { background: #09061B; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+    .grid { display: grid; grid-template-columns: repeat(4, 80px); gap: 10px; }
+    .card { width: 80px; height: 80px; background: #A855F7; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 32px; border-radius: 4px; transform-style: preserve-3d; transition: transform 0.5s; position: relative; }
+    .card.flipped { transform: rotateY(180deg); }
+    .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+    .card-front { background: #1B123D; border: 2px solid #A855F7; }
+    .card-back { background: #EC4899; transform: rotateY(180deg); }
+    #info { margin-bottom: 20px; font-size: 20px; color: #22D3EE; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="info">MOVES: 0</div>
+  <div class="grid" id="grid"></div>
+  <script>
+    const icons = ['⭐','🚀','👾','💎','🌙','🔥','⚡','🌈'];
+    let cards = [...icons, ...icons], flipped = [], matched = 0, moves = 0;
+    const grid = document.getElementById('grid');
+    const info = document.getElementById('info');
+
+    function init() {
+      cards.sort(() => Math.random() - 0.5);
+      cards.forEach((icon, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<div class="card-front"></div><div class="card-back">${icon}</div>`;
+        card.onclick = () => flip(card, icon);
+        grid.appendChild(card);
+      });
+    }
+
+    function flip(card, icon) {
+      if (flipped.length === 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+      card.classList.add('flipped');
+      flipped.push({card, icon});
+      if (flipped.length === 2) {
+        moves++; info.innerText = 'MOVES: ' + moves;
+        if (flipped[0].icon === flipped[1].icon) {
+          flipped.forEach(f => f.card.classList.add('matched'));
+          matched++; flipped = [];
+          if (matched === icons.length) setTimeout(() => alert('CLEARED!'), 500);
+        } else {
+          setTimeout(() => {
+            flipped.forEach(f => f.card.classList.remove('flipped'));
+            flipped = [];
+          }, 1000);
+        }
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

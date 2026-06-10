@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minesweeper - YoriGames</title>
+  <style>
+    body { background: #09061B; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+    #grid { display: grid; grid-template-columns: repeat(10, 30px); gap: 2px; background: #1B123D; padding: 4px; border-radius: 4px; }
+    .cell { width: 30px; height: 30px; background: #2A225A; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 14px; user-select: none; }
+    .cell.revealed { background: #140A2E; cursor: default; }
+    .cell.mine { background: #EF4444; }
+    .cell.flag { color: #FFD34D; }
+    #status { margin-bottom: 10px; font-size: 20px; color: #A855F7; }
+  </style>
+</head>
+<body>
+  <div id="status">Mines: 10</div>
+  <div id="grid"></div>
+  <script>
+    const size = 10, mines = 10;
+    const grid = document.getElementById('grid');
+    const status = document.getElementById('status');
+    let board = [], revealedCount = 0, gameOver = false;
+
+    function init() {
+      board = Array(size).fill().map(() => Array(size).fill(0));
+      let placed = 0;
+      while (placed < mines) {
+        let r = Math.floor(Math.random()*size), c = Math.floor(Math.random()*size);
+        if (board[r][c] !== 'M') { board[r][c] = 'M'; placed++; }
+      }
+      for (let r=0; r<size; r++) {
+        for (let c=0; c<size; c++) {
+          if (board[r][c] === 'M') continue;
+          let count = 0;
+          for (let dr=-1; dr<=1; dr++) {
+            for (let dc=-1; dc<=1; dc++) {
+              if (r+dr>=0 && r+dr<size && c+dc>=0 && c+dc<size && board[r+dr][c+dc] === 'M') count++;
+            }
+          }
+          board[r][c] = count;
+        }
+      }
+      render();
+    }
+
+    function render() {
+      grid.innerHTML = '';
+      for (let r=0; r<size; r++) {
+        for (let c=0; c<size; c++) {
+          const el = document.createElement('div');
+          el.className = 'cell';
+          el.onclick = () => reveal(r, c);
+          el.oncontextmenu = (e) => { e.preventDefault(); flag(r, c); };
+          grid.appendChild(el);
+          board[r][c].el = el;
+        }
+      }
+    }
+
+    function reveal(r, c) {
+      if (gameOver || board[r][c].revealed || board[r][c].flagged) return;
+      board[r][c].revealed = true; revealedCount++;
+      const el = board[r][c].el;
+      el.classList.add('revealed');
+      if (board[r][c] === 'M') {
+        el.classList.add('mine'); el.innerText = '💣'; gameOver = true; alert('BOOM!');
+      } else {
+        if (board[r][c] > 0) el.innerText = board[r][c];
+        else {
+          for (let dr=-1; dr<=1; dr++) {
+            for (let dc=-1; dc<=1; dc++) {
+              if (r+dr>=0 && r+dr<size && c+dc>=0 && c+dc<size) reveal(r+dr, c+dc);
+            }
+          }
+        }
+      }
+      if (revealedCount === size*size - mines) { alert('YOU WIN!'); gameOver = true; }
+    }
+
+    function flag(r, c) {
+      if (gameOver || board[r][c].revealed) return;
+      board[r][c].flagged = !board[r][c].flagged;
+      board[r][c].el.innerText = board[r][c].flagged ? '🚩' : '';
+      board[r][c].el.classList.toggle('flag');
+    }
+
+    init();
+  </script>
+</body>
+</html>

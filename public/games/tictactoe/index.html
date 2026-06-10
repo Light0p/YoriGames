@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tic Tac Toe - YoriGames</title>
+  <style>
+    body { background: #09061B; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+    .grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; background: #1B123D; padding: 10px; border-radius: 8px; }
+    .cell { width: 100px; height: 100px; background: #2A225A; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 48px; font-weight: bold; border-radius: 4px; transition: background 0.2s; }
+    .cell:hover { background: #352B6D; }
+    .cell.x { color: #EC4899; }
+    .cell.o { color: #22D3EE; }
+    #status { margin-bottom: 20px; font-size: 24px; color: #A855F7; font-weight: bold; }
+    button { margin-top: 20px; padding: 10px 20px; background: #A855F7; border: none; color: #fff; cursor: pointer; font-weight: bold; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div id="status">X's TURN</div>
+  <div class="grid" id="grid">
+    <div class="cell" onclick="play(0)"></div>
+    <div class="cell" onclick="play(1)"></div>
+    <div class="cell" onclick="play(2)"></div>
+    <div class="cell" onclick="play(3)"></div>
+    <div class="cell" onclick="play(4)"></div>
+    <div class="cell" onclick="play(5)"></div>
+    <div class="cell" onclick="play(6)"></div>
+    <div class="cell" onclick="play(7)"></div>
+    <div class="cell" onclick="play(8)"></div>
+  </div>
+  <button onclick="reset()">RESET GAME</button>
+  <script>
+    let turn = 'X', board = Array(9).fill(null), gameOver = false;
+    const status = document.getElementById('status');
+    const cells = document.querySelectorAll('.cell');
+
+    function play(idx) {
+      if (gameOver || board[idx]) return;
+      board[idx] = turn;
+      cells[idx].innerText = turn;
+      cells[idx].classList.add(turn.toLowerCase());
+      if (checkWin()) { status.innerText = turn + ' WINS!'; gameOver = true; }
+      else if (board.every(b => b)) { status.innerText = 'DRAW!'; gameOver = true; }
+      else { turn = turn === 'X' ? 'O' : 'X'; status.innerText = turn + "'s TURN"; }
+    }
+
+    function checkWin() {
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      return wins.some(([a,b,c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
+    }
+
+    function reset() {
+      board = Array(9).fill(null); gameOver = false; turn = 'X';
+      status.innerText = "X's TURN";
+      cells.forEach(c => { c.innerText = ''; c.className = 'cell'; });
+    }
+  </script>
+</body>
+</html>

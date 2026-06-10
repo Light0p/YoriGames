@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hextris Lite - YoriGames</title>
+  <style>
+    body { background: #09061B; color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; overflow: hidden; }
+    canvas { background: #000; border: 4px solid #1B123D; border-radius: 50%; }
+    #ui { font-size: 24px; margin-bottom: 10px; color: #FFD34D; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="ui">SCORE: 0</div>
+  <canvas id="hextris" width="400" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('hextris');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('ui');
+    let angle = 0, score = 0, blocks = [], speed = 2, lastBlock = 0;
+    const colors = ['#A855F7', '#EC4899', '#22D3EE', '#FFD34D'];
+
+    function drawHex() {
+      ctx.save(); ctx.translate(200, 200); ctx.rotate(angle);
+      ctx.beginPath();
+      for (let i=0; i<6; i++) {
+        let a = i * Math.PI / 3;
+        ctx.lineTo(60 * Math.cos(a), 60 * Math.sin(a));
+      }
+      ctx.closePath(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.stroke();
+      ctx.restore();
+    }
+
+    function addBlock() {
+      let side = Math.floor(Math.random() * 6);
+      blocks.push({ side, dist: 300, color: colors[Math.floor(Math.random()*4)] });
+    }
+
+    function loop() {
+      ctx.clearRect(0,0,400,400);
+      drawHex();
+      if (Date.now() - lastBlock > 1500) { addBlock(); lastBlock = Date.now(); }
+
+      blocks.forEach((b, i) => {
+        b.dist -= speed;
+        let sideAngle = b.side * Math.PI / 3 + angle;
+        let x = 200 + b.dist * Math.cos(sideAngle);
+        let y = 200 + b.dist * Math.sin(sideAngle);
+        ctx.fillStyle = b.color; ctx.fillRect(x-10, y-10, 20, 20);
+
+        if (b.dist < 60) {
+          let currentSide = Math.round((Math.atan2(y-200, x-200) - angle) / (Math.PI/3) + 6) % 6;
+          // Simple collision check
+          score += 10; scoreEl.innerText = 'SCORE: ' + score;
+          blocks.splice(i, 1); speed += 0.05;
+        }
+      });
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') angle -= 0.2;
+      if (e.key === 'ArrowRight') angle += 0.2;
+    });
+
+    loop();
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>2048 - YoriGames</title>
+  <style>
+    body { background: #09061B; color: #fff; font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    #container { background: #1B123D; padding: 10px; border-radius: 6px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .grid { display: grid; grid-template-columns: repeat(4, 80px); grid-template-rows: repeat(4, 80px); gap: 10px; }
+    .cell { background: rgba(255,255,255,0.05); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; transition: all 0.1s; }
+    .cell[data-value="2"] { background: #A855F7; color: #fff; }
+    .cell[data-value="4"] { background: #9333EA; color: #fff; }
+    .cell[data-value="8"] { background: #7E22CE; color: #fff; }
+    .cell[data-value="16"] { background: #EC4899; color: #fff; }
+    .cell[data-value="32"] { background: #DB2777; color: #fff; }
+    .cell[data-value="64"] { background: #BE185D; color: #fff; }
+    .cell[data-value="128"] { background: #22D3EE; color: #000; font-size: 28px; }
+    .cell[data-value="256"] { background: #0891B2; color: #000; font-size: 28px; }
+    .cell[data-value="512"] { background: #FFD34D; color: #000; font-size: 28px; }
+    .cell[data-value="1024"] { background: #F59E0B; color: #000; font-size: 24px; }
+    .cell[data-value="2048"] { background: #FBBF24; color: #000; font-size: 24px; box-shadow: 0 0 10px #FBBF24; }
+    #score { font-size: 24px; margin-bottom: 20px; font-weight: bold; color: #A855F7; }
+  </style>
+</head>
+<body>
+  <div id="score">SCORE: 0</div>
+  <div id="container">
+    <div class="grid" id="grid"></div>
+  </div>
+  <script>
+    let board = Array(16).fill(0);
+    let score = 0;
+    const gridEl = document.getElementById('grid');
+    const scoreEl = document.getElementById('score');
+
+    function init() {
+      addTile(); addTile(); render();
+    }
+
+    function addTile() {
+      let empty = board.map((v, i) => v === 0 ? i : null).filter(v => v !== null);
+      if (empty.length > 0) {
+        board[empty[Math.floor(Math.random() * empty.length)]] = Math.random() < 0.9 ? 2 : 4;
+      }
+    }
+
+    function render() {
+      gridEl.innerHTML = '';
+      board.forEach(val => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (val > 0) {
+          cell.innerText = val;
+          cell.setAttribute('data-value', val);
+        }
+        gridEl.appendChild(cell);
+      });
+      scoreEl.innerText = `SCORE: ${score}`;
+    }
+
+    function move(dir) {
+      let moved = false;
+      const rows = [];
+      for (let i = 0; i < 4; i++) {
+        if (dir === 'left' || dir === 'right') rows.push(board.slice(i * 4, i * 4 + 4));
+        else rows.push([board[i], board[i + 4], board[i + 8], board[i + 12]]);
+      }
+
+      rows.forEach((row, i) => {
+        if (dir === 'right' || dir === 'down') row.reverse();
+        let filtered = row.filter(v => v !== 0);
+        for (let j = 0; j < filtered.length - 1; j++) {
+          if (filtered[j] === filtered[j + 1]) {
+            filtered[j] *= 2; score += filtered[j];
+            filtered.splice(j + 1, 1);
+          }
+        }
+        while (filtered.length < 4) filtered.push(0);
+        if (dir === 'right' || dir === 'down') filtered.reverse();
+        
+        for (let j = 0; j < 4; j++) {
+          let idx = (dir === 'left' || dir === 'right') ? i * 4 + j : j * 4 + i;
+          if (board[idx] !== filtered[j]) moved = true;
+          board[idx] = filtered[j];
+        }
+      });
+
+      if (moved) { addTile(); render(); }
+    }
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') move('left');
+      if (e.key === 'ArrowRight') move('right');
+      if (e.key === 'ArrowUp') move('up');
+      if (e.key === 'ArrowDown') move('down');
+    });
+    init();
+  </script>
+</body>
+</html>
