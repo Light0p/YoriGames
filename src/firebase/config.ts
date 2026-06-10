@@ -1,16 +1,15 @@
-
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyD5mkMZbHgZHsZvoSNPOMbEZWAfSRsQ6YA",
+  authDomain: "studio-3271687317-7deb5.firebaseapp.com",
+  projectId: "studio-3271687317-7deb5",
+  storageBucket: "studio-3271687317-7deb5.firebasestorage.app",
+  messagingSenderId: "858727746326",
+  appId: "1:858727746326:web:9cf1e496278243daa85e37"
 };
 
 // Initialize Firebase only if config is valid
