@@ -1,46 +1,88 @@
 {
   "placeholderImages": [
     {
-      "id": "game-1",
-      "description": "Retro space shooter arcade cabinet view",
-      "imageUrl": "https://picsum.photos/seed/space1/400/300",
-      "imageHint": "space arcade"
+      "id": "2048-thumb",
+      "description": "2048 puzzle game with neon tiles",
+      "imageUrl": "https://picsum.photos/seed/2048game/600/400",
+      "imageHint": "neon puzzle"
     },
     {
-      "id": "game-2",
-      "description": "Vibrant neon cyberpunk platformer city",
-      "imageUrl": "https://picsum.photos/seed/cyber/400/300",
-      "imageHint": "cyberpunk pixel"
+      "id": "snake-thumb",
+      "description": "Classic snake game with green neon glow",
+      "imageUrl": "https://picsum.photos/seed/snakeneon/600/400",
+      "imageHint": "snake arcade"
     },
     {
-      "id": "game-3",
-      "description": "Cosmic runner game with stars and purple nebula",
-      "imageUrl": "https://picsum.photos/seed/runner/400/300",
-      "imageHint": "cosmic game"
+      "id": "tetris-thumb",
+      "description": "Tetris blocks falling in a dark grid",
+      "imageUrl": "https://picsum.photos/seed/tetrisblocks/600/400",
+      "imageHint": "tetris pixel"
     },
     {
-      "id": "game-4",
-      "description": "Fantasy pixel art forest background",
-      "imageUrl": "https://picsum.photos/seed/forest/400/300",
-      "imageHint": "pixel forest"
+      "id": "pong-thumb",
+      "description": "Minimalist retro pong paddles and ball",
+      "imageUrl": "https://picsum.photos/seed/pongretro/600/400",
+      "imageHint": "pong arcade"
     },
     {
-      "id": "game-5",
-      "description": "Underwater pixel treasure hunting game",
-      "imageUrl": "https://picsum.photos/seed/ocean/400/300",
-      "imageHint": "pixel ocean"
+      "id": "breakout-thumb",
+      "description": "Breakout paddle and colorful brick wall",
+      "imageUrl": "https://picsum.photos/seed/breakoutbricks/600/400",
+      "imageHint": "breakout game"
+    },
+    {
+      "id": "minesweeper-thumb",
+      "description": "Minesweeper grid with retro gray tiles",
+      "imageUrl": "https://picsum.photos/seed/minesgrid/600/400",
+      "imageHint": "minesweeper puzzle"
+    },
+    {
+      "id": "tictactoe-thumb",
+      "description": "Tic Tac Toe board with glowing neon icons",
+      "imageUrl": "https://picsum.photos/seed/tttneon/600/400",
+      "imageHint": "tictactoe neon"
+    },
+    {
+      "id": "memory-thumb",
+      "description": "Memory match card game with pixel icons",
+      "imageUrl": "https://picsum.photos/seed/memorypixel/600/400",
+      "imageHint": "memory game"
+    },
+    {
+      "id": "space-invaders-thumb",
+      "description": "Space invaders alien ships in formation",
+      "imageUrl": "https://picsum.photos/seed/alienships/600/400",
+      "imageHint": "space invaders"
+    },
+    {
+      "id": "hextris-thumb",
+      "description": "Hexagonal puzzle with colored blocks",
+      "imageUrl": "https://picsum.photos/seed/hexpuzzle/600/400",
+      "imageHint": "hextris puzzle"
+    },
+    {
+      "id": "connect-four-thumb",
+      "description": "Connect four board with red and yellow discs",
+      "imageUrl": "https://picsum.photos/seed/connect4board/600/400",
+      "imageHint": "connect four"
+    },
+    {
+      "id": "sudoku-thumb",
+      "description": "Sudoku number grid on dark background",
+      "imageUrl": "https://picsum.photos/seed/sudokugrid/600/400",
+      "imageHint": "sudoku puzzle"
+    },
+    {
+      "id": "checkers-thumb",
+      "description": "Checkers board with red and black pieces",
+      "imageUrl": "https://picsum.photos/seed/checkersboard/600/400",
+      "imageHint": "checkers game"
     },
     {
       "id": "hero-bg",
-      "description": "Starry pixel space background with planets",
-      "imageUrl": "https://picsum.photos/seed/starry/1920/1080",
-      "imageHint": "pixel space"
-    },
-    {
-      "id": "soccer-art",
-      "description": "World Cup Soccer Caps promotional art",
-      "imageUrl": "https://picsum.photos/seed/world-cup-soccer/600/400",
-      "imageHint": "soccer game"
+      "description": "Epic starry nebula background for arcade hero",
+      "imageUrl": "https://picsum.photos/seed/nebulaspace/1920/1080",
+      "imageHint": "space nebula"
     }
   ]
 }

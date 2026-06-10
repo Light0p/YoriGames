@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import { Inter, Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import Script from 'next/script';
@@ -36,13 +37,13 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://yorigamesonline.online'),
   title: {
     template: '%s | YoriGames Arcade',
-    default: 'YoriGames | Play Instantly. No Downloads.',
+    default: 'YoriGames | Play Instantly. Premium Indie Pixel Arcade.',
   },
-  description: 'Experience the galaxy\'s most curated collection of premium indie pixel-art arcade games. Play instantly in your browser.',
-  keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games'],
+  description: 'Experience the galaxy\'s most curated collection of premium indie pixel-art arcade games. Play instantly in your browser with zero downloads. Free games for all ages.',
+  keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games', 'no download games', 'html5 games'],
   openGraph: {
-    title: 'YoriGames | Play Instantly',
-    description: 'The ultimate pixel-art arcade and game launcher.',
+    title: 'YoriGames | Play Premium Pixel Games Instantly',
+    description: 'The ultimate pixel-art arcade and game launcher. High-quality indie titles playable in your browser.',
     url: 'https://yorigamesonline.online',
     siteName: 'YoriGames',
     images: [
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'YoriGames Arcade',
+        alt: 'YoriGames Arcade - Pixel Powered Fun',
       },
     ],
     locale: 'en_US',
@@ -59,7 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'YoriGames | Play Instantly',
-    description: 'The ultimate pixel-art arcade and game launcher.',
+    description: 'The ultimate pixel-art arcade and game launcher. No downloads, just pure arcade magic.',
     images: ['/og-image.png'],
     creator: '@yorigames',
   },
@@ -87,6 +88,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7395050320323237"
