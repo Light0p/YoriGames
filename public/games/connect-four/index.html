@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Connect Four</title>
+    <style>
+        body { background: #09061B; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #1B123D; padding: 10px; border: 4px solid #A855F7; border-radius: 8px; }
+        .cell { width: 40px; height: 40px; background: #09061B; border-radius: 50%; cursor: pointer; border: 2px solid #140A2E; transition: background 0.2s; }
+        @media (min-width: 600px) { .cell { width: 60px; height: 60px; } }
+        .cell.red { background: #EC4899; }
+        .cell.yellow { background: #FFD34D; }
+        .status { margin-bottom: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #22D3EE; }
+        .btn { margin-top: 20px; padding: 10px 20px; background: #A855F7; border: none; color: white; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="status" id="status">PLAYER RED'S TURN</div>
+    <div class="board" id="board"></div>
+    <button class="btn" onclick="reset()">REBOOT GAME</button>
+
+    <script>
+        const ROWS = 6;
+        const COLS = 7;
+        let board = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+        let currentPlayer = 'red';
+        let gameOver = false;
+
+        function createBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.onclick = () => dropDisc(c);
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function dropDisc(col) {
+            if (gameOver) return;
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (!board[r][col]) {
+                    board[r][col] = currentPlayer;
+                    updateUI();
+                    if (checkWin(r, col)) {
+                        document.getElementById('status').innerText = `PLAYER ${currentPlayer.toUpperCase()} WINS!`;
+                        gameOver = true;
+                    } else if (board.every(row => row.every(cell => cell))) {
+                        document.getElementById('status').innerText = "DRAW!";
+                        gameOver = true;
+                    } else {
+                        currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+                        document.getElementById('status').innerText = `PLAYER ${currentPlayer.toUpperCase()}'S TURN`;
+                    }
+                    break;
+                }
+            }
+        }
+
+        function updateUI() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const r = cell.dataset.row;
+                const c = cell.dataset.col;
+                cell.className = 'cell ' + (board[r][c] || '');
+            });
+        }
+
+        function checkWin(r, c) {
+            const player = board[r][c];
+            const directions = [[0,1], [1,0], [1,1], [1,-1]];
+            for (let [dr, dc] of directions) {
+                let count = 1;
+                for (let i = 1; i < 4; i++) {
+                    let nr = r + dr * i, nc = c + dc * i;
+                    if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] === player) count++; else break;
+                }
+                for (let i = 1; i < 4; i++) {
+                    let nr = r - dr * i, nc = c - dc * i;
+                    if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] === player) count++; else break;
+                }
+                if (count >= 4) return true;
+            }
+            return false;
+        }
+
+        function reset() {
+            board = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+            currentPlayer = 'red';
+            gameOver = false;
+            document.getElementById('status').innerText = "PLAYER RED'S TURN";
+            updateUI();
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>

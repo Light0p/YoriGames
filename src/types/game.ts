@@ -3,6 +3,7 @@ export interface Game {
   title: string;
   slug: string;
   description: string;
+  instructions: string;
   thumbnail: string;
   category: string;
   tags: string[];

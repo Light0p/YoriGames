@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Game } from '@/types/game';
-import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, Info, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -22,10 +22,6 @@ export function GameView({ game, allGames }: GameViewProps) {
   const relatedGames = allGames
     .filter(g => g.id !== game.id && g.category === game.category)
     .slice(0, 4);
-
-  useEffect(() => {
-    // Analytics tracking for game play
-  }, [game.id, game.title, game.slug]);
 
   const toggleFullscreen = () => {
     if (iframeRef.current) {
@@ -48,13 +44,13 @@ export function GameView({ game, allGames }: GameViewProps) {
           url: url,
         });
       } catch (err) {
-        // Handle potential sharing rejection or cancellation gracefully
+        // Silent catch for user cancellation
       }
     } else {
       try {
         await navigator.clipboard.writeText(url);
       } catch (err) {
-        // Fallback if clipboard also fails
+        // Fallback clipboard failure
       }
     }
   };
@@ -65,7 +61,7 @@ export function GameView({ game, allGames }: GameViewProps) {
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 sm:py-8">
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <Link href="/arcade" className="font-pixel text-[8px] sm:text-[10px] text-muted hover:text-white flex items-center gap-2 uppercase transition-colors py-2 px-1 min-h-[44px]">
+          <Link href="/games" className="font-pixel text-[8px] sm:text-[10px] text-muted hover:text-white flex items-center gap-2 uppercase transition-colors py-2 px-1 min-h-[44px]">
             <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" /> Back to Arcade
           </Link>
           <div className="w-1 h-1 bg-muted rounded-full hidden sm:block" />
@@ -131,17 +127,30 @@ export function GameView({ game, allGames }: GameViewProps) {
               </div>
             </div>
 
-            <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
-              <h3 className="font-pixel text-[10px] sm:text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2 tracking-widest">Mission Log</h3>
-              <p className="font-body text-sm sm:text-base text-muted leading-relaxed">
-                {game.description}
-              </p>
-              <div className="mt-6 sm:mt-8 flex flex-wrap gap-2">
-                {game.tags.map(tag => (
-                  <Link href={`/search?q=${tag}`} key={tag} className="font-pixel text-[7px] sm:text-[8px] px-3 py-3 sm:py-1 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple uppercase hover:bg-neon-purple hover:text-white transition-colors min-h-[32px] flex items-center">
-                    #{tag}
-                  </Link>
-                ))}
+            <div className="space-y-6">
+              <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
+                <h3 className="font-pixel text-[10px] sm:text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2 tracking-widest flex items-center gap-3">
+                  <Info className="w-4 h-4 text-neon-cyan" /> Mission Briefing
+                </h3>
+                <p className="font-body text-sm sm:text-base text-muted leading-relaxed">
+                  {game.description}
+                </p>
+              </div>
+
+              <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
+                <h3 className="font-pixel text-[10px] sm:text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2 tracking-widest flex items-center gap-3">
+                  <BookOpen className="w-4 h-4 text-neon-pink" /> Tactical Guide
+                </h3>
+                <p className="font-body text-sm sm:text-base text-muted leading-relaxed italic">
+                  {game.instructions || "No special instructions provided for this mission."}
+                </p>
+                <div className="mt-6 sm:mt-8 flex flex-wrap gap-2">
+                  {game.tags.map(tag => (
+                    <Link href={`/search?q=${tag}`} key={tag} className="font-pixel text-[7px] sm:text-[8px] px-3 py-3 sm:py-1 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple uppercase hover:bg-neon-purple hover:text-white transition-colors min-h-[32px] flex items-center">
+                      #{tag}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -175,7 +184,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                   <p className="font-pixel text-[8px] text-muted uppercase">Scanning for related anomalies...</p>
                 )}
               </div>
-              <Link href="/arcade" className="block mt-8 text-center font-pixel text-[8px] text-neon-cyan hover:underline uppercase py-4 border-t border-white/5">
+              <Link href="/games" className="block mt-8 text-center font-pixel text-[8px] text-neon-cyan hover:underline uppercase py-4 border-t border-white/5">
                 View All Missions
               </Link>
             </div>
