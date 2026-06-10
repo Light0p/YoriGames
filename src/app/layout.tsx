@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     template: '%s | YoriGames',
     default: 'YoriGames | Play Great Browser Games Instantly',
   },
-  description: 'A growing collection of fun, fast-loading browser games built for quick sessions. No downloads, no installations—just click and play.',
+  description: 'A growing collection of fun, fast-loading browser games built for quick sessions. No downloads, no installations—just pure arcade magic right in your browser.',
   keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games', 'no download games', 'html5 games'],
   openGraph: {
     title: 'YoriGames | Simple Browser Gaming',
@@ -68,6 +68,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/',
+  },
+  other: {
+    "google-adsense-account": "ca-pub-7395050320323237",
   },
 };
 
