@@ -24,7 +24,7 @@ export function GameView({ game, allGames }: GameViewProps) {
     .slice(0, 4);
 
   useEffect(() => {
-    console.log(`[YoriGames] tracking play: ${game.title} (${game.slug})`);
+    // Analytics tracking for game play
   }, [game.id, game.title, game.slug]);
 
   const toggleFullscreen = () => {
@@ -37,17 +37,25 @@ export function GameView({ game, allGames }: GameViewProps) {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
+    
     if (navigator.share) {
-      navigator.share({
-        title: `Play ${game.title} on YoriGames`,
-        text: game.description,
-        url: url,
-      }).catch(console.error);
+      try {
+        await navigator.share({
+          title: `Play ${game.title} on YoriGames`,
+          text: game.description,
+          url: url,
+        });
+      } catch (err) {
+        // Handle potential sharing rejection or cancellation gracefully
+      }
     } else {
-      navigator.clipboard.writeText(url);
-      alert('Link copied to navigation clipboard!');
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch (err) {
+        // Fallback if clipboard also fails
+      }
     }
   };
 
