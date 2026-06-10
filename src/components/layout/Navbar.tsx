@@ -114,19 +114,17 @@ export const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4">
-      <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/80 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setIsMobileMenuOpen(false)} aria-label="Home">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0 group-hover:scale-110 transition-transform" shapeRendering="crispEdges">
+      <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/90 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
+        <Link href="/" className="flex items-center gap-3 group" onClick={() => setIsMobileMenuOpen(false)} aria-label="Home">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges">
             <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
             <path fill="#FFFFFF" d="M6 10h2v2h2v2h-2v2H6v-2H4v-2h2v-2z"/>
             <rect x="16" y="10" width="2" height="2" fill="#00F0FF"/>
             <rect x="14" y="12" width="2" height="2" fill="#E046B1"/>
             <rect x="18" y="12" width="2" height="2" fill="#E046B1"/>
             <rect x="16" y="14" width="2" height="2" fill="#00F0FF"/>
-            <rect x="10" y="14" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
-            <rect x="13" y="14" width="2" height="2" fill="#FFFFFF" opacity="0.7"/>
           </svg>
-          <span className="font-pixel text-sm sm:text-xl tracking-tighter text-white group-hover:text-neon-cyan transition-colors">
+          <span className="font-pixel text-sm sm:text-lg tracking-tighter text-white uppercase">
             YORI<span className="text-neon-pink">GAMES</span>
           </span>
         </Link>
@@ -138,8 +136,8 @@ export const Navbar = () => {
               key={link.href} 
               href={link.href} 
               className={cn(
-                "transition-all border-b-2 border-transparent hover:pb-1",
-                pathname === link.href ? cn(link.color, "border-current") : "text-muted hover:text-white"
+                "transition-colors",
+                pathname === link.href ? link.color : "text-muted hover:text-white"
               )}
             >
               {link.label}
@@ -154,7 +152,7 @@ export const Navbar = () => {
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 aria-label="Search Players"
                 className={cn(
-                  "p-3 sm:p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
+                  "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
                   isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
                 )}
               >
@@ -193,8 +191,8 @@ export const Navbar = () => {
                         </div>
                         
                         {sentRequests.has(player.uid) ? (
-                          <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 flex items-center gap-1 border border-green-500">
-                            <Check className="w-3 h-3" /> SENT
+                          <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 border border-green-500">
+                            SENT
                           </div>
                         ) : (
                           <button 
@@ -210,10 +208,6 @@ export const Navbar = () => {
 
                     {searchQuery && !isSearching && searchResults.length === 0 && (
                       <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">No players detected.</p>
-                    )}
-                    
-                    {!searchQuery && (
-                      <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">Awaiting coordinates...</p>
                     )}
                   </div>
                 </div>
@@ -231,19 +225,15 @@ export const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
                     <button className="flex items-center gap-3" aria-label="User Menu">
-                      <div className="hidden sm:flex items-center">
-                        <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
-                          {user.displayName || 'PLAYER'}
-                        </span>
-                      </div>
-                      <div className="relative">
-                        <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
-                          <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User Avatar'} />
-                          <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
-                            {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
+                      <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
+                        {user.displayName || 'PLAYER'}
+                      </span>
+                      <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User Avatar'} />
+                        <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
+                          {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
+                        </AvatarFallback>
+                      </Avatar>
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
@@ -277,7 +267,6 @@ export const Navbar = () => {
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMobileMenuOpen}
             className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -298,13 +287,7 @@ export const Navbar = () => {
                   </AvatarFallback>
                 </Avatar>
                 <span className="font-pixel text-xs text-white uppercase">{user.displayName || 'PLAYER'}</span>
-                <Link 
-                  href="/profile" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="font-pixel text-[8px] text-neon-cyan uppercase hover:underline"
-                >
-                  Dossier Settings
-                </Link>
+                <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="font-pixel text-[8px] text-neon-cyan uppercase underline">Dossier Settings</Link>
               </div>
             )}
 
@@ -316,7 +299,7 @@ export const Navbar = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     "transition-all py-2 w-full text-center",
-                    pathname === link.href ? link.color : "text-muted active:text-white"
+                    pathname === link.href ? link.color : "text-muted"
                   )}
                 >
                   {link.label}
@@ -326,15 +309,11 @@ export const Navbar = () => {
 
             <div className="mt-12 w-full">
               {user ? (
-                <PixelButton 
-                  variant="secondary" 
-                  className="w-full py-6"
-                  onClick={handleLogout}
-                >
+                <PixelButton variant="secondary" className="w-full py-6" onClick={handleLogout}>
                   <LogOut className="w-5 h-5" /> EXIT SYSTEM
                 </PixelButton>
               ) : (
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
                   <PixelButton variant="primary" className="w-full py-6">
                     <User className="w-5 h-5" /> PLAYER LOGIN
                   </PixelButton>

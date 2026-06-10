@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { Gamepad2, ChevronRight, Zap } from 'lucide-react';
+import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { getAllGames } from '@/lib/games';
@@ -31,7 +31,7 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative w-full min-h-[70vh] flex items-center justify-center overflow-hidden px-4 py-16 sm:py-24">
+    <section className="relative w-full min-h-[60vh] flex items-center justify-center overflow-hidden px-4 py-16 sm:py-24">
       <div className="relative z-10 text-center max-w-4xl mx-auto w-full">
         <div className="inline-block px-3 py-1.5 mb-8 bg-neon-purple/10 border border-neon-purple/30 font-pixel text-[8px] md:text-[10px] text-neon-purple tracking-widest uppercase">
           Simple Games. Fast Loading.
@@ -67,17 +67,17 @@ export const Hero = () => {
         </div>
 
         {/* Grounded Stats */}
-        <div className="relative z-20 mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 opacity-80 px-4 max-w-lg mx-auto border-t border-white/10 pt-10 sm:border-t-0 sm:pt-0">
+        <div className="relative z-20 mt-20 grid grid-cols-3 gap-4 sm:gap-12 opacity-80 px-4 max-w-lg mx-auto border-t border-white/10 pt-10">
           <div className="flex flex-col items-center">
-            <span className="font-pixel text-xl text-white">{gameCount}</span>
+            <span className="font-pixel text-lg sm:text-xl text-white">{gameCount}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
-          <div className="flex flex-col items-center sm:border-x sm:border-white/20">
-            <span className="font-pixel text-xl text-white">{formatNumber(playerCount)}</span>
+          <div className="flex flex-col items-center border-x border-white/20">
+            <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(playerCount + 100)}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Players</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-pixel text-xl text-white">100%</span>
+            <span className="font-pixel text-lg sm:text-xl text-white">100%</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Free</span>
           </div>
         </div>

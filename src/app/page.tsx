@@ -57,7 +57,7 @@ export default function Home() {
                <div className="font-pixel text-[8px] text-neon-cyan uppercase mb-4 tracking-[0.4em]">EXPLORE SECTORS</div>
                <h2 className="font-pixel text-2xl sm:text-3xl text-white uppercase tracking-tighter">Browse by Category</h2>
                <p className="font-body text-muted mt-4 max-w-2xl mx-auto">
-                 Find your next session by exploring our specialized game collections.
+                 Find your next session by exploring our curated game collections.
                </p>
              </div>
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -66,12 +66,12 @@ export default function Home() {
                    key={cat.name} 
                    href={`/categories/${cat.name.toLowerCase()}`} 
                    className={cn(
-                     "p-8 bg-[#140A2E] border border-[#1B123D] transition-all group relative overflow-hidden",
+                     "p-8 bg-[#140A2E] border-2 border-[#1B123D] transition-all group relative overflow-hidden",
                      cat.color
                    )}
                  >
                    <div className="relative z-10">
-                     <h3 className="font-pixel text-xs text-white uppercase mb-2">
+                     <h3 className="font-pixel text-[10px] text-white uppercase mb-2">
                        {cat.name}
                      </h3>
                      <p className="font-body text-xs text-muted leading-relaxed">

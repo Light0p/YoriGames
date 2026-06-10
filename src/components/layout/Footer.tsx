@@ -10,9 +10,9 @@ export const Footer = () => {
   return (
     <footer className="w-full bg-[#0D0925] border-t-2 border-[#1B123D] mt-24 py-16 px-6 sm:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16 items-start">
           {/* Project Info */}
-          <div className="md:col-span-4 lg:col-span-5">
+          <div className="md:col-span-5">
             <Link href="/" className="flex items-center gap-3 mb-6 group">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-8 h-8 shrink-0" shapeRendering="crispEdges">
                 <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
@@ -28,7 +28,7 @@ export const Footer = () => {
               A collection of simple, fast-loading browser games built for quick, fun sessions. No downloads, no installations. Just click and play.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="p-2 border border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all" aria-label="X">
+              <Link href="#" className="p-2 border border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all" aria-label="X (formerly Twitter)">
                 <XIcon className="w-5 h-5" />
               </Link>
               <Link href="#" className="p-2 border border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all" aria-label="Discord">
@@ -41,7 +41,7 @@ export const Footer = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="md:col-span-3 lg:col-span-2">
+          <div className="md:col-span-2">
             <h4 className="font-pixel text-[10px] text-white uppercase mb-6 tracking-widest">Navigation</h4>
             <ul className="space-y-4 font-headline text-muted text-sm uppercase">
               <li><Link href="/games" className="hover:text-white transition-colors">Arcade</Link></li>
@@ -52,7 +52,7 @@ export const Footer = () => {
           </div>
 
           {/* Legal Links */}
-          <div className="md:col-span-3 lg:col-span-2">
+          <div className="md:col-span-2">
             <h4 className="font-pixel text-[10px] text-white uppercase mb-6 tracking-widest">Legal</h4>
             <ul className="space-y-4 font-headline text-muted text-sm uppercase">
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
@@ -62,9 +62,9 @@ export const Footer = () => {
           </div>
 
           {/* Developer Note */}
-          <div className="md:col-span-12 lg:col-span-3">
-            <div className="bg-[#140A2E] p-6 border border-[#1B123D] rounded-none">
-              <h4 className="font-pixel text-[9px] text-neon-gold uppercase mb-3 tracking-widest">Built By</h4>
+          <div className="md:col-span-3">
+            <div className="bg-[#140A2E] p-6 border border-[#1B123D]">
+              <h4 className="font-pixel text-[9px] text-neon-gold uppercase mb-3 tracking-widest">Developer Note</h4>
               <p className="font-pixel text-[11px] text-white mb-2 uppercase">Yogesh Yadav</p>
               <p className="font-body text-[11px] text-muted leading-relaxed">
                 Independent developer building YoriGames one update at a time. Authentically indie.
@@ -78,7 +78,7 @@ export const Footer = () => {
             © {currentYear} YORIGAMES — HANDCRAFTED PIXEL FUN
           </p>
           <div className="font-pixel text-[8px] text-muted/40 uppercase tracking-widest">
-            v1.0.8 — STABLE UPLINK
+            v1.1.0 — STABLE UPLINK
           </div>
         </div>
       </div>

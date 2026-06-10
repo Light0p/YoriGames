@@ -36,12 +36,12 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://yorigamesonline.online'),
   title: {
     template: '%s | YoriGames',
-    default: 'YoriGames | Simple Browser Games. No Downloads.',
+    default: 'YoriGames | Play Great Browser Games Instantly',
   },
-  description: 'Play fun, fast-loading browser games instantly. A growing collection of indie pixel-art games built for quick sessions.',
+  description: 'A growing collection of fun, fast-loading browser games built for quick sessions. No downloads, no installations—just click and play.',
   keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games', 'no download games', 'html5 games'],
   openGraph: {
-    title: 'YoriGames | Play Simple Browser Games Instantly',
+    title: 'YoriGames | Simple Browser Gaming',
     description: 'A collection of fun, fast-loading indie games. No downloads, just pure arcade magic right in your browser.',
     url: 'https://yorigamesonline.online',
     siteName: 'YoriGames',

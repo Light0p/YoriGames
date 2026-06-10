@@ -7,7 +7,7 @@ import { Gamepad2, Rocket, Zap, Shield, Heart } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About | YoriGames',
-  description: 'The story behind YoriGames—a passion project built for the love of browser gaming and pixel art.',
+  description: 'The story behind YoriGames—a project built for the love of browser gaming and pixel art.',
   alternates: {
     canonical: '/about',
   },
@@ -32,7 +32,7 @@ export default function AboutPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-40">
           <div className="space-y-8">
-            <h2 className="font-pixel text-xl text-white uppercase leading-tight border-l-4 border-neon-cyan pl-6">The Developer Note</h2>
+            <h2 className="font-pixel text-lg text-white uppercase leading-tight border-l-4 border-neon-cyan pl-6">The Developer Note</h2>
             <div className="font-body text-base text-muted space-y-6 leading-relaxed">
               <p>
                 YoriGames started as a personal challenge: to build a platform that strips away the bloat of modern gaming. No massive downloads, no intrusive updates—just clean, browser-native experiences that respect your time.
@@ -42,17 +42,17 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-4 pt-4">
-              <div className="bg-[#140A2E] border border-[#1B123D] p-5 flex items-center gap-4">
+              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-5 flex items-center gap-4">
                 <Zap className="w-5 h-5 text-neon-cyan" />
                 <span className="font-pixel text-[9px] text-white uppercase">Zero Installs</span>
               </div>
-              <div className="bg-[#140A2E] border border-[#1B123D] p-5 flex items-center gap-4">
+              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-5 flex items-center gap-4">
                 <Shield className="w-5 h-5 text-neon-pink" />
                 <span className="font-pixel text-[9px] text-white uppercase">Privacy First</span>
               </div>
             </div>
           </div>
-          <div className="relative aspect-video bg-[#140A2E] border border-[#1B123D] overflow-hidden flex items-center justify-center">
+          <div className="relative aspect-video bg-[#140A2E] border-4 border-[#1B123D] overflow-hidden flex items-center justify-center">
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5" />
             <Gamepad2 className="w-24 h-24 text-neon-cyan opacity-20" />
             <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 to-transparent" />
@@ -77,15 +77,15 @@ export default function AboutPage() {
               desc: "Whether you're on mobile, tablet, or desktop, your session is just a click away. No barriers to entry."
             }
           ].map((item, i) => (
-            <div key={i} className="bg-[#140A2E] border border-[#1B123D] p-10 hover:border-neon-cyan transition-all group">
+            <div key={i} className="bg-[#140A2E] border-2 border-[#1B123D] p-10 hover:border-neon-cyan transition-all group">
               <div className="mb-6 group-hover:scale-105 transition-transform origin-left">{item.icon}</div>
-              <h3 className="font-pixel text-[11px] text-white uppercase mb-4 tracking-wider">{item.title}</h3>
+              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-wider">{item.title}</h3>
               <p className="font-body text-sm text-muted leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
         
-        <div className="bg-[#09061B] border-2 border-dashed border-[#1B123D] p-12 text-center">
+        <div className="bg-[#09061B] border-4 border-dashed border-[#1B123D] p-12 text-center">
            <h2 className="font-pixel text-lg text-white uppercase mb-6">Join the Journey</h2>
            <p className="font-body text-base text-muted mb-8 max-w-xl mx-auto leading-relaxed">
              YoriGames is constantly evolving. If you're a player or a creator who shares this vision of simple, fun web gaming, there's always a seat for you.
