@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://yorigames.app'),
+  metadataBase: new URL('https://yorigamesonline.online'),
   title: {
     template: '%s | YoriGames Arcade',
     default: 'YoriGames | Play Instantly. No Downloads.',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'YoriGames | Play Instantly',
     description: 'The ultimate pixel-art arcade and game launcher.',
-    url: 'https://yorigames.app',
+    url: 'https://yorigamesonline.online',
     siteName: 'YoriGames',
     images: [
       {

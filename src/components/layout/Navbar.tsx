@@ -32,10 +32,10 @@ export const Navbar = () => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
-    { href: '/arcade', label: 'Arcade', label_key: 'arcade', color: 'text-neon-purple' },
+    { href: '/games', label: 'Games', label_key: 'games', color: 'text-neon-purple' },
     { href: '/trending', label: 'Trending', label_key: 'trending', color: 'text-neon-pink' },
     { href: '/categories', label: 'Categories', label_key: 'categories', color: 'text-neon-cyan' },
-    { href: '/store', label: 'Store', label_key: 'store', color: 'text-neon-gold' },
+    { href: '/contact', label: 'Contact', label_key: 'contact', color: 'text-neon-gold' },
   ];
 
   useEffect(() => {

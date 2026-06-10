@@ -29,14 +29,11 @@ export const Footer = () => {
             Play instantly on any device.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="#" className="p-3 border-2 border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <Link href="https://twitter.com" target="_blank" className="p-3 border-2 border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Twitter className="w-5 h-5" />
             </Link>
-            <Link href="#" className="p-3 border-2 border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <Link href="https://github.com" target="_blank" className="p-3 border-2 border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
               <Github className="w-5 h-5" />
-            </Link>
-            <Link href="#" className="p-3 border-2 border-[#1B123D] hover:border-neon-cyan hover:text-neon-cyan transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
-              <Globe className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -45,25 +42,24 @@ export const Footer = () => {
           <div>
             <h4 className="font-pixel text-[12px] text-white uppercase mb-6 tracking-widest">Navigation</h4>
             <ul className="space-y-4 font-headline text-muted text-sm uppercase">
-              <li><Link href="/arcade" className="hover:text-neon-purple transition-colors block py-1">Arcade</Link></li>
-              <li><Link href="/leaderboards" className="hover:text-neon-pink transition-colors block py-1">Leaderboards</Link></li>
-              <li><Link href="/tournaments" className="hover:text-neon-cyan transition-colors block py-1">Tournaments</Link></li>
-              <li><Link href="/achievements" className="hover:text-neon-gold transition-colors block py-1">Achievements</Link></li>
+              <li><Link href="/" className="hover:text-neon-purple transition-colors block py-1">Home</Link></li>
+              <li><Link href="/games" className="hover:text-neon-pink transition-colors block py-1">Games</Link></li>
+              <li><Link href="/about" className="hover:text-neon-cyan transition-colors block py-1">About</Link></li>
+              <li><Link href="/contact" className="hover:text-neon-gold transition-colors block py-1">Contact</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-pixel text-[12px] text-white uppercase mb-6 tracking-widest">Support</h4>
+            <h4 className="font-pixel text-[12px] text-white uppercase mb-6 tracking-widest">Legal</h4>
             <ul className="space-y-4 font-headline text-muted text-sm uppercase">
-              <li><Link href="/faq" className="hover:text-neon-purple transition-colors block py-1">FAQ</Link></li>
-              <li><Link href="/help" className="hover:text-neon-pink transition-colors block py-1">Help Center</Link></li>
-              <li><Link href="/developers" className="hover:text-neon-cyan transition-colors block py-1">Developers</Link></li>
-              <li><Link href="/api" className="hover:text-neon-gold transition-colors block py-1">API</Link></li>
+              <li><Link href="/privacy" className="hover:text-neon-purple transition-colors block py-1">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-neon-pink transition-colors block py-1">Terms of Service</Link></li>
+              <li><Link href="/cookies" className="hover:text-neon-cyan transition-colors block py-1">Cookie Policy</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="bg-[#09061B] p-6 border-2 border-[#1B123D] flex flex-col items-center justify-center text-center">
+        <div className="bg-[#09061B] p-6 border-2 border-[#1B123D] flex flex-col items-center justify-center text-center h-fit">
           <div className="font-pixel text-[10px] text-neon-gold mb-4 animate-pulse">LEGACY EDITION v1.0.4</div>
           <div className="font-pixel text-xs text-white mb-2 uppercase">Server Status: <span className="text-green-400">ONLINE</span></div>
           <div className="font-pixel text-[8px] text-muted uppercase tracking-widest">Latency: 24ms</div>

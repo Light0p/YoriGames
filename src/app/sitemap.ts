@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import gamesData from '@/data/games.json'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://yorigames.app'
+  const baseUrl = 'https://yorigamesonline.online'
 
   const gameEntries = gamesData.map((game) => ({
     url: `${baseUrl}/games/${game.slug}`,
@@ -27,10 +27,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/arcade`,
+      url: `${baseUrl}/games`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/trending`,
@@ -43,12 +55,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/store`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
     },
     ...gameEntries,
     ...categoryEntries,
