@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -84,7 +83,7 @@ export default function LoginPage() {
     setSuccess(null);
     try {
       const provider = new GoogleAuthProvider();
-      // Use signInWithPopup for a better desktop experience and direct control
+      // Use signInWithPopup for a direct, robust authentication experience
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
         await syncUserToFirestore(result.user);
@@ -93,9 +92,11 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error("Google Auth Error Code:", err.code);
-      // Handle cancellation gracefully
+      // Handle cancellation and other common errors gracefully
       if (err.code === 'auth/popup-closed-by-user') {
         setError("LOGIN CANCELLED BY USER.");
+      } else if (err.code === 'auth/network-request-failed') {
+        setError("NETWORK ERROR. PLEASE CHECK YOUR CONNECTION.");
       } else {
         setError(err.message || 'GOOGLE AUTHENTICATION FAILED');
       }
