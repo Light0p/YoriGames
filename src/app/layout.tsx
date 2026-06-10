@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import { Inter, Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import Script from 'next/script';
@@ -36,14 +35,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://yorigamesonline.online'),
   title: {
-    template: '%s | YoriGames Arcade',
-    default: 'YoriGames | Play Instantly. Premium Indie Pixel Arcade.',
+    template: '%s | YoriGames',
+    default: 'YoriGames | Simple Browser Games. No Downloads.',
   },
-  description: 'Experience the galaxy\'s most curated collection of premium indie pixel-art arcade games. Play instantly in your browser with zero downloads. Free games for all ages.',
+  description: 'Play fun, fast-loading browser games instantly. A growing collection of indie pixel-art games built for quick sessions.',
   keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games', 'no download games', 'html5 games'],
   openGraph: {
-    title: 'YoriGames | Play Premium Pixel Games Instantly',
-    description: 'The ultimate pixel-art arcade and game launcher. High-quality indie titles playable in your browser.',
+    title: 'YoriGames | Play Simple Browser Games Instantly',
+    description: 'A collection of fun, fast-loading indie games. No downloads, just pure arcade magic right in your browser.',
     url: 'https://yorigamesonline.online',
     siteName: 'YoriGames',
     images: [
@@ -51,7 +50,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'YoriGames Arcade - Pixel Powered Fun',
+        alt: 'YoriGames - Simple Browser Gaming',
       },
     ],
     locale: 'en_US',
@@ -59,21 +58,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'YoriGames | Play Instantly',
-    description: 'The ultimate pixel-art arcade and game launcher. No downloads, just pure arcade magic.',
+    title: 'YoriGames | Simple Browser Games',
+    description: 'Play fun, fast-loading indie games instantly. No downloads required.',
     images: ['/og-image.png'],
-    creator: '@yorigames',
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
   },
   alternates: {
     canonical: '/',
