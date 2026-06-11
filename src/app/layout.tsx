@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import Script from 'next/script';
+import { Analytics } from "@vercel/analytics/next";
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
@@ -103,6 +104,7 @@ export default function RootLayout({
             {children}
           </div>
         </FirebaseClientProvider>
+        <Analytics />
       </body>
     </html>
   );
