@@ -17,7 +17,7 @@ const GameCardComponent = ({ title, genre, rating, imageUrl }: GameCardProps) =>
       {/* Game Image */}
       <div className="relative aspect-video w-full overflow-hidden bg-[#09061B]">
         <Image 
-          src={imageUrl} 
+          src={imageUrl || 'https://picsum.photos/seed/placeholder/600/400'} 
           alt={title}
           fill
           loading="lazy"
@@ -26,26 +26,26 @@ const GameCardComponent = ({ title, genre, rating, imageUrl }: GameCardProps) =>
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#140A2E] via-transparent to-transparent opacity-40" />
         
-        {/* Play Icon */}
+        {/* Play Icon - Simplified for Mobile */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <div className="bg-neon-pink p-2 border-2 border-black transform translate-y-2 group-hover:translate-y-0 transition-transform">
-            <Play className="w-5 h-5 text-white fill-white" />
+          <div className="bg-neon-pink p-1.5 sm:p-2 border-2 border-black transform translate-y-2 group-hover:translate-y-0 transition-transform">
+            <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
           </div>
         </div>
       </div>
 
       {/* Info */}
-      <div className="p-3">
-        <h3 className="font-headline text-base leading-tight truncate group-hover:text-neon-cyan transition-colors mb-1">
+      <div className="p-2 sm:p-3">
+        <h3 className="font-headline text-sm sm:text-base leading-tight truncate group-hover:text-neon-cyan transition-colors mb-1">
           {title}
         </h3>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-[8px] font-pixel text-muted uppercase tracking-widest truncate max-w-[70%]">
+        <div className="flex items-center justify-between mt-1.5 sm:mt-2">
+          <span className="text-[6px] sm:text-[8px] font-pixel text-muted uppercase tracking-widest truncate max-w-[65%]">
             {genre}
           </span>
-          <div className="flex items-center gap-1">
-            <Star className="w-2.5 h-2.5 text-neon-gold fill-neon-gold" />
-            <span className="text-[8px] font-pixel text-neon-gold">{rating.toFixed(1)}</span>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-neon-gold fill-neon-gold" />
+            <span className="text-[6px] sm:text-[8px] font-pixel text-neon-gold">{rating.toFixed(1)}</span>
           </div>
         </div>
       </div>

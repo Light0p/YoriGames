@@ -22,24 +22,6 @@ const DEFAULT_GAMES: Game[] = [
     likes: 450,
     rating: 4.9,
     game_source: "gamemonetize"
-  },
-  {
-    id: "gm_2",
-    title: "Basketball Stars",
-    slug: "basketball-stars",
-    description: "Basketball Stars is a cool 2-player basketball game.",
-    instructions: "Arrows to move, X to shoot.",
-    thumbnail: "https://img.gamemonetize.com/8a7b6c5d4e3f2g1h0i9j8k7l6m5n4o3p/512x340.jpg",
-    category: "Sports",
-    tags: ["sports", "2-player"],
-    iframe_url: "https://gamemonetize.com/basketball-stars",
-    featured: true,
-    trending: false,
-    date_added: "2024-01-02",
-    play_count: 8900,
-    likes: 310,
-    rating: 4.8,
-    game_source: "gamemonetize"
   }
 ];
 
@@ -63,7 +45,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch('/games.json');
         
         if (!response.ok) {
-          console.warn('Game catalog fetch returned non-200 status. Keeping defaults.');
+          console.warn('Game catalog fetch failed. Using internal defaults.');
           setLoading(false);
           return;
         }
@@ -71,7 +53,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const data = await response.json();
         
         if (Array.isArray(data) && data.length > 0) {
-          // Normalize the data format from the raw feed to our internal schema
+          // Standardize data from any source
           const normalizedGames = data.map((g: any) => ({
             ...g,
             id: g.id || g.gameId,
@@ -81,12 +63,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           })) as Game[];
           
           setAllGames(normalizedGames);
-        } else {
-          console.warn('Game catalog JSON was empty or malformed. Keeping defaults.');
         }
       } catch (err: any) {
-        console.error('Game catalog system error:', err.message);
-        setError('System operating on backup data uplink.');
+        console.error('Static catalog fetch error:', err.message);
+        setError('Operating on local backup.');
       } finally {
         setLoading(false);
       }
@@ -97,7 +77,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const categories = useMemo(() => {
     const set = new Set(allGames.map(g => g.category));
-    return Array.from(set).sort();
+    const cats = Array.from(set).sort();
+    return cats;
   }, [allGames]);
 
   return (
