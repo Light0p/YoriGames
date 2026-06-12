@@ -29,7 +29,6 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [allSearchableGames, setAllSearchableGames] = useState<any[]>([]);
   const [isInitializingSearch, setIsInitializingSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const fuseRef = useRef<Fuse<any> | null>(null);
@@ -41,13 +40,15 @@ export const Navbar = () => {
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
 
-  // Initialize Search Data once on mount
+  // Optimized Search: Initialize data only once when user interacts with search
   useEffect(() => {
+    if (!isSearchOpen || fuseRef.current) return;
+
     const initSearch = async () => {
       setIsInitializingSearch(true);
       try {
+        // Optimized: minimized data set and cache-first logic
         const games = await getSearchableGames(1000);
-        setAllSearchableGames(games);
         
         fuseRef.current = new Fuse(games, {
           keys: ['title', 'category', 'tags'],
@@ -61,7 +62,7 @@ export const Navbar = () => {
       }
     };
     initSearch();
-  }, []);
+  }, [isSearchOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

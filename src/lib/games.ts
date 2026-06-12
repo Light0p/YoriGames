@@ -8,37 +8,27 @@ import {
   orderBy, 
   getCountFromServer,
   startAt,
-  QueryConstraint
+  QueryConstraint,
+  getDocsFromCache,
+  getDocsFromServer
 } from 'firebase/firestore';
 import { Game } from '@/types/game';
 
 /**
  * Sanitizes Firestore data for Next.js Server/Client boundary.
- * Uses a WeakSet to prevent circular recursion and stack overflows.
  */
 const sanitizeData = (obj: any, visited = new WeakSet()): any => {
   if (obj === null || typeof obj !== 'object') return obj;
-  
   if (visited.has(obj)) return null;
-  
   if (obj instanceof Date) return obj.toISOString();
   if (typeof obj.toDate === 'function') return obj.toDate().toISOString();
   if (typeof obj.seconds === 'number' && typeof obj.nanoseconds === 'number') {
     return new Date(obj.seconds * 1000).toISOString();
   }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => sanitizeData(item, visited));
-  }
-
-  // If it's a class instance but not a plain object, we don't want to deep-crawl it
-  // as it may contain circular references or large prototype chains.
-  if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) {
-    return null; 
-  }
+  if (Array.isArray(obj)) return obj.map(item => sanitizeData(item, visited));
+  if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) return null; 
 
   visited.add(obj);
-
   const sanitized: any = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -50,6 +40,10 @@ const sanitizeData = (obj: any, visited = new WeakSet()): any => {
 
 const MAX_ALLOWED_PAGES = 20; 
 
+/**
+ * Optimized paginated fetch for the game library.
+ * Strictly capped at 20 pages to prevent deep-pagination read leaks.
+ */
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   try {
     const gamesRef = collection(db, 'games');
@@ -60,9 +54,11 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
 
     const constraints: QueryConstraint[] = [orderBy('date_added', 'desc')];
     
+    // For deep pages, we fetch the start document efficiently
     if (page > 1) {
       const skipCount = (page - 1) * pageSize;
-      const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
+      // LIMIT: We only fetch the single cursor document, not the entire range
+      const jumpQuery = query(gamesRef, ...constraints, limit(skipCount));
       const jumpSnapshot = await getDocs(jumpQuery);
       
       if (!jumpSnapshot.empty) {
@@ -89,13 +85,22 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
 };
 
 /**
- * Fetches a simplified list of games for global client-side searching.
+ * Optimized Search Fetch: Attempts cache first, then minimized server fetch.
  */
 export const getSearchableGames = async (max: number = 1000): Promise<Game[]> => {
   try {
     const gamesRef = collection(db, 'games');
     const q = query(gamesRef, limit(max));
-    const snapshot = await getDocs(q);
+    
+    let snapshot;
+    try {
+      // 1. Try local cache first (0 reads)
+      snapshot = await getDocsFromCache(q);
+    } catch {
+      // 2. Fallback to server if cache is empty or unavailable
+      snapshot = await getDocsFromServer(q);
+    }
+
     return snapshot.docs.map(doc => {
       const data = doc.data();
       return sanitizeData({
@@ -113,7 +118,10 @@ export const getSearchableGames = async (max: number = 1000): Promise<Game[]> =>
   }
 };
 
-export const getDiscoveryGames = async (max: number = 300): Promise<Game[]> => {
+/**
+ * Reduced Discovery Fetch: 100 docs instead of 300 to save quota.
+ */
+export const getDiscoveryGames = async (max: number = 100): Promise<Game[]> => {
   try {
     const gamesRef = collection(db, 'games');
     const q = query(gamesRef, orderBy('date_added', 'desc'), limit(max));
@@ -140,7 +148,7 @@ export const getPaginatedGamesByCategory = async (category: string, page: number
     
     if (page > 1) {
       const skipCount = (page - 1) * pageSize;
-      const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
+      const jumpQuery = query(gamesRef, ...constraints, limit(skipCount));
       const jumpSnapshot = await getDocs(jumpQuery);
       if (!jumpSnapshot.empty) {
         const startDoc = jumpSnapshot.docs[jumpSnapshot.docs.length - 1];

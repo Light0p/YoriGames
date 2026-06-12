@@ -9,12 +9,12 @@ import { ArcadeInsightWrapper } from '@/components/ai/ArcadeInsightWrapper';
 import { InteractiveArcade } from '@/components/sections/InteractiveArcade';
 
 export default async function Home() {
-  // Parallel fetch using ISR to minimize hits on request
+  // Optimized Parallel fetch using ISR to minimize hits on request
   const [featuredGames, trendingGames, newGames, discoveryGames] = await Promise.all([
     getFeaturedGames(5),
     getTrendingGames(5),
     getNewArrivals(5),
-    getDiscoveryGames(300) // Fetched once per hour via ISR
+    getDiscoveryGames(100) // Reduced from 300 to 100 to significantly save quota
   ]);
 
   return (
@@ -54,5 +54,5 @@ export default async function Home() {
   );
 }
 
-// 🚀 REVALIDATION: ISR Caching
+// 🚀 REVALIDATION: ISR Caching - Fetches data once per hour instead of every request.
 export const revalidate = 3600;
