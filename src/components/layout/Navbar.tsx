@@ -28,7 +28,7 @@ export const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
+  const [sentRequests, setSentRequests] = useState<string[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
@@ -97,7 +97,7 @@ export const Navbar = () => {
         status: 'pending',
         createdAt: serverTimestamp()
       });
-      setSentRequests(prev => new Set(prev).add(receiverId));
+      setSentRequests(prev => [...prev, receiverId]);
     } catch (error) {
       console.error("Failed to send request", error);
     }
@@ -190,7 +190,7 @@ export const Navbar = () => {
                           </span>
                         </div>
                         
-                        {sentRequests.has(player.uid) ? (
+                        {sentRequests.includes(player.uid) ? (
                           <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 border border-green-500">
                             SENT
                           </div>

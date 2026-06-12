@@ -21,24 +21,42 @@ import { Game } from '@/types/game';
  */
 
 /**
- * Sanitizes Firestore document data for Client Components.
- * Converts Timestamps to ISO strings to avoid Next.js serialization errors.
+ * Robustly sanitizes Firestore document data for Client Components.
+ * Converts Timestamps and other non-plain objects to serializable formats.
  */
 const sanitizeData = (data: any) => {
+  if (!data) return data;
+  
+  // Create a clean, plain object copy
   const sanitized = { ...data };
-  Object.keys(sanitized).forEach(key => {
+  
+  for (const key in sanitized) {
     const value = sanitized[key];
-    if (value instanceof Timestamp) {
-      sanitized[key] = value.toDate().toISOString();
-    } else if (value && typeof value === 'object' && 'seconds' in value && 'nanoseconds' in value) {
-      // Handle cases where the object is not an instance but has the structure
-      try {
-        sanitized[key] = new Timestamp(value.seconds, value.nanoseconds).toDate().toISOString();
-      } catch (e) {
-        // Fallback
+    
+    if (value && typeof value === 'object') {
+      // Handle Firestore Timestamp specifically
+      if (typeof value.toDate === 'function') {
+        sanitized[key] = value.toDate().toISOString();
+      } 
+      // Handle plain-object-like Timestamps (common in some SDK behaviors)
+      else if ('seconds' in value && 'nanoseconds' in value) {
+        try {
+          sanitized[key] = new Date(value.seconds * 1000).toISOString();
+        } catch (e) {
+          sanitized[key] = null;
+        }
+      }
+      // Recursive sanitization for nested objects if they exist
+      else if (Object.prototype.toString.call(value) === '[object Object]') {
+        sanitized[key] = sanitizeData(value);
+      }
+      // Arrays
+      else if (Array.isArray(value)) {
+        sanitized[key] = value.map(item => (typeof item === 'object' ? sanitizeData(item) : item));
       }
     }
-  });
+  }
+  
   return sanitized;
 };
 
@@ -52,26 +70,13 @@ export const getAllGames = async (max: number = 60): Promise<Game[]> => {
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   const gamesRef = collection(db, 'games');
   
-  // Get total count
   const countSnapshot = await getCountFromServer(gamesRef);
   const total = countSnapshot.data().count;
 
-  // Calculate skip for jumping to page
-  // Note: Firestore doesn't have offset, so we fetch the cursor for the page
   const constraints: QueryConstraint[] = [orderBy('date_added', 'desc')];
   
   if (page > 1) {
     const skipCount = (page - 1) * pageSize;
-    const skipQuery = query(gamesRef, ...constraints, limit(skipCount));
-    const skipSnapshot = await getDocs(skipQuery);
-    if (!skipSnapshot.empty) {
-      const lastVisible = skipSnapshot.docs[skipSnapshot.docs.length - 1];
-      // Note: startAt is used here to jump to the next item
-      // Technically we want the item AFTER this, so we'd use startAfter
-      // But for page-based jumping startAt with the specific doc is reliable
-    }
-    
-    // Improved jumping: Fetch all docs up to the page start to get the cursor
     const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
     const jumpSnapshot = await getDocs(jumpQuery);
     if (!jumpSnapshot.empty) {
@@ -85,7 +90,6 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
     }
   }
 
-  // Page 1 or fallback
   const q = query(gamesRef, ...constraints, limit(pageSize));
   const snapshot = await getDocs(q);
   return {
@@ -123,7 +127,6 @@ export const getPaginatedGamesByCategory = async (category: string, page: number
   const gamesRef = collection(db, 'games');
   const baseConstraints = [where('category', '==', category)];
   
-  // Get total count for category
   const countSnapshot = await getCountFromServer(query(gamesRef, ...baseConstraints));
   const total = countSnapshot.data().count;
 
