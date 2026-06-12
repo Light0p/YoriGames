@@ -50,6 +50,7 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
     const countSnapshot = await getCountFromServer(gamesRef);
     const total = countSnapshot.data().count;
 
+    if (total === 0) return { games: [], total: 0 };
     if (page > MAX_ALLOWED_PAGES) return { games: [], total };
 
     const constraints: QueryConstraint[] = [orderBy('date_added', 'desc')];
@@ -57,7 +58,7 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
     // For deep pages, we fetch the start document efficiently
     if (page > 1) {
       const skipCount = (page - 1) * pageSize;
-      // LIMIT: We only fetch the single cursor document, not the entire range
+      // We only fetch the single cursor document, not the entire range
       const jumpQuery = query(gamesRef, ...constraints, limit(skipCount));
       const jumpSnapshot = await getDocs(jumpQuery);
       
@@ -78,28 +79,22 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
       games: snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game),
       total
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Quota or network failure in getPaginatedGames:", error);
-    return { games: [], total: 0 };
+    // Throw to allow error boundary to handle it
+    throw error;
   }
 };
 
 /**
- * Optimized Search Fetch: Attempts cache first, then minimized server fetch.
+ * Optimized Search Fetch: Fetches minimal fields for search indexing.
  */
 export const getSearchableGames = async (max: number = 1000): Promise<Game[]> => {
   try {
     const gamesRef = collection(db, 'games');
     const q = query(gamesRef, limit(max));
     
-    let snapshot;
-    try {
-      // 1. Try local cache first (0 reads)
-      snapshot = await getDocsFromCache(q);
-    } catch {
-      // 2. Fallback to server if cache is empty or unavailable
-      snapshot = await getDocsFromServer(q);
-    }
+    const snapshot = await getDocs(q);
 
     return snapshot.docs.map(doc => {
       const data = doc.data();
@@ -118,9 +113,6 @@ export const getSearchableGames = async (max: number = 1000): Promise<Game[]> =>
   }
 };
 
-/**
- * Reduced Discovery Fetch: 100 docs instead of 300 to save quota.
- */
 export const getDiscoveryGames = async (max: number = 100): Promise<Game[]> => {
   try {
     const gamesRef = collection(db, 'games');
@@ -142,6 +134,7 @@ export const getPaginatedGamesByCategory = async (category: string, page: number
     const countSnapshot = await getCountFromServer(query(gamesRef, ...baseConstraints));
     const total = countSnapshot.data().count;
 
+    if (total === 0) return { games: [], total: 0 };
     if (page > MAX_ALLOWED_PAGES) return { games: [], total };
 
     const constraints: QueryConstraint[] = [...baseConstraints, orderBy('date_added', 'desc')];
@@ -169,7 +162,7 @@ export const getPaginatedGamesByCategory = async (category: string, page: number
     };
   } catch (error) {
     console.error("Category fetch failed:", error);
-    return { games: [], total: 0 };
+    throw error;
   }
 };
 

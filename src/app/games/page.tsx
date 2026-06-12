@@ -6,9 +6,9 @@ import { Footer } from '@/components/layout/Footer';
 import { GameGrid } from '@/components/pixel/GameGrid';
 import { getPaginatedGames } from '@/lib/games';
 import { Pagination } from '@/components/pixel/Pagination';
+import { AlertCircle, Terminal } from 'lucide-react';
 
 interface Props {
-  // 🛡️ Added string[] support in case URL gets weird (e.g. ?page=1&page=2)
   searchParams: Promise<{ page?: string | string[] }>;
 }
 
@@ -19,7 +19,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   
   return {
     title: `All Games${page} | YoriGames Arcade`,
-    description: `Browse our complete library of premium pixel-art arcade games. Play instantly in your browser. Currently on page ${pageStr || '1'}.`,
+    description: `Browse our complete library of premium pixel-art arcade games. Currently on page ${pageStr || '1'}.`,
     alternates: {
       canonical: '/games',
     },
@@ -27,25 +27,20 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function GamesPage({ searchParams }: Props) {
-  // 1. Safely parse the page parameter
   const resolvedParams = await searchParams;
   const pageParam = Array.isArray(resolvedParams?.page) ? resolvedParams.page[0] : resolvedParams?.page;
   const currentPage = Math.max(1, parseInt(pageParam || '1', 10) || 1);
   const pageSize = 24;
 
   try {
-    // 2. Fetch games with defensive fallbacks in case DB fails
     const data = await getPaginatedGames(currentPage, pageSize);
     const games = data?.games || [];
     const total = data?.total || 0;
 
-    // 3. 🚨 THE FIX: Sync frontend pages with our Backend Safety Cap (Max 20)
     const actualTotalPages = Math.ceil(total / pageSize);
-    const totalPages = Math.min(actualTotalPages, 20); // Stops at 20!
+    const totalPages = Math.min(actualTotalPages, 20); 
 
-    // 4. Calculate ranges safely
     const startRange = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-    // Don't show more than 480 (20*24) as the end range
     const maxAllowedGames = 20 * pageSize;
     const endRange = Math.min(currentPage * pageSize, total, maxAllowedGames);
 
@@ -60,8 +55,7 @@ export default async function GamesPage({ searchParams }: Props) {
               <div className="font-pixel text-[8px] text-neon-purple uppercase tracking-[0.2em] mb-4">LIBRARY</div>
               <h1 className="font-pixel text-4xl text-white uppercase mb-4">The Arcade</h1>
               <p className="font-body text-muted max-w-2xl">
-                Explore our curated selection of high-quality indie pixel games. 
-                From cosmic runners to cyberpunk adventures, we have something for every player.
+                Explore our curated selection of high-quality indie pixel games.
               </p>
             </div>
             <div className="bg-[#140A2E] border-2 border-[#1B123D] px-4 py-2 font-pixel text-[8px] text-muted uppercase">
@@ -69,16 +63,15 @@ export default async function GamesPage({ searchParams }: Props) {
             </div>
           </div>
 
-          {/* Fallback agar list khali ho */}
           {games.length === 0 ? (
-            <div className="text-center py-20 text-muted font-pixel">
-              No games found in this quadrant of space.
+            <div className="text-center py-32 bg-[#140A2E]/50 border-4 border-dashed border-[#1B123D]">
+              <Terminal className="w-16 h-16 text-muted mx-auto mb-6 opacity-20" />
+              <p className="font-pixel text-xs text-muted uppercase tracking-[0.2em]">No games detected in this sector.</p>
             </div>
           ) : (
             <GameGrid games={games} />
           )}
 
-          {/* 🛡️ Pagination tabhi dikhao jab 1 se zyada page hon */}
           {totalPages > 1 && (
             <div className="mt-16 flex justify-center">
               <Pagination 
@@ -94,13 +87,26 @@ export default async function GamesPage({ searchParams }: Props) {
       </main>
     );
   } catch (error) {
-    console.error("Failed to load games library:", error);
-    // Yeh specifically aapke custom error boundary ko trigger karega properly
-    throw new Error("Cosmic DB Failure"); 
+    console.error("Critical failure in library sector:", error);
+    return (
+      <main className="min-h-screen flex flex-col">
+        <SpaceBackground />
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center p-8">
+          <div className="max-w-md w-full bg-destructive/10 border-4 border-destructive p-8 text-center shadow-[8px_8px_0_0_#000]">
+            <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-6" />
+            <h2 className="font-pixel text-xl text-white uppercase mb-4">SYSTEM OFFLINE</h2>
+            <p className="font-body text-sm text-muted leading-relaxed uppercase mb-8">
+              The orbital database is currently unreachable due to high traffic or quota limits. Please return later.
+            </p>
+            <div className="font-pixel text-[8px] text-destructive opacity-50">ERROR_CODE: FIREBASE_QUOTA_EXCEEDED</div>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
   }
 }
 
-// 🚀 REVALIDATION: Fetch data once per hour instead of every request.
-// This saves ~99% of reads for high-traffic library pages.
 export const revalidate = 3600;
 export const dynamic = 'force-static';
