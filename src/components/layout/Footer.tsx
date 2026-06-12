@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import { Github, MessageSquare } from 'lucide-react';
+import { Github, Youtube } from 'lucide-react';
 import Link from 'next/link';
 
 export const Footer = () => {
@@ -28,13 +28,31 @@ export const Footer = () => {
               A collection of simple, fast-loading browser games built for quick, fun sessions. No downloads, no installations. Just click and play.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="p-2 border border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all" aria-label="X (formerly Twitter)">
+              <Link 
+                href="https://x.com/YoriOnlineGames" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 border border-[#1B123D] hover:border-neon-purple hover:text-neon-purple transition-all" 
+                aria-label="X (formerly Twitter)"
+              >
                 <XIcon className="w-5 h-5" />
               </Link>
-              <Link href="#" className="p-2 border border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all" aria-label="Discord">
-                <MessageSquare className="w-5 h-5" />
+              <Link 
+                href="https://youtube.com/@yorionlinegames?si=C1yQywWN5AoMwLBz" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 border border-[#1B123D] hover:border-neon-pink hover:text-neon-pink transition-all" 
+                aria-label="YouTube"
+              >
+                <Youtube className="w-5 h-5" />
               </Link>
-              <Link href="https://github.com" target="_blank" className="p-2 border border-[#1B123D] hover:border-neon-cyan hover:text-neon-cyan transition-all" aria-label="GitHub">
+              <Link 
+                href="https://github.com/Light0p" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 border border-[#1B123D] hover:border-neon-cyan hover:text-neon-cyan transition-all" 
+                aria-label="GitHub"
+              >
                 <Github className="w-5 h-5" />
               </Link>
             </div>
