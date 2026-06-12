@@ -26,7 +26,10 @@ export async function fetchGameMonetizeFeed(page: number = 1) {
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch GameMonetize feed (Page ${page}): ${response.statusText}`);
+      // Create a rich error object to pass the status code back up
+      const error: any = new Error(`Failed to fetch GameMonetize feed (Page ${page}): ${response.statusText}`);
+      error.status = response.status;
+      throw error;
     }
     
     const games = await response.json();

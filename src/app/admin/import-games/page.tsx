@@ -5,7 +5,7 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { Loader2, Download, CheckCircle2, AlertCircle, Database, BarChart3, RefreshCw, Layers } from 'lucide-react';
+import { Loader2, Download, CheckCircle2, AlertCircle, Database, BarChart3, RefreshCw, Layers, History, FastForward } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { notFound } from 'next/navigation';
 import { getTotalGameCount } from '@/lib/games';
@@ -17,10 +17,17 @@ export default function AdminImportPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const [importing, setImporting] = useState(false);
-  const [results, setResults] = useState<{ imported: number; failed: number; pages: number } | null>(null);
+  const [results, setResults] = useState<{ 
+    imported: number; 
+    failed: number; 
+    pages: number;
+    skipped: number;
+    retries: number;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalGames, setTotalGames] = useState<number | null>(null);
   const [currentSyncPage, setCurrentSyncPage] = useState<number>(0);
+  const [retryStatus, setRetryStatus] = useState<string | null>(null);
 
   const isAdmin = user?.email === 'yogeshyadav0630@gmail.com'; 
 
@@ -42,14 +49,18 @@ export default function AdminImportPage() {
   if (authLoading) return null;
   if (!isAdmin && user) return notFound();
 
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const handleImport = async () => {
     setImporting(true);
     setError(null);
-    setResults(null);
+    setResults({ imported: 0, failed: 0, pages: 0, skipped: 0, retries: 0 });
     setCurrentSyncPage(1);
     
     let totalImported = 0;
     let totalFailed = 0;
+    let totalSkipped = 0;
+    let totalRetries = 0;
     let page = 1;
     let hasMore = true;
 
@@ -57,26 +68,60 @@ export default function AdminImportPage() {
       while (hasMore) {
         setCurrentSyncPage(page);
         
-        // Step 1: Fetch transformed data from our internal server API (bypasses CORS)
-        const response = await fetch(`/api/admin/import-games?page=${page}`, {
-          method: 'POST'
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Server fetch failed on page ${page}`);
+        let attempt = 0;
+        let success = false;
+        let games = [];
+
+        // Retry Loop for Rate Limiting
+        while (attempt <= 3 && !success) {
+          if (attempt > 0) {
+            const backoff = attempt === 1 ? 5000 : attempt === 2 ? 10000 : 20000;
+            setRetryStatus(`Rate limited. Backing off for ${backoff/1000}s (Attempt ${attempt}/3)...`);
+            totalRetries++;
+            await sleep(backoff);
+          }
+
+          try {
+            const response = await fetch(`/api/admin/import-games?page=${page}`, {
+              method: 'POST'
+            });
+            
+            if (response.status === 429) {
+              attempt++;
+              continue;
+            }
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `Server fetch failed on page ${page}`);
+            }
+            
+            const data = await response.json();
+            games = data.games;
+            success = true;
+            setRetryStatus(null);
+          } catch (err: any) {
+            console.error(`Attempt ${attempt} failed:`, err);
+            attempt++;
+            if (attempt > 3) break;
+          }
         }
         
-        const data = await response.json();
-        const games = data.games;
+        if (!success) {
+          console.warn(`Skipping page ${page} after 3 failed attempts.`);
+          totalSkipped++;
+          page++;
+          // Still update progress for visibility
+          setResults(prev => prev ? { ...prev, skipped: totalSkipped, pages: page - 1 } : null);
+          continue;
+        }
         
         if (!Array.isArray(games) || games.length === 0) {
           hasMore = false;
           break;
         }
 
-        // Step 2: Perform mutations on the CLIENT 
-        // We use Promise.all per page to keep it reasonably fast but manageable
+        // Mutation Loop
         const importPromises = games.map(async (game: any) => {
           const gameRef = doc(db, 'games', `gm_${game.gameId}`);
           try {
@@ -87,7 +132,6 @@ export default function AdminImportPage() {
             totalImported++;
           } catch (err: any) {
             totalFailed++;
-            console.error(`Failed to import game ${game.title}:`, err);
             const permissionError = new FirestorePermissionError({
               path: gameRef.path,
               operation: 'write',
@@ -99,23 +143,33 @@ export default function AdminImportPage() {
 
         await Promise.all(importPromises);
         
-        // Stop if we received fewer than the requested 100 games (it's the last page)
+        // Final condition: if we got less than 100 games, it's the last page
         if (games.length < 100) {
           hasMore = false;
         } else {
           page++;
         }
 
-        // Update partial results for feedback
-        setResults({ imported: totalImported, failed: totalFailed, pages: page });
+        // Progress Update
+        setResults({ 
+          imported: totalImported, 
+          failed: totalFailed, 
+          pages: page - 1,
+          skipped: totalSkipped,
+          retries: totalRetries
+        });
+
+        // Base cooldown to prevent hitting rate limits
+        await sleep(2500); 
       }
       
       fetchStats(); 
     } catch (err: any) {
-      setError(err.message || 'Import process failed. Ensure you are logged in as admin.');
+      setError(err.message || 'Import process interrupted by critical error.');
     } finally {
       setImporting(false);
       setCurrentSyncPage(0);
+      setRetryStatus(null);
     }
   };
 
@@ -155,7 +209,7 @@ export default function AdminImportPage() {
             <div className="bg-[#09061B] border-2 border-[#1B123D] p-6">
               <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-widest">Global Synchronization</h3>
               <p className="font-body text-sm text-muted mb-6 leading-relaxed">
-                Connect to the GameMonetize uplink to synchronize the entire game library. This process iterates through all available pages and performs an upsert for every title.
+                Connect to the GameMonetize uplink to synchronize the entire game library. This process handles rate limits with exponential backoff and automatic cooldowns between requests.
               </p>
               
               <div className="flex flex-col gap-4">
@@ -179,8 +233,16 @@ export default function AdminImportPage() {
                 </PixelButton>
 
                 {importing && (
-                  <div className="w-full h-2 bg-[#1B123D] border border-white/5 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-neon-cyan animate-loading-bar" />
+                  <div className="space-y-2">
+                    <div className="w-full h-2 bg-[#1B123D] border border-white/5 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-neon-cyan animate-loading-bar" />
+                    </div>
+                    {retryStatus && (
+                      <div className="flex items-center gap-2 text-neon-gold animate-pulse">
+                        <History className="w-3 h-3" />
+                        <span className="font-pixel text-[6px] uppercase">{retryStatus}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -194,18 +256,26 @@ export default function AdminImportPage() {
                     {importing ? 'Synchronizing Universe...' : 'Mission Accomplished'}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-pixel text-[8px] text-white uppercase">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 font-pixel text-[8px] text-white uppercase">
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Pages Processed</div>
+                    <div className="text-muted mb-2">Pages Done</div>
                     <div className="text-lg text-neon-purple">{results.pages}</div>
                   </div>
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Unique Titles Sync'd</div>
+                    <div className="text-muted mb-2">Unique Titles</div>
                     <div className="text-lg text-neon-cyan">{results.imported}</div>
                   </div>
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Anomalies/Failed</div>
-                    <div className="text-lg text-neon-pink">{results.failed}</div>
+                    <div className="text-muted mb-2">Retries</div>
+                    <div className="text-lg text-neon-gold">{results.retries}</div>
+                  </div>
+                  <div className="bg-black/20 p-4 border border-green-500/30">
+                    <div className="text-muted mb-2">Skipped</div>
+                    <div className="text-lg text-neon-pink">{results.skipped}</div>
+                  </div>
+                  <div className="bg-black/20 p-4 border border-green-500/30">
+                    <div className="text-muted mb-2">Failed</div>
+                    <div className="text-lg text-destructive">{results.failed}</div>
                   </div>
                 </div>
               </div>
