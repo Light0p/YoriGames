@@ -40,6 +40,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
+  experimental: {
+    // Explicitly allow origin requests from the Firebase Studio proxy environment
+    allowedDevOrigins: [
+      '6000-firebase-studio-1780821471623.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
+      '*.cloudworkstations.dev',
+      'localhost:9002'
+    ]
+  }
 };
 
 export default nextConfig;

@@ -14,21 +14,35 @@ import { Game } from '@/types/game';
 
 /**
  * Sanitizes Firestore data for Next.js Server/Client boundary.
+ * Uses a WeakSet to prevent circular recursion and stack overflows.
  */
-const sanitizeData = (obj: any): any => {
+const sanitizeData = (obj: any, visited = new WeakSet()): any => {
   if (obj === null || typeof obj !== 'object') return obj;
+  
+  if (visited.has(obj)) return null;
+  
   if (obj instanceof Date) return obj.toISOString();
   if (typeof obj.toDate === 'function') return obj.toDate().toISOString();
   if (typeof obj.seconds === 'number' && typeof obj.nanoseconds === 'number') {
     return new Date(obj.seconds * 1000).toISOString();
   }
-  if (Array.isArray(obj)) return obj.map(sanitizeData);
-  if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) return null; 
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeData(item, visited));
+  }
+
+  // If it's a class instance but not a plain object, we don't want to deep-crawl it
+  // as it may contain circular references or large prototype chains.
+  if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) {
+    return null; 
+  }
+
+  visited.add(obj);
 
   const sanitized: any = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      sanitized[key] = sanitizeData(obj[key]);
+      sanitized[key] = sanitizeData(obj[key], visited);
     }
   }
   return sanitized;
@@ -80,7 +94,6 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
 export const getSearchableGames = async (max: number = 1000): Promise<Game[]> => {
   try {
     const gamesRef = collection(db, 'games');
-    // Only fetch what's needed for search to keep payload small
     const q = query(gamesRef, limit(max));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => {
