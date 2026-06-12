@@ -92,3 +92,6 @@ export default async function Home() {
     </main>
   );
 }
+
+// 🚀 REVALIDATION: ISR Caching
+export const revalidate = 3600;

@@ -12,6 +12,10 @@ import {
 } from 'firebase/firestore';
 import { Game } from '@/types/game';
 
+/**
+ * Sanitizes Firestore data for Next.js Server/Client boundary.
+ * Converts Timestamps to ISO strings and handles nested objects safely.
+ */
 const sanitizeData = (obj: any): any => {
   if (obj === null || typeof obj !== 'object') return obj;
 
@@ -23,6 +27,7 @@ const sanitizeData = (obj: any): any => {
 
   if (Array.isArray(obj)) return obj.map(sanitizeData);
 
+  // Prevent recursion for non-plain objects
   if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) return null; 
 
   const sanitized: any = {};

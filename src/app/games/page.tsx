@@ -100,4 +100,7 @@ export default async function GamesPage({ searchParams }: Props) {
   }
 }
 
-export const dynamic = 'force-dynamic';
+// 🚀 REVALIDATION: Fetch data once per hour instead of every request.
+// This saves ~99% of reads for high-traffic library pages.
+export const revalidate = 3600;
+export const dynamic = 'force-static';
