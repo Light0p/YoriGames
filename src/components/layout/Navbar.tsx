@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Search, User, Menu, LogOut, Settings, UserPlus, Check, Loader2, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, User, Menu, LogOut, Settings, UserPlus, Loader2, X } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth, useFirestore } from '@/firebase';
@@ -19,6 +19,7 @@ import { collection, query, where, onSnapshot, addDoc, serverTimestamp, limit } 
 
 export const Navbar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
@@ -32,10 +33,10 @@ export const Navbar = () => {
   const searchRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
-    { href: '/games', label: 'Games', label_key: 'games', color: 'text-neon-purple' },
-    { href: '/trending', label: 'Trending', label_key: 'trending', color: 'text-neon-pink' },
-    { href: '/categories', label: 'Categories', label_key: 'categories', color: 'text-neon-cyan' },
-    { href: '/contact', label: 'Contact', label_key: 'contact', color: 'text-neon-gold' },
+    { href: '/games', label: 'Games', color: 'text-neon-purple', type: 'link' },
+    { href: '/trending', label: 'Trending', color: 'text-neon-pink', type: 'link' },
+    { href: '#categories', label: 'Categories', color: 'text-neon-cyan', type: 'scroll' },
+    { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
 
   useEffect(() => {
@@ -88,6 +89,19 @@ export const Navbar = () => {
     };
   }, [searchQuery, db, user?.uid]);
 
+  const handleNavClick = (e: React.MouseEvent, type: string, href: string) => {
+    if (type === 'scroll') {
+      e.preventDefault();
+      setIsMobileMenuOpen(false);
+      if (pathname === '/') {
+        const target = document.querySelector(href);
+        target?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        router.push('/' + href);
+      }
+    }
+  };
+
   const handleSendFriendRequest = async (receiverId: string) => {
     if (!user) return;
     try {
@@ -115,7 +129,7 @@ export const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4">
       <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/90 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
-        <Link href="/" className="flex items-center gap-3 group" onClick={() => setIsMobileMenuOpen(false)} aria-label="Home">
+        <Link href="/" className="flex items-center gap-3 group" onClick={() => setIsMobileMenuOpen(false)}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges">
             <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
             <path fill="#FFFFFF" d="M6 10h2v2h2v2h-2v2H6v-2H4v-2h2v-2z"/>
@@ -133,8 +147,9 @@ export const Navbar = () => {
         <div className="hidden lg:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
           {navLinks.map((link) => (
             <Link 
-              key={link.href} 
+              key={link.label} 
               href={link.href} 
+              onClick={(e) => handleNavClick(e, link.type, link.href)}
               className={cn(
                 "transition-colors",
                 pathname === link.href ? link.color : "text-muted hover:text-white"
@@ -150,7 +165,6 @@ export const Navbar = () => {
             <div className="relative" ref={searchRef}>
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                aria-label="Search Players"
                 className={cn(
                   "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
                   isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
@@ -198,17 +212,12 @@ export const Navbar = () => {
                           <button 
                             onClick={() => handleSendFriendRequest(player.uid)}
                             className="p-2 bg-neon-cyan text-black hover:scale-110 transition-transform border-b-2 border-r-2 border-black"
-                            aria-label={`Send friend request to ${player.displayName}`}
                           >
                             <UserPlus className="w-3 h-3" />
                           </button>
                         )}
                       </div>
                     ))}
-
-                    {searchQuery && !isSearching && searchResults.length === 0 && (
-                      <p className="text-center font-pixel text-[8px] text-muted py-4 uppercase">No players detected.</p>
-                    )}
                   </div>
                 </div>
               )}
@@ -224,7 +233,7 @@ export const Navbar = () => {
               <div className="hidden sm:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
-                    <button className="flex items-center gap-3" aria-label="User Menu">
+                    <button className="flex items-center gap-3">
                       <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
                         {user.displayName || 'PLAYER'}
                       </span>
@@ -237,14 +246,14 @@ export const Navbar = () => {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
-                    <DropdownMenuItem className="hover:bg-neon-purple/20 focus:bg-neon-purple/20 cursor-pointer py-4" asChild>
+                    <DropdownMenuItem className="hover:bg-neon-purple/20 cursor-pointer py-4" asChild>
                       <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
                         <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-[#1B123D]" />
                     <DropdownMenuItem 
-                      className="hover:bg-destructive/20 focus:bg-destructive/20 cursor-pointer py-4 text-destructive"
+                      className="hover:bg-destructive/20 cursor-pointer py-4 text-destructive"
                       onClick={handleLogout}
                     >
                       <div className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
@@ -266,7 +275,6 @@ export const Navbar = () => {
 
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -287,16 +295,15 @@ export const Navbar = () => {
                   </AvatarFallback>
                 </Avatar>
                 <span className="font-pixel text-xs text-white uppercase">{user.displayName || 'PLAYER'}</span>
-                <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="font-pixel text-[8px] text-neon-cyan uppercase underline">Dossier Settings</Link>
               </div>
             )}
 
             <div className="flex flex-col gap-8 items-center w-full font-pixel text-xs tracking-[0.2em] uppercase">
               {navLinks.map((link) => (
                 <Link 
-                  key={link.href} 
+                  key={link.label} 
                   href={link.href} 
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, link.type, link.href)}
                   className={cn(
                     "transition-all py-2 w-full text-center",
                     pathname === link.href ? link.color : "text-muted"

@@ -15,20 +15,15 @@ import { Game } from '@/types/game';
 /**
  * Sanitizes Firestore data for Next.js Server/Client boundary.
  * Converts Timestamps to ISO strings and handles nested objects safely.
- * Hardened to prevent circular recursion and non-serializable objects.
  */
 const sanitizeData = (obj: any): any => {
   if (obj === null || typeof obj !== 'object') return obj;
-
   if (obj instanceof Date) return obj.toISOString();
   if (typeof obj.toDate === 'function') return obj.toDate().toISOString();
   if (typeof obj.seconds === 'number' && typeof obj.nanoseconds === 'number') {
     return new Date(obj.seconds * 1000).toISOString();
   }
-
   if (Array.isArray(obj)) return obj.map(sanitizeData);
-
-  // Prevent recursion for non-plain objects or class instances
   if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) return null; 
 
   const sanitized: any = {};
@@ -40,8 +35,6 @@ const sanitizeData = (obj: any): any => {
   return sanitized;
 };
 
-// SAFETY CAP: Maximum pages a user can jump to. Protects Firebase free quota.
-// 20 pages * 24 games = 480 games.
 const MAX_ALLOWED_PAGES = 20; 
 
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
@@ -82,10 +75,27 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
   }
 };
 
+/**
+ * Fetches a large slice of games for local interactive filtering on the homepage.
+ * Limited to 300 to keep payload manageable and reads safe under ISR.
+ */
+export const getDiscoveryGames = async (max: number = 300): Promise<Game[]> => {
+  try {
+    const gamesRef = collection(db, 'games');
+    const q = query(gamesRef, orderBy('date_added', 'desc'), limit(max));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game);
+  } catch (error) {
+    console.error("Discovery fetch failed:", error);
+    return [];
+  }
+};
+
 export const getPaginatedGamesByCategory = async (category: string, page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   try {
     const gamesRef = collection(db, 'games');
-    const baseConstraints = [where('category', '==', category)];
+    const decodedCategory = decodeURIComponent(category);
+    const baseConstraints = [where('category', '==', decodedCategory)];
     
     const countSnapshot = await getCountFromServer(query(gamesRef, ...baseConstraints));
     const total = countSnapshot.data().count;
@@ -116,18 +126,8 @@ export const getPaginatedGamesByCategory = async (category: string, page: number
       total
     };
   } catch (error) {
-    console.error("Quota or network failure in getPaginatedGamesByCategory:", error);
+    console.error("Category fetch failed:", error);
     return { games: [], total: 0 };
-  }
-};
-
-export const getTotalGameCount = async (): Promise<number> => {
-  try {
-    const gamesRef = collection(db, 'games');
-    const snapshot = await getCountFromServer(gamesRef);
-    return snapshot.data().count;
-  } catch {
-    return 0;
   }
 };
 
