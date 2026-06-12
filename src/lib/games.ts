@@ -14,7 +14,6 @@ import { Game } from '@/types/game';
 
 /**
  * Sanitizes Firestore data for Next.js Server/Client boundary.
- * Converts Timestamps to ISO strings and handles nested objects safely.
  */
 const sanitizeData = (obj: any): any => {
   if (obj === null || typeof obj !== 'object') return obj;
@@ -76,9 +75,31 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
 };
 
 /**
- * Fetches a large slice of games for local interactive filtering on the homepage.
- * Limited to 300 to keep payload manageable and reads safe under ISR.
+ * Fetches a simplified list of games for global client-side searching.
  */
+export const getSearchableGames = async (max: number = 1000): Promise<Game[]> => {
+  try {
+    const gamesRef = collection(db, 'games');
+    // Only fetch what's needed for search to keep payload small
+    const q = query(gamesRef, limit(max));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return sanitizeData({
+        id: doc.id,
+        title: data.title,
+        slug: data.slug,
+        thumbnail: data.thumbnail,
+        category: data.category,
+        tags: data.tags || []
+      }) as Game;
+    });
+  } catch (error) {
+    console.error("Searchable games fetch failed:", error);
+    return [];
+  }
+};
+
 export const getDiscoveryGames = async (max: number = 300): Promise<Game[]> => {
   try {
     const gamesRef = collection(db, 'games');

@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, User, Menu, LogOut, Settings, UserPlus, Loader2, X } from 'lucide-react';
+import { Search, User, Menu, LogOut, Settings, Loader2, X, Gamepad2 } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
-import { useUser, useAuth, useFirestore } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -15,22 +16,23 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, limit } from 'firebase/firestore';
+import { getSearchableGames } from '@/lib/games';
+import Fuse from 'fuse.js';
 
 export const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useUser();
   const auth = useAuth();
-  const db = useFirestore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [sentRequests, setSentRequests] = useState<string[]>([]);
+  const [allSearchableGames, setAllSearchableGames] = useState<any[]>([]);
+  const [isInitializingSearch, setIsInitializingSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const fuseRef = useRef<Fuse<any> | null>(null);
 
   const navLinks = [
     { href: '/games', label: 'Games', color: 'text-neon-purple', type: 'link' },
@@ -38,6 +40,28 @@ export const Navbar = () => {
     { href: '#categories', label: 'Categories', color: 'text-neon-cyan', type: 'scroll' },
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
+
+  // Initialize Search Data once on mount
+  useEffect(() => {
+    const initSearch = async () => {
+      setIsInitializingSearch(true);
+      try {
+        const games = await getSearchableGames(1000);
+        setAllSearchableGames(games);
+        
+        fuseRef.current = new Fuse(games, {
+          keys: ['title', 'category', 'tags'],
+          threshold: 0.3,
+          distance: 100,
+        });
+      } catch (err) {
+        console.error("Search initialization failed:", err);
+      } finally {
+        setIsInitializingSearch(false);
+      }
+    };
+    initSearch();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,45 +73,16 @@ export const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Fuzzy Search Logic (0 Firestore reads)
   useEffect(() => {
-    if (!searchQuery.trim() || !user) {
+    if (!searchQuery.trim() || !fuseRef.current) {
       setSearchResults([]);
-      setIsSearching(false);
       return;
     }
 
-    let unsubscribe: () => void;
-    setIsSearching(true);
-
-    const delayDebounceFn = setTimeout(() => {
-      const usersRef = collection(db, 'users');
-      const normalizedInput = searchQuery.toLowerCase();
-      
-      const q = query(
-        usersRef, 
-        where('searchName', '>=', normalizedInput),
-        where('searchName', '<=', normalizedInput + '\uf8ff'),
-        limit(10)
-      );
-      
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        const results = snapshot.docs
-          .map(doc => ({ ...doc.data(), id: doc.id }))
-          .filter((u: any) => u.uid !== user?.uid); 
-          
-        setSearchResults(results);
-        setIsSearching(false);
-      }, (error) => {
-        console.error("Real-time player search failed:", error);
-        setIsSearching(false);
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(delayDebounceFn);
-      if (unsubscribe) unsubscribe();
-    };
-  }, [searchQuery, db, user?.uid]);
+    const results = fuseRef.current.search(searchQuery).slice(0, 5).map(r => r.item);
+    setSearchResults(results);
+  }, [searchQuery]);
 
   const handleNavClick = (e: React.MouseEvent, type: string, href: string) => {
     if (type === 'scroll') {
@@ -102,19 +97,11 @@ export const Navbar = () => {
     }
   };
 
-  const handleSendFriendRequest = async (receiverId: string) => {
-    if (!user) return;
-    try {
-      await addDoc(collection(db, 'friendRequests'), {
-        senderId: user.uid,
-        receiverId: receiverId,
-        status: 'pending',
-        createdAt: serverTimestamp()
-      });
-      setSentRequests(prev => [...prev, receiverId]);
-    } catch (error) {
-      console.error("Failed to send request", error);
-    }
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setIsSearchOpen(false);
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
   };
 
   const handleLogout = async () => {
@@ -161,68 +148,79 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          {user && (
-            <div className="relative" ref={searchRef}>
-              <button 
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={cn(
-                  "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
-                  isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
-                )}
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
-              {isSearchOpen && (
-                <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[350px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2">
-                  <div className="relative mb-4">
-                    <input 
-                      type="text" 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="SCAN FOR PLAYERS..."
-                      autoFocus
-                      className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-2 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple"
-                    />
-                    {isSearching && (
-                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
-                    )}
-                  </div>
-
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                    {searchResults.map((player) => (
-                      <div key={player.id} className="flex items-center justify-between p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-8 h-8 border border-neon-purple">
-                            <AvatarImage src={player.photoURL} alt={player.displayName} />
-                            <AvatarFallback className="bg-neon-purple text-white text-[10px] font-pixel">
-                              {player.displayName?.charAt(0) || 'P'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-pixel text-[8px] text-white truncate max-w-[120px] uppercase">
-                            {player.displayName}
-                          </span>
-                        </div>
-                        
-                        {sentRequests.includes(player.uid) ? (
-                          <div className="bg-green-500/20 text-green-500 font-pixel text-[8px] px-2 py-1 border border-green-500">
-                            SENT
-                          </div>
-                        ) : (
-                          <button 
-                            onClick={() => handleSendFriendRequest(player.uid)}
-                            className="p-2 bg-neon-cyan text-black hover:scale-110 transition-transform border-b-2 border-r-2 border-black"
-                          >
-                            <UserPlus className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          <div className="relative" ref={searchRef}>
+            <button 
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className={cn(
+                "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
+                isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
               )}
-            </div>
-          )}
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
+            {isSearchOpen && (
+              <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[400px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2">
+                <form onSubmit={handleSearchSubmit} className="relative mb-4">
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="SCAN UNIVERSE..."
+                    autoFocus
+                    className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple uppercase"
+                  />
+                  {isInitializingSearch && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
+                  )}
+                </form>
+
+                <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((game) => (
+                      <Link 
+                        key={game.id} 
+                        href={`/games/${game.slug}`}
+                        onClick={() => {
+                          setIsSearchOpen(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group"
+                      >
+                        <div className="relative w-12 h-10 bg-black border border-[#1B123D] overflow-hidden shrink-0">
+                          <Image src={game.thumbnail} alt={game.title} fill className="object-cover group-hover:scale-110 transition-transform" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-pixel text-[8px] text-white truncate uppercase">
+                            {game.title}
+                          </div>
+                          <div className="font-pixel text-[6px] text-neon-purple uppercase mt-1">
+                            {game.category}
+                          </div>
+                        </div>
+                      </Link>
+                    ))
+                  ) : searchQuery.trim() ? (
+                    <div className="py-8 text-center border-2 border-dashed border-[#1B123D]">
+                      <Gamepad2 className="w-8 h-8 text-muted mx-auto mb-2 opacity-20" />
+                      <p className="font-pixel text-[8px] text-muted uppercase">No signals detected.</p>
+                    </div>
+                  ) : (
+                    <p className="font-pixel text-[8px] text-muted text-center py-4 uppercase">Enter search query...</p>
+                  )}
+                </div>
+                
+                {searchQuery.trim() && searchResults.length > 0 && (
+                  <button 
+                    onClick={handleSearchSubmit}
+                    className="w-full mt-4 py-3 bg-[#1B123D] border-2 border-[#1B123D] hover:border-neon-cyan text-white font-pixel text-[8px] uppercase transition-all"
+                  >
+                    View All Results
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           
           <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
 
