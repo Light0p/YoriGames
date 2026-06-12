@@ -5,11 +5,11 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { Loader2, Download, CheckCircle2, AlertCircle, Database, BarChart3 } from 'lucide-react';
+import { Loader2, Download, CheckCircle2, AlertCircle, Database, BarChart3, RefreshCw } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { notFound } from 'next/navigation';
 import { getTotalGameCount } from '@/lib/games';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
@@ -17,7 +17,7 @@ export default function AdminImportPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const [importing, setImporting] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<{ imported: number; failed: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalGames, setTotalGames] = useState<number | null>(null);
 
@@ -47,29 +47,39 @@ export default function AdminImportPage() {
     setResults(null);
     
     try {
-      // Step 1: Fetch transformed data from our server proxy (bypasses CORS)
+      // Step 1: Fetch transformed data from our internal server API (bypasses GameMonetize CORS)
       const response = await fetch('/api/admin/import-games', {
         method: 'POST'
       });
-      const data = await response.json();
       
-      if (!data.success) {
-        throw new Error(data.error || 'Fetch failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Server fetch failed');
       }
       
+      const data = await response.json();
       const games = data.games;
+      
+      if (!Array.isArray(games)) {
+        throw new Error('No games returned from feed');
+      }
+
       let imported = 0;
       let failed = 0;
 
-      // Step 2: Perform mutations on the CLIENT (satisfies Firebase Auth rules)
+      // Step 2: Perform mutations on the CLIENT 
+      // This ensures we use the Admin's logged-in token to satisfy security rules
       const importPromises = games.map(async (game: any) => {
         const gameRef = doc(db, 'games', `gm_${game.gameId}`);
         try {
-          // No await here for performance, but we use Promise.all later
-          await setDoc(gameRef, game, { merge: true });
+          await setDoc(gameRef, {
+            ...game,
+            lastImportedAt: serverTimestamp()
+          }, { merge: true });
           imported++;
         } catch (err: any) {
           failed++;
+          console.error(`Failed to import game ${game.title}:`, err);
           const permissionError = new FirestorePermissionError({
             path: gameRef.path,
             operation: 'write',
@@ -79,12 +89,13 @@ export default function AdminImportPage() {
         }
       });
 
+      // Wait for all writes to finish
       await Promise.all(importPromises);
       
       setResults({ imported, failed });
       fetchStats(); 
     } catch (err: any) {
-      setError(err.message || 'Import failed. Check console.');
+      setError(err.message || 'Import process failed. Ensure you are logged in as admin.');
     } finally {
       setImporting(false);
     }
@@ -103,27 +114,30 @@ export default function AdminImportPage() {
                 <Database className="w-8 h-8 text-black" />
               </div>
               <div>
-                <h1 className="font-pixel text-2xl text-white uppercase">Data Control</h1>
-                <p className="font-pixel text-[8px] text-neon-cyan uppercase mt-1">Uplink Status: Active</p>
+                <h1 className="font-pixel text-2xl text-white uppercase">Arcade Control</h1>
+                <p className="font-pixel text-[8px] text-neon-cyan uppercase mt-1">Status: Mission Command Active</p>
               </div>
             </div>
             
             <div className="bg-[#09061B] border-2 border-[#1B123D] p-4 flex items-center gap-6">
               <div className="flex flex-col">
-                <span className="font-pixel text-[6px] text-muted uppercase mb-1">Live Registry</span>
+                <span className="font-pixel text-[6px] text-muted uppercase mb-1">Total Games</span>
                 <span className="font-pixel text-lg text-white">
                   {totalGames !== null ? totalGames : '...'}
                 </span>
               </div>
               <BarChart3 className="w-6 h-6 text-neon-purple opacity-40" />
+              <button onClick={fetchStats} className="hover:text-neon-cyan transition-colors" title="Refresh Stats">
+                <RefreshCw className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
           <div className="space-y-8">
             <div className="bg-[#09061B] border-2 border-[#1B123D] p-6">
-              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-widest">Synchronization</h3>
+              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-widest">Data Synchronization</h3>
               <p className="font-body text-sm text-muted mb-6 leading-relaxed">
-                Execute a standard data sweep of the GameMonetize uplink. Metadata will be fetched via server-proxy and synchronized locally via your admin credentials.
+                Connect to the GameMonetize uplink to fetch the latest 100 titles. This process will create the "games" collection if it doesn't exist and update any existing metadata.
               </p>
               
               <PixelButton 
@@ -135,7 +149,7 @@ export default function AdminImportPage() {
                 {importing ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>SYNCHRONIZING...</span>
+                    <span>SYNCING FEED...</span>
                   </>
                 ) : (
                   <>
@@ -150,15 +164,15 @@ export default function AdminImportPage() {
               <div className="p-6 bg-green-500/10 border-2 border-green-500 animate-in fade-in slide-in-from-bottom-2">
                 <div className="flex items-center gap-3 text-green-500 mb-4">
                   <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-pixel text-[10px] uppercase">Sync Successful</span>
+                  <span className="font-pixel text-[10px] uppercase">Synchronization Complete</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 font-pixel text-[8px] text-white uppercase">
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Synchronized</div>
+                    <div className="text-muted mb-2">Processed</div>
                     <div className="text-lg text-neon-cyan">{results.imported}</div>
                   </div>
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Errors</div>
+                    <div className="text-muted mb-2">Failed</div>
                     <div className="text-lg text-neon-pink">{results.failed}</div>
                   </div>
                 </div>
@@ -168,7 +182,10 @@ export default function AdminImportPage() {
             {error && (
               <div className="p-6 bg-destructive/10 border-2 border-destructive flex items-center gap-3 text-destructive">
                 <AlertCircle className="w-5 h-5" />
-                <span className="font-pixel text-[10px] uppercase">{error}</span>
+                <div className="flex-1">
+                  <span className="font-pixel text-[10px] uppercase block mb-1">Error Detected</span>
+                  <p className="font-body text-xs opacity-80">{error}</p>
+                </div>
               </div>
             )}
           </div>

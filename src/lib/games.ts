@@ -6,7 +6,9 @@ import {
   where, 
   limit, 
   orderBy, 
-  getCountFromServer 
+  getCountFromServer,
+  doc,
+  getDoc
 } from 'firebase/firestore';
 import { Game } from '@/types/game';
 
@@ -15,7 +17,7 @@ import { Game } from '@/types/game';
  * Pulls dynamic GameMonetize data from Firestore.
  */
 
-export const getAllGames = async (max: number = 100): Promise<Game[]> => {
+export const getAllGames = async (max: number = 60): Promise<Game[]> => {
   const gamesRef = collection(db, 'games');
   const q = query(gamesRef, limit(max));
   const snapshot = await getDocs(q);

@@ -1,10 +1,9 @@
 /**
  * Server-side compatible utility for fetching and transforming GameMonetize data.
- * This file no longer performs Firestore mutations directly to adhere to the 
- * "Client-Side Mutation" architecture and satisfy security rules.
+ * This file transforms the raw feed into our standardized Game schema.
  */
 
-const FEED_URL = 'https://gamemonetize.com/feed.php?format=0&num=50&page=1';
+const FEED_URL = 'https://gamemonetize.com/feed.php?format=0&num=100&page=1';
 
 export interface GameMonetizeRaw {
   id: string;
@@ -38,16 +37,18 @@ export async function fetchGameMonetizeFeed() {
     return games.map((gameData: GameMonetizeRaw, index: number) => {
       const slug = slugify(gameData.title);
       
-      // Sensible defaults for homepage visibility
-      const isFeatured = index < 15; // First 15 are featured
+      // Sensible defaults for homepage sections
+      // Featured: Top 20 games
+      // Trending: Randomly assigned to create variety
+      const isFeatured = index < 20; 
       const isTrending = Math.random() > 0.6;
       
       return {
         gameId: gameData.id,
         title: gameData.title,
         slug: slug,
-        description: gameData.description || '',
-        instructions: gameData.instructions || '',
+        description: gameData.description || 'No description provided.',
+        instructions: gameData.instructions || 'Follow in-game instructions to play.',
         category: gameData.category || 'Arcade',
         tags: gameData.tags ? gameData.tags.split(',').map((t: string) => t.trim()) : [],
         thumbnail: gameData.thumb || '',
@@ -58,8 +59,8 @@ export async function fetchGameMonetizeFeed() {
         featured: isFeatured,
         trending: isTrending,
         date_added: new Date().toISOString().split('T')[0],
-        play_count: Math.floor(Math.random() * 5000),
-        likes: Math.floor(Math.random() * 500),
+        play_count: Math.floor(Math.random() * 10000) + 500,
+        likes: Math.floor(Math.random() * 1000) + 50,
         rating: Number((4 + Math.random()).toFixed(1)),
         updatedAt: new Date().toISOString()
       };
