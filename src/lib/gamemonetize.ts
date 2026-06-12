@@ -1,9 +1,10 @@
 /**
  * Server-side compatible utility for fetching and transforming GameMonetize data.
  * This file transforms the raw feed into our standardized Game schema.
+ * Now supports pagination to fetch the entire catalog.
  */
 
-const FEED_URL = 'https://gamemonetize.com/feed.php?format=0&num=100&page=1';
+const BASE_FEED_URL = 'https://gamemonetize.com/feed.php?format=0&num=100';
 
 export interface GameMonetizeRaw {
   id: string;
@@ -18,30 +19,31 @@ export interface GameMonetizeRaw {
   height: string;
 }
 
-export async function fetchGameMonetizeFeed() {
+export async function fetchGameMonetizeFeed(page: number = 1) {
   try {
-    const response = await fetch(FEED_URL, {
+    const response = await fetch(`${BASE_FEED_URL}&page=${page}`, {
       next: { revalidate: 0 } 
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch GameMonetize feed: ${response.statusText}`);
+      throw new Error(`Failed to fetch GameMonetize feed (Page ${page}): ${response.statusText}`);
     }
     
     const games = await response.json();
     
     if (!Array.isArray(games)) {
-      throw new Error('Invalid feed format received from GameMonetize');
+      // If we get something that isn't an array, it might be the end of the feed or an error
+      return [];
     }
     
     return games.map((gameData: GameMonetizeRaw, index: number) => {
       const slug = slugify(gameData.title);
       
       // Sensible defaults for homepage sections
-      // Featured: Top 20 games
+      // Featured: Top 20 games of the first page
       // Trending: Randomly assigned to create variety
-      const isFeatured = index < 20; 
-      const isTrending = Math.random() > 0.6;
+      const isFeatured = page === 1 && index < 20; 
+      const isTrending = Math.random() > 0.7;
       
       return {
         gameId: gameData.id,
@@ -66,7 +68,7 @@ export async function fetchGameMonetizeFeed() {
       };
     });
   } catch (error) {
-    console.error('Fetch process failed:', error);
+    console.error(`Fetch process failed for page ${page}:`, error);
     throw error;
   }
 }
