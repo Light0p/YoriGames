@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
-import { importGameMonetizeFeed } from '@/lib/gamemonetize';
+import { fetchGameMonetizeFeed } from '@/lib/gamemonetize';
 
 /**
- * Server-side API route to trigger manual GameMonetize imports.
- * Bypasses browser CORS and allows admin dashboard to trigger sync.
+ * Server-side API route to fetch GameMonetize feed.
+ * This bypasses CORS for the browser, but leaves the Firestore 
+ * mutation to the client to satisfy Auth security rules.
  */
 export async function POST(request: Request) {
   try {
-    // Note: In a full production app, you'd check for a session token here.
-    // However, the admin page itself is protected by email check.
-    const stats = await importGameMonetizeFeed();
-    return NextResponse.json({ success: true, stats });
+    const games = await fetchGameMonetizeFeed();
+    return NextResponse.json({ success: true, games });
   } catch (error: any) {
-    console.error('Manual import error:', error);
+    console.error('Manual fetch error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: error.message || 'Import process failed' 
+      error: error.message || 'Fetch process failed' 
     }, { status: 500 });
   }
 }

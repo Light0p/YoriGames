@@ -6,18 +6,21 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Loader2, Download, CheckCircle2, AlertCircle, Database, BarChart3 } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { notFound } from 'next/navigation';
 import { getTotalGameCount } from '@/lib/games';
+import { doc, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function AdminImportPage() {
   const { user, loading: authLoading } = useUser();
+  const db = useFirestore();
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalGames, setTotalGames] = useState<number | null>(null);
 
-  // Simple admin protection
   const isAdmin = user?.email === 'yogeshyadav0630@gmail.com'; 
 
   useEffect(() => {
@@ -42,21 +45,46 @@ export default function AdminImportPage() {
     setImporting(true);
     setError(null);
     setResults(null);
+    
     try {
-      // Call internal server-side API to bypass CORS
+      // Step 1: Fetch transformed data from our server proxy (bypasses CORS)
       const response = await fetch('/api/admin/import-games', {
         method: 'POST'
       });
       const data = await response.json();
       
       if (!data.success) {
-        throw new Error(data.error || 'Import failed');
+        throw new Error(data.error || 'Fetch failed');
       }
       
-      setResults(data.stats);
-      fetchStats(); // Update the count
+      const games = data.games;
+      let imported = 0;
+      let failed = 0;
+
+      // Step 2: Perform mutations on the CLIENT (satisfies Firebase Auth rules)
+      const importPromises = games.map(async (game: any) => {
+        const gameRef = doc(db, 'games', `gm_${game.gameId}`);
+        try {
+          // No await here for performance, but we use Promise.all later
+          await setDoc(gameRef, game, { merge: true });
+          imported++;
+        } catch (err: any) {
+          failed++;
+          const permissionError = new FirestorePermissionError({
+            path: gameRef.path,
+            operation: 'write',
+            requestResourceData: game,
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        }
+      });
+
+      await Promise.all(importPromises);
+      
+      setResults({ imported, failed });
+      fetchStats(); 
     } catch (err: any) {
-      setError(err.message || 'Import failed. Check server logs.');
+      setError(err.message || 'Import failed. Check console.');
     } finally {
       setImporting(false);
     }
@@ -76,7 +104,7 @@ export default function AdminImportPage() {
               </div>
               <div>
                 <h1 className="font-pixel text-2xl text-white uppercase">Data Control</h1>
-                <p className="font-pixel text-[8px] text-neon-cyan uppercase mt-1">GameMonetize Uplink</p>
+                <p className="font-pixel text-[8px] text-neon-cyan uppercase mt-1">Uplink Status: Active</p>
               </div>
             </div>
             
@@ -93,9 +121,9 @@ export default function AdminImportPage() {
 
           <div className="space-y-8">
             <div className="bg-[#09061B] border-2 border-[#1B123D] p-6">
-              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-widest">Import Subsystems</h3>
+              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-widest">Synchronization</h3>
               <p className="font-body text-sm text-muted mb-6 leading-relaxed">
-                Execute server-side synchronization with GameMonetize. This will fetch 50 games, standardize their metadata for YoriGames, and populate the global registry.
+                Execute a standard data sweep of the GameMonetize uplink. Metadata will be fetched via server-proxy and synchronized locally via your admin credentials.
               </p>
               
               <PixelButton 
@@ -124,13 +152,9 @@ export default function AdminImportPage() {
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-pixel text-[10px] uppercase">Sync Successful</span>
                 </div>
-                <div className="grid grid-cols-3 gap-4 font-pixel text-[8px] text-white uppercase">
+                <div className="grid grid-cols-2 gap-4 font-pixel text-[8px] text-white uppercase">
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Processed</div>
-                    <div className="text-lg">{results.imported + results.failed}</div>
-                  </div>
-                  <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Success</div>
+                    <div className="text-muted mb-2">Synchronized</div>
                     <div className="text-lg text-neon-cyan">{results.imported}</div>
                   </div>
                   <div className="bg-black/20 p-4 border border-green-500/30">
