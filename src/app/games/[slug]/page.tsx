@@ -45,7 +45,7 @@ export default async function GamePage({ params }: Props) {
 
   if (!game) notFound();
 
-  // YAHAN 50 ki jagah ab sirf 6 exact related games fetch hongi
+  // Optimized for quota: only fetch 6 related games
   const relatedGamesRef = await getRelatedGames(game.category, game.id, 6); 
 
   const jsonLd = {
@@ -74,5 +74,5 @@ export default async function GamePage({ params }: Props) {
   );
 }
 
-// Disable static params to ensure new GameMonetize games are served instantly
-export const dynamic = 'force-dynamic';
+// 🚀 REVALIDATION: Game pages revalidate once per hour to save quota
+export const revalidate = 3600;

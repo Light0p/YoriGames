@@ -37,8 +37,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const pageSize = 24;
 
   const { games, total } = await getPaginatedGamesByCategory(decodedSlug, currentPage, pageSize);
+  
+  // Calculate ranges and handle cases where no games are found
   const totalPages = Math.ceil(total / pageSize);
-
   const categoryName = games[0]?.category || slug.charAt(0).toUpperCase() + slug.slice(1);
   const startRange = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
   const endRange = Math.min(currentPage * pageSize, total);
@@ -62,11 +63,17 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           </div>
         </div>
 
-        <GameGrid games={games} />
+        {games.length === 0 ? (
+          <div className="text-center py-20 text-muted font-pixel">
+            No games found in this quadrant of space.
+          </div>
+        ) : (
+          <GameGrid games={games} />
+        )}
 
         <Pagination 
           currentPage={currentPage} 
-          totalPages={totalPages} 
+          totalPages={Math.min(totalPages, 20)} 
           baseUrl={`/categories/${slug}`} 
         />
       </div>
@@ -76,4 +83,5 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   );
 }
 
-export const dynamic = 'force-dynamic';
+// 🚀 REVALIDATION: Category pages revalidate once per hour
+export const revalidate = 3600;
