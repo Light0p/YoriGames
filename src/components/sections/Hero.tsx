@@ -44,7 +44,7 @@ export const Hero = () => {
         // 3. Graceful Fallback if Quota is Exhausted
         console.error("Failed to fetch stats (Quota likely exhausted):", err);
         setGameCount(4900); // Your current library size
-        setPlayerCount(0); // 🚨 100% REAL NOW: Fallback is 0, no fake numbers
+        setPlayerCount(0); // Fallback to 0
       }
     };
     
@@ -52,7 +52,7 @@ export const Hero = () => {
   }, [db]);
 
   const formatNumber = (num: number) => {
-    if (num === 0) return "0"; // Handle real 0 gracefully
+    if (num === 0) return "0"; 
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     return num.toString();
@@ -79,14 +79,14 @@ export const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 px-4">
-          <Link href="/games" className="w-full sm:w-auto">
+          <Link href="/trending" className="w-full sm:w-auto">
             <PixelButton variant="primary" size="lg" className="w-full">
               <Gamepad2 className="w-5 h-5" />
               <span>START PLAYING</span>
             </PixelButton>
           </Link>
           
-          <Link href="/games" className="w-full sm:w-auto">
+          <Link href="#categories" className="w-full sm:w-auto">
             <PixelButton variant="gold" size="lg" className="w-full">
               <span>EXPLORE LIBRARY</span>
               <ChevronRight className="w-5 h-5" />
@@ -101,7 +101,6 @@ export const Hero = () => {
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
           <div className="flex flex-col items-center border-x border-white/20">
-            {/* 🚨 100% REAL NOW: Only showing the exact playerCount */}
             <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(playerCount)}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Players</span>
           </div>
