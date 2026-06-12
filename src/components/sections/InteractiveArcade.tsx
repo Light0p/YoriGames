@@ -5,31 +5,24 @@ import { Game } from '@/types/game';
 import { GameCard } from '@/components/pixel/GameCard';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Gamepad2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Gamepad2, Loader2 } from 'lucide-react';
+import { useGameStore } from '@/context/GameContext';
 import Link from 'next/link';
-
-interface InteractiveArcadeProps {
-  initialGames: Game[];
-}
 
 const ITEMS_PER_PAGE = 12;
 
-const CATEGORIES = [
-  'All', 'Action', 'Arcade', 'Puzzle', 'Sports', 'Racing', 'Adventure', 'RPG'
-];
-
-export const InteractiveArcade = ({ initialGames }: InteractiveArcadeProps) => {
+export const InteractiveArcade = () => {
+  const { allGames, categories, loading } = useGameStore();
   const [activeCategory, setActiveCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 1. Local Filtering Logic (0 reads)
   const filteredGames = useMemo(() => {
-    if (activeCategory === 'All') return initialGames;
-    return initialGames.filter(game => game.category === activeCategory);
-  }, [activeCategory, initialGames]);
+    if (activeCategory === 'All') return allGames;
+    return allGames.filter(game => game.category === activeCategory);
+  }, [activeCategory, allGames]);
 
-  // 2. Local Pagination Logic (0 reads)
   const totalPages = Math.ceil(filteredGames.length / ITEMS_PER_PAGE);
+  
   const currentGames = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredGames.slice(start, start + ITEMS_PER_PAGE);
@@ -39,6 +32,15 @@ export const InteractiveArcade = ({ initialGames }: InteractiveArcadeProps) => {
     setActiveCategory(cat);
     setCurrentPage(1);
   };
+
+  if (loading && allGames.length === 0) {
+    return (
+      <div className="py-24 text-center">
+        <Loader2 className="w-8 h-8 text-neon-cyan animate-spin mx-auto mb-4" />
+        <p className="font-pixel text-[8px] text-muted uppercase">Scanning Arcade Nodes...</p>
+      </div>
+    );
+  }
 
   return (
     <section id="categories" className="py-24 px-6 sm:px-8 bg-[#0D0925]/50 border-y border-[#1B123D]">
@@ -51,9 +53,19 @@ export const InteractiveArcade = ({ initialGames }: InteractiveArcadeProps) => {
           </p>
         </div>
 
-        {/* Category Pill Filters */}
         <div className="flex flex-wrap justify-center gap-3 mb-16">
-          {CATEGORIES.map((cat) => (
+          <button
+            onClick={() => handleCategoryChange('All')}
+            className={cn(
+              "px-6 py-3 font-pixel text-[8px] uppercase tracking-widest border-2 transition-all active:scale-95",
+              activeCategory === 'All' 
+                ? "bg-neon-cyan border-neon-cyan text-black shadow-[4px_4px_0_0_#000]"
+                : "bg-[#140A2E] border-[#1B123D] text-muted hover:border-neon-cyan hover:text-white"
+            )}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => handleCategoryChange(cat)}
@@ -69,7 +81,6 @@ export const InteractiveArcade = ({ initialGames }: InteractiveArcadeProps) => {
           ))}
         </div>
 
-        {/* Results Grid */}
         {currentGames.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mb-16">
             {currentGames.map((game) => (
@@ -90,7 +101,6 @@ export const InteractiveArcade = ({ initialGames }: InteractiveArcadeProps) => {
           </div>
         )}
 
-        {/* Local Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-6">
             <PixelButton 

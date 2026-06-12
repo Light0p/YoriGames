@@ -4,51 +4,34 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
+import { useGameStore } from '@/context/GameContext';
 import { useFirestore } from '@/firebase';
 import { collection, getCountFromServer } from 'firebase/firestore'; 
 
 export const Hero = () => {
+  const { allGames } = useGameStore();
   const db = useFirestore();
   const [playerCount, setPlayerCount] = useState<number>(0);
-  const [gameCount, setGameCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      // 1. Check Session Cache First
-      const cachedGames = sessionStorage.getItem('yori_games_count');
+    const fetchUserStats = async () => {
       const cachedPlayers = sessionStorage.getItem('yori_players_count');
-
-      if (cachedGames && cachedPlayers) {
-        setGameCount(parseInt(cachedGames, 10));
+      if (cachedPlayers) {
         setPlayerCount(parseInt(cachedPlayers, 10));
         return;
       }
 
-      // 2. Safely Fetch from Firebase (Single optimized request, no live listeners)
       try {
-        const [gamesSnapshot, usersSnapshot] = await Promise.all([
-          getCountFromServer(collection(db, 'games')),
-          getCountFromServer(collection(db, 'users'))
-        ]);
-
-        const totalGames = gamesSnapshot.data().count;
+        const usersSnapshot = await getCountFromServer(collection(db, 'users'));
         const totalUsers = usersSnapshot.data().count;
-
-        setGameCount(totalGames);
         setPlayerCount(totalUsers);
-
-        // Save to cache so returning to the homepage doesn't cost more reads
-        sessionStorage.setItem('yori_games_count', totalGames.toString());
         sessionStorage.setItem('yori_players_count', totalUsers.toString());
       } catch (err) {
-        // 3. Graceful Fallback if Quota is Exhausted
-        console.error("Failed to fetch stats (Quota likely exhausted):", err);
-        setGameCount(4900); // Your current library size
-        setPlayerCount(0); // Fallback to 0
+        console.error("User count fetch failed:", err);
       }
     };
     
-    fetchStats();
+    fetchUserStats();
   }, [db]);
 
   const formatNumber = (num: number) => {
@@ -94,10 +77,9 @@ export const Hero = () => {
           </Link>
         </div>
 
-        {/* Grounded Stats */}
         <div className="relative z-20 mt-20 grid grid-cols-3 gap-4 sm:gap-12 opacity-80 px-4 max-w-lg mx-auto border-t border-white/10 pt-10">
           <div className="flex flex-col items-center">
-            <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(gameCount)}</span>
+            <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(allGames.length)}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
           <div className="flex flex-col items-center border-x border-white/20">

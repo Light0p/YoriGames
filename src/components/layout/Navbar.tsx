@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -8,6 +8,7 @@ import { Search, User, Menu, LogOut, Settings, Loader2, X, Gamepad2 } from 'luci
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth } from '@/firebase';
+import { useGameStore } from '@/context/GameContext';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -16,22 +17,19 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getSearchableGames } from '@/lib/games';
 import Fuse from 'fuse.js';
 
 export const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
   const auth = useAuth();
+  const { allGames, loading: gamesLoading } = useGameStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isInitializingSearch, setIsInitializingSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const fuseRef = useRef<Fuse<any> | null>(null);
 
   const navLinks = [
     { href: '/games', label: 'Games', color: 'text-neon-purple', type: 'link' },
@@ -40,29 +38,18 @@ export const Navbar = () => {
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
 
-  // Optimized Search: Initialize data only once when user interacts with search
-  useEffect(() => {
-    if (!isSearchOpen || fuseRef.current) return;
+  const fuse = useMemo(() => {
+    return new Fuse(allGames, {
+      keys: ['title', 'category', 'tags'],
+      threshold: 0.3,
+      distance: 100,
+    });
+  }, [allGames]);
 
-    const initSearch = async () => {
-      setIsInitializingSearch(true);
-      try {
-        // Optimized: minimized data set and cache-first logic
-        const games = await getSearchableGames(1000);
-        
-        fuseRef.current = new Fuse(games, {
-          keys: ['title', 'category', 'tags'],
-          threshold: 0.3,
-          distance: 100,
-        });
-      } catch (err) {
-        console.error("Search initialization failed:", err);
-      } finally {
-        setIsInitializingSearch(false);
-      }
-    };
-    initSearch();
-  }, [isSearchOpen]);
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return fuse.search(searchQuery).slice(0, 5).map(r => r.item);
+  }, [searchQuery, fuse]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -73,17 +60,6 @@ export const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Fuzzy Search Logic (0 Firestore reads)
-  useEffect(() => {
-    if (!searchQuery.trim() || !fuseRef.current) {
-      setSearchResults([]);
-      return;
-    }
-
-    const results = fuseRef.current.search(searchQuery).slice(0, 5).map(r => r.item);
-    setSearchResults(results);
-  }, [searchQuery]);
 
   const handleNavClick = (e: React.MouseEvent, type: string, href: string) => {
     if (type === 'scroll') {
@@ -131,7 +107,6 @@ export const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop Links */}
         <div className="hidden lg:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
           {navLinks.map((link) => (
             <Link 
@@ -171,7 +146,7 @@ export const Navbar = () => {
                     autoFocus
                     className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple uppercase"
                   />
-                  {isInitializingSearch && (
+                  {gamesLoading && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
                   )}
                 </form>
@@ -210,22 +185,13 @@ export const Navbar = () => {
                     <p className="font-pixel text-[8px] text-muted text-center py-4 uppercase">Enter search query...</p>
                   )}
                 </div>
-                
-                {searchQuery.trim() && searchResults.length > 0 && (
-                  <button 
-                    onClick={handleSearchSubmit}
-                    className="w-full mt-4 py-3 bg-[#1B123D] border-2 border-[#1B123D] hover:border-neon-cyan text-white font-pixel text-[8px] uppercase transition-all"
-                  >
-                    View All Results
-                  </button>
-                )}
               </div>
             )}
           </div>
           
           <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
 
-          {loading ? (
+          {userLoading ? (
             <div className="w-10 h-10 border-2 border-[#1B123D] animate-pulse rounded-full" />
           ) : (
             user ? (
@@ -281,7 +247,6 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-[45] bg-[#140A2E] flex flex-col pt-24 px-6 animate-in fade-in slide-in-from-top-4">
           <div className="flex flex-col gap-6 items-center w-full">

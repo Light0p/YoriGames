@@ -1,43 +1,49 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameCard } from '@/components/pixel/GameCard';
 import { Search, Gamepad2, Loader2, Sparkles } from 'lucide-react';
+import { useGameStore } from '@/context/GameContext';
 import Link from 'next/link';
 import Fuse from 'fuse.js';
 
-interface SearchContentProps {
-  initialGames: any[];
-}
-
-export function SearchContent({ initialGames }: SearchContentProps) {
+export function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
+  const { allGames, loading } = useGameStore();
   
   const [query, setQuery] = useState(initialQuery);
-  const fuseRef = useRef<Fuse<any> | null>(null);
 
-  useEffect(() => {
-    fuseRef.current = new Fuse(initialGames, {
+  const fuse = useMemo(() => {
+    return new Fuse(allGames, {
       keys: ['title', 'category', 'tags'],
       threshold: 0.3,
     });
-  }, [initialGames]);
+  }, [allGames]);
 
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
 
   const filteredGames = useMemo(() => {
-    if (!query.trim() || !fuseRef.current) return [];
-    return fuseRef.current.search(query).map(r => r.item);
-  }, [query]);
+    if (!query.trim()) return [];
+    return fuse.search(query).map(r => r.item);
+  }, [query, fuse]);
 
   const recommendations = useMemo(() => {
-    if (filteredGames.length > 0 || !initialGames.length) return [];
-    return initialGames.slice(0, 10).sort(() => Math.random() - 0.5).slice(0, 5);
-  }, [filteredGames, initialGames]);
+    if (filteredGames.length > 0 || !allGames.length) return [];
+    return [...allGames].sort(() => Math.random() - 0.5).slice(0, 5);
+  }, [filteredGames, allGames]);
+
+  if (loading && allGames.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-32 text-center">
+        <Loader2 className="w-12 h-12 text-neon-purple animate-spin mx-auto mb-6" />
+        <p className="font-pixel text-[10px] text-muted uppercase">Indexing Universal Data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:py-16">

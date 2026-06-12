@@ -1,1 +1,36 @@
-[]
+[
+  {
+    "id": "gm_example_1",
+    "title": "Pixel Dash",
+    "slug": "pixel-dash",
+    "description": "An intense neon-soaked cosmic runner where timing is everything.",
+    "instructions": "Use arrows to move. Space to jump.",
+    "category": "Arcade",
+    "tags": ["neon", "pixel", "runner"],
+    "thumbnail": "https://picsum.photos/seed/pixel/600/400",
+    "iframe_url": "https://gamemonetize.com/pixel-dash-example",
+    "featured": true,
+    "trending": true,
+    "rating": 4.8,
+    "play_count": 15200,
+    "date_added": "2024-01-01",
+    "game_source": "gamemonetize"
+  },
+  {
+    "id": "gm_example_2",
+    "title": "Cyber Quest",
+    "slug": "cyber-quest",
+    "description": "Explore the digital underworld in this retro platformer.",
+    "instructions": "WASD to move and jump.",
+    "category": "Action",
+    "tags": ["cyberpunk", "platformer", "retro"],
+    "thumbnail": "https://picsum.photos/seed/cyber/600/400",
+    "iframe_url": "https://gamemonetize.com/cyber-quest-example",
+    "featured": true,
+    "trending": false,
+    "rating": 4.5,
+    "play_count": 8900,
+    "date_added": "2024-01-05",
+    "game_source": "gamemonetize"
+  }
+]

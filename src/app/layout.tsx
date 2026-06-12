@@ -6,6 +6,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { GameProvider } from '@/context/GameContext';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -84,7 +85,6 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        {/* Google AdSense Auto Ads */}
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7395050320323237"
@@ -99,10 +99,12 @@ export default function RootLayout({
         pressStart.variable
       )}>
         <FirebaseClientProvider>
-          <GalaxyBackground />
-          <div className="relative z-10 overflow-x-hidden w-full">
-            {children}
-          </div>
+          <GameProvider>
+            <GalaxyBackground />
+            <div className="relative z-10 overflow-x-hidden w-full">
+              {children}
+            </div>
+          </GameProvider>
         </FirebaseClientProvider>
         <Analytics />
       </body>
