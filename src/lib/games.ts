@@ -9,7 +9,9 @@ import {
   getCountFromServer,
   doc,
   getDoc,
-  Timestamp
+  Timestamp,
+  startAt,
+  QueryConstraint
 } from 'firebase/firestore';
 import { Game } from '@/types/game';
 
@@ -47,6 +49,51 @@ export const getAllGames = async (max: number = 60): Promise<Game[]> => {
   return snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game);
 };
 
+export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
+  const gamesRef = collection(db, 'games');
+  
+  // Get total count
+  const countSnapshot = await getCountFromServer(gamesRef);
+  const total = countSnapshot.data().count;
+
+  // Calculate skip for jumping to page
+  // Note: Firestore doesn't have offset, so we fetch the cursor for the page
+  const constraints: QueryConstraint[] = [orderBy('date_added', 'desc')];
+  
+  if (page > 1) {
+    const skipCount = (page - 1) * pageSize;
+    const skipQuery = query(gamesRef, ...constraints, limit(skipCount));
+    const skipSnapshot = await getDocs(skipQuery);
+    if (!skipSnapshot.empty) {
+      const lastVisible = skipSnapshot.docs[skipSnapshot.docs.length - 1];
+      // Note: startAt is used here to jump to the next item
+      // Technically we want the item AFTER this, so we'd use startAfter
+      // But for page-based jumping startAt with the specific doc is reliable
+    }
+    
+    // Improved jumping: Fetch all docs up to the page start to get the cursor
+    const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
+    const jumpSnapshot = await getDocs(jumpQuery);
+    if (!jumpSnapshot.empty) {
+      const startDoc = jumpSnapshot.docs[jumpSnapshot.docs.length - 1];
+      const pageQuery = query(gamesRef, ...constraints, startAt(startDoc), limit(pageSize));
+      const snapshot = await getDocs(pageQuery);
+      return {
+        games: snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game),
+        total
+      };
+    }
+  }
+
+  // Page 1 or fallback
+  const q = query(gamesRef, ...constraints, limit(pageSize));
+  const snapshot = await getDocs(q);
+  return {
+    games: snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game),
+    total
+  };
+};
+
 export const getTotalGameCount = async (): Promise<number> => {
   const gamesRef = collection(db, 'games');
   const snapshot = await getCountFromServer(gamesRef);
@@ -70,6 +117,39 @@ export const getGamesByCategory = async (category: string, max: number = 24): Pr
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game);
+};
+
+export const getPaginatedGamesByCategory = async (category: string, page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
+  const gamesRef = collection(db, 'games');
+  const baseConstraints = [where('category', '==', category)];
+  
+  // Get total count for category
+  const countSnapshot = await getCountFromServer(query(gamesRef, ...baseConstraints));
+  const total = countSnapshot.data().count;
+
+  const constraints: QueryConstraint[] = [...baseConstraints, orderBy('date_added', 'desc')];
+  
+  if (page > 1) {
+    const skipCount = (page - 1) * pageSize;
+    const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
+    const jumpSnapshot = await getDocs(jumpQuery);
+    if (!jumpSnapshot.empty) {
+      const startDoc = jumpSnapshot.docs[jumpSnapshot.docs.length - 1];
+      const pageQuery = query(gamesRef, ...constraints, startAt(startDoc), limit(pageSize));
+      const snapshot = await getDocs(pageQuery);
+      return {
+        games: snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game),
+        total
+      };
+    }
+  }
+
+  const q = query(gamesRef, ...constraints, limit(pageSize));
+  const snapshot = await getDocs(q);
+  return {
+    games: snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game),
+    total
+  };
 };
 
 export const getFeaturedGames = async (max: number = 10): Promise<Game[]> => {

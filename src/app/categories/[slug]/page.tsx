@@ -4,11 +4,13 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GameGrid } from '@/components/pixel/GameGrid';
-import { getGamesByCategory } from '@/lib/games';
+import { getPaginatedGamesByCategory } from '@/lib/games';
+import { Pagination } from '@/components/pixel/Pagination';
 import { notFound } from 'next/navigation';
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,18 +26,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function CategoryPage({ params }: Props) {
+export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { page: pageStr } = await searchParams;
   const decodedSlug = decodeURIComponent(slug).toLowerCase();
   
-  const games = await getGamesByCategory(decodedSlug, 50);
-  
-  if (games.length === 0) {
-    // We could check if category exists, but since it's dynamic, we'll just show an empty grid or notFound
-    // but better to show the page if it's a valid attempt
+  const currentPage = parseInt(pageStr || '1', 10);
+  const pageSize = 24;
+
+  const { games, total } = await getPaginatedGamesByCategory(decodedSlug, currentPage, pageSize);
+  const totalPages = Math.ceil(total / pageSize);
+
+  if (total === 0 && currentPage === 1) {
+    // Optionally handle empty category
   }
 
   const categoryName = games[0]?.category || slug.charAt(0).toUpperCase() + slug.slice(1);
+  const startRange = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endRange = Math.min(currentPage * pageSize, total);
 
   return (
     <main className="min-h-screen">
@@ -43,15 +51,26 @@ export default async function CategoryPage({ params }: Props) {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-16 sm:px-8">
-        <div className="mb-12">
-          <div className="font-pixel text-[8px] text-neon-cyan uppercase tracking-[0.2em] mb-4">CATEGORY</div>
-          <h1 className="font-pixel text-4xl text-white uppercase mb-4">{categoryName}</h1>
-          <p className="font-body text-muted max-w-2xl">
-            Check out all our premium games in the {categoryName} genre.
-          </p>
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex-1">
+            <div className="font-pixel text-[8px] text-neon-cyan uppercase tracking-[0.2em] mb-4">CATEGORY</div>
+            <h1 className="font-pixel text-4xl text-white uppercase mb-4">{categoryName}</h1>
+            <p className="font-body text-muted max-w-2xl">
+              Check out all our premium games in the {categoryName} genre.
+            </p>
+          </div>
+          <div className="bg-[#140A2E] border-2 border-[#1B123D] px-4 py-2 font-pixel text-[8px] text-muted uppercase">
+            Showing <span className="text-white">{startRange}-{endRange}</span> of <span className="text-white">{total.toLocaleString()}</span> Games
+          </div>
         </div>
 
         <GameGrid games={games} />
+
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          baseUrl={`/categories/${slug}`} 
+        />
       </div>
 
       <Footer />
