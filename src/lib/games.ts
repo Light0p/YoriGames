@@ -6,14 +6,13 @@ import {
   where, 
   limit, 
   orderBy, 
-  doc, 
-  getDoc 
+  getCountFromServer 
 } from 'firebase/firestore';
 import { Game } from '@/types/game';
 
 /**
  * Data Access Layer for YoriGames.
- * Migrated from JSON to Firestore for dynamic GameMonetize integration.
+ * Pulls dynamic GameMonetize data from Firestore.
  */
 
 export const getAllGames = async (max: number = 100): Promise<Game[]> => {
@@ -21,6 +20,12 @@ export const getAllGames = async (max: number = 100): Promise<Game[]> => {
   const q = query(gamesRef, limit(max));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
+};
+
+export const getTotalGameCount = async (): Promise<number> => {
+  const gamesRef = collection(db, 'games');
+  const snapshot = await getCountFromServer(gamesRef);
+  return snapshot.data().count;
 };
 
 export const getGameBySlug = async (slug: string): Promise<Game | null> => {
@@ -65,18 +70,4 @@ export const getNewArrivals = async (max: number = 10): Promise<Game[]> => {
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
-};
-
-export const getRelatedGames = async (currentGame: Game, max: number = 4): Promise<Game[]> => {
-  const gamesRef = collection(db, 'games');
-  const q = query(
-    gamesRef, 
-    where('category', '==', currentGame.category),
-    limit(max + 1)
-  );
-  const snapshot = await getDocs(q);
-  return snapshot.docs
-    .map(doc => ({ ...doc.data(), id: doc.id } as Game))
-    .filter(g => g.slug !== currentGame.slug)
-    .slice(0, max);
 };

@@ -1,23 +1,39 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
-import { importGameMonetizeFeed } from '@/lib/gamemonetize';
-import { Loader2, Download, CheckCircle2, AlertCircle, Database } from 'lucide-react';
+import { Loader2, Download, CheckCircle2, AlertCircle, Database, BarChart3 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { notFound } from 'next/navigation';
+import { getTotalGameCount } from '@/lib/games';
 
 export default function AdminImportPage() {
   const { user, loading: authLoading } = useUser();
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [totalGames, setTotalGames] = useState<number | null>(null);
 
-  // Simple admin protection (Replace with your actual admin UID or role check)
+  // Simple admin protection
   const isAdmin = user?.email === 'yogeshyadav0630@gmail.com'; 
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchStats();
+    }
+  }, [isAdmin]);
+
+  const fetchStats = async () => {
+    try {
+      const count = await getTotalGameCount();
+      setTotalGames(count);
+    } catch (err) {
+      console.error("Failed to fetch game count", err);
+    }
+  };
 
   if (authLoading) return null;
   if (!isAdmin && user) return notFound();
@@ -27,10 +43,20 @@ export default function AdminImportPage() {
     setError(null);
     setResults(null);
     try {
-      const stats = await importGameMonetizeFeed();
-      setResults(stats);
+      // Call internal server-side API to bypass CORS
+      const response = await fetch('/api/admin/import-games', {
+        method: 'POST'
+      });
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Import failed');
+      }
+      
+      setResults(data.stats);
+      fetchStats(); // Update the count
     } catch (err: any) {
-      setError(err.message || 'Import failed');
+      setError(err.message || 'Import failed. Check server logs.');
     } finally {
       setImporting(false);
     }
@@ -43,22 +69,33 @@ export default function AdminImportPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-24">
         <div className="bg-[#140A2E] border-4 border-[#1B123D] p-8 sm:p-12 shadow-[8px_8px_0_0_#000]">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="bg-neon-cyan p-3 border-4 border-black">
-              <Database className="w-8 h-8 text-black" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
+            <div className="flex items-center gap-4">
+              <div className="bg-neon-cyan p-3 border-4 border-black">
+                <Database className="w-8 h-8 text-black" />
+              </div>
+              <div>
+                <h1 className="font-pixel text-2xl text-white uppercase">Data Control</h1>
+                <p className="font-pixel text-[8px] text-neon-cyan uppercase mt-1">GameMonetize Uplink</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-pixel text-2xl text-white uppercase">Data Control</h1>
-              <p className="font-pixel text-[8px] text-neon-cyan uppercase mt-1">GameMonetize Uplink</p>
+            
+            <div className="bg-[#09061B] border-2 border-[#1B123D] p-4 flex items-center gap-6">
+              <div className="flex flex-col">
+                <span className="font-pixel text-[6px] text-muted uppercase mb-1">Live Registry</span>
+                <span className="font-pixel text-lg text-white">
+                  {totalGames !== null ? totalGames : '...'}
+                </span>
+              </div>
+              <BarChart3 className="w-6 h-6 text-neon-purple opacity-40" />
             </div>
           </div>
 
           <div className="space-y-8">
             <div className="bg-[#09061B] border-2 border-[#1B123D] p-6">
               <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-widest">Import Subsystems</h3>
-              <p className="font-body text-sm text-muted mb-6">
-                Connect to GameMonetize Feed (Format 0) to synchronize the latest 50 games. 
-                Existing games will be updated; new games will be added to the registry.
+              <p className="font-body text-sm text-muted mb-6 leading-relaxed">
+                Execute server-side synchronization with GameMonetize. This will fetch 50 games, standardize their metadata for YoriGames, and populate the global registry.
               </p>
               
               <PixelButton 
@@ -97,7 +134,7 @@ export default function AdminImportPage() {
                     <div className="text-lg text-neon-cyan">{results.imported}</div>
                   </div>
                   <div className="bg-black/20 p-4 border border-green-500/30">
-                    <div className="text-muted mb-2">Failed</div>
+                    <div className="text-muted mb-2">Errors</div>
                     <div className="text-lg text-neon-pink">{results.failed}</div>
                   </div>
                 </div>
