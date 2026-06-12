@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, onSnapshot, getCountFromServer } from 'firebase/firestore';
+import { collection, getCountFromServer } from 'firebase/firestore'; 
 
 export const Hero = () => {
   const db = useFirestore();
@@ -13,29 +13,46 @@ export const Hero = () => {
   const [gameCount, setGameCount] = useState<number>(0);
 
   useEffect(() => {
-    // 1. Sync Player Count (Active Users)
-    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
-      setPlayerCount(snapshot.size);
-    }, (error) => {
-      // Quietly handle stats sync issues
-    });
+    const fetchStats = async () => {
+      // 1. Check Session Cache First
+      const cachedGames = sessionStorage.getItem('yori_games_count');
+      const cachedPlayers = sessionStorage.getItem('yori_players_count');
 
-    // 2. Fetch Total Game Count (Once)
-    const fetchGameCount = async () => {
+      if (cachedGames && cachedPlayers) {
+        setGameCount(parseInt(cachedGames, 10));
+        setPlayerCount(parseInt(cachedPlayers, 10));
+        return;
+      }
+
+      // 2. Safely Fetch from Firebase (Single optimized request, no live listeners)
       try {
-        const snapshot = await getCountFromServer(collection(db, 'games'));
-        setGameCount(snapshot.data().count);
+        const [gamesSnapshot, usersSnapshot] = await Promise.all([
+          getCountFromServer(collection(db, 'games')),
+          getCountFromServer(collection(db, 'users'))
+        ]);
+
+        const totalGames = gamesSnapshot.data().count;
+        const totalUsers = usersSnapshot.data().count;
+
+        setGameCount(totalGames);
+        setPlayerCount(totalUsers);
+
+        // Save to cache so returning to the homepage doesn't cost more reads
+        sessionStorage.setItem('yori_games_count', totalGames.toString());
+        sessionStorage.setItem('yori_players_count', totalUsers.toString());
       } catch (err) {
-        console.error("Failed to fetch total games", err);
+        // 3. Graceful Fallback if Quota is Exhausted
+        console.error("Failed to fetch stats (Quota likely exhausted):", err);
+        setGameCount(4900); // Your current library size
+        setPlayerCount(0); // 🚨 100% REAL NOW: Fallback is 0, no fake numbers
       }
     };
     
-    fetchGameCount();
-
-    return () => unsubscribe();
+    fetchStats();
   }, [db]);
 
   const formatNumber = (num: number) => {
+    if (num === 0) return "0"; // Handle real 0 gracefully
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     return num.toString();
@@ -84,7 +101,8 @@ export const Hero = () => {
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
           <div className="flex flex-col items-center border-x border-white/20">
-            <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(playerCount + 100)}</span>
+            {/* 🚨 100% REAL NOW: Only showing the exact playerCount */}
+            <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(playerCount)}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Players</span>
           </div>
           <div className="flex flex-col items-center">

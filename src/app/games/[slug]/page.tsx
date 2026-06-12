@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { getGameBySlug, getAllGames } from '@/lib/games';
+import { getGameBySlug, getRelatedGames } from '@/lib/games'; 
 import { notFound } from 'next/navigation';
 import { GameView } from '@/components/game/GameView';
 
@@ -45,8 +45,8 @@ export default async function GamePage({ params }: Props) {
 
   if (!game) notFound();
 
-  // Fetch related games from Firestore
-  const relatedGamesRef = await getAllGames(50); 
+  // YAHAN 50 ki jagah ab sirf 6 exact related games fetch hongi
+  const relatedGamesRef = await getRelatedGames(game.category, game.id, 6); 
 
   const jsonLd = {
     '@context': 'https://schema.org',
