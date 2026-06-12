@@ -1,6 +1,8 @@
 import { db } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Game } from '@/types/game';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const FEED_URL = 'https://gamemonetize.com/feed.php?format=0&num=50&page=1';
 
@@ -34,7 +36,6 @@ export async function importGameMonetizeFeed() {
         const gameRef = doc(db, 'games', `gm_${gameId}`);
         
         // Sensible defaults for homepage visibility
-        // We make about 20% featured and 30% trending randomly if not specified
         const isFeatured = Math.random() > 0.8;
         const isTrending = Math.random() > 0.7;
         
@@ -53,7 +54,6 @@ export async function importGameMonetizeFeed() {
           game_source: 'gamemonetize',
           featured: isFeatured,
           trending: isTrending,
-          // Standardize date for "New Arrivals" sorting
           date_added: new Date().toISOString().split('T')[0],
           play_count: Math.floor(Math.random() * 5000),
           likes: Math.floor(Math.random() * 500),
@@ -61,7 +61,17 @@ export async function importGameMonetizeFeed() {
           updatedAt: new Date().toISOString()
         };
 
-        await setDoc(gameRef, gameObj, { merge: true });
+        // Mutation without direct await to use background sync benefits
+        setDoc(gameRef, gameObj, { merge: true })
+          .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+              path: gameRef.path,
+              operation: 'write',
+              requestResourceData: gameObj,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
+          
         stats.imported++;
       } catch (err) {
         console.error(`Failed to process game ${gameData.title}:`, err);
