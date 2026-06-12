@@ -20,42 +20,34 @@ import { Game } from '@/types/game';
  */
 
 /**
- * Sanitizes Firestore data for Client Components.
- * Prevents RangeError by limiting recursion and avoiding circular references.
+ * Strictly sanitizes Firestore data for Client Components.
+ * Only allows plain objects, arrays, and primitives. 
+ * Converts Timestamps and Dates to ISO strings.
  */
-const sanitizeData = (data: any, seen = new WeakSet()): any => {
-  if (data === null || typeof data !== 'object') return data;
-  
-  // Prevent circular references
-  if (seen.has(data)) return '[Circular]';
-  if (typeof data === 'object') seen.add(data);
+const sanitizeData = (obj: any): any => {
+  if (obj === null || typeof obj !== 'object') return obj;
+
+  // Handle Dates/Timestamps
+  if (obj instanceof Date) return obj.toISOString();
+  if (typeof obj.toDate === 'function') return obj.toDate().toISOString();
+  if (typeof obj.seconds === 'number' && typeof obj.nanoseconds === 'number') {
+    return new Date(obj.seconds * 1000).toISOString();
+  }
 
   // Handle Arrays
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeData(item, seen));
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeData);
+  }
+
+  // Handle Plain Objects only - prevents recursing into complex class instances
+  if (obj.constructor !== Object && Object.getPrototypeOf(obj) !== null) {
+    return null; 
   }
 
   const sanitized: any = {};
-  
-  for (const key in data) {
-    if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
-    
-    const value = data[key];
-    
-    if (value && typeof value === 'object') {
-      // Handle Firestore Timestamps
-      if (typeof value.toDate === 'function') {
-        sanitized[key] = value.toDate().toISOString();
-      } 
-      else if ('seconds' in value && 'nanoseconds' in value) {
-        sanitized[key] = new Date(value.seconds * 1000).toISOString();
-      }
-      // Handle Nested Objects (limit recursion depth implicitly via iteration)
-      else {
-        sanitized[key] = sanitizeData(value, seen);
-      }
-    } else {
-      sanitized[key] = value;
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      sanitized[key] = sanitizeData(obj[key]);
     }
   }
   
@@ -75,17 +67,14 @@ export const getAllGames = async (max: number = 60): Promise<Game[]> => {
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   const gamesRef = collection(db, 'games');
   
-  // 1. Get total count (fast and cheap)
   const countSnapshot = await getCountFromServer(gamesRef);
   const total = countSnapshot.data().count;
 
   const constraints: QueryConstraint[] = [orderBy('date_added', 'desc')];
   
-  // 2. Handle specific page jumps
   if (page > 1) {
     const skipCount = (page - 1) * pageSize;
-    // For arbitrary jumps in Firestore, we find the starting document
-    // We limit to skipCount + 1 to find the specific cursor
+    // We only fetch the minimal set of docs needed to find the cursor
     const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
     const jumpSnapshot = await getDocs(jumpQuery);
     
@@ -100,7 +89,6 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
     }
   }
 
-  // Page 1
   const q = query(gamesRef, ...constraints, limit(pageSize));
   const snapshot = await getDocs(q);
   return {

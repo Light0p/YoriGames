@@ -29,6 +29,7 @@ export const Hero = () => {
         console.error("Failed to fetch total games", err);
       }
     };
+    
     fetchGameCount();
 
     return () => unsubscribe();
