@@ -11,23 +11,28 @@ interface Props {
   searchParams: Promise<{ page?: string }>;
 }
 
-export const metadata: Metadata = {
-  title: 'All Games | YoriGames Arcade',
-  description: 'Browse our complete library of premium pixel-art arcade games. Play instantly in your browser.',
-  alternates: {
-    canonical: '/games',
-  },
-};
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { page: pageStr } = await searchParams;
+  const page = pageStr ? ` - Page ${pageStr}` : '';
+  
+  return {
+    title: `All Games${page} | YoriGames Arcade`,
+    description: `Browse our complete library of premium pixel-art arcade games. Play instantly in your browser. Currently on page ${pageStr || '1'}.`,
+    alternates: {
+      canonical: '/games',
+    },
+  };
+}
 
 export default async function GamesPage({ searchParams }: Props) {
   const { page: pageStr } = await searchParams;
-  const currentPage = parseInt(pageStr || '1', 10);
+  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
   const pageSize = 24;
 
   const { games, total } = await getPaginatedGames(currentPage, pageSize);
   const totalPages = Math.ceil(total / pageSize);
 
-  const startRange = (currentPage - 1) * pageSize + 1;
+  const startRange = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
   const endRange = Math.min(currentPage * pageSize, total);
 
   return (

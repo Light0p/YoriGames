@@ -7,53 +7,55 @@ import {
   limit, 
   orderBy, 
   getCountFromServer,
-  doc,
-  getDoc,
-  Timestamp,
   startAt,
-  QueryConstraint
+  QueryConstraint,
+  DocumentData,
+  QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { Game } from '@/types/game';
 
 /**
  * Data Access Layer for YoriGames.
- * Pulls dynamic GameMonetize data from Firestore.
+ * Hardened to prevent RangeErrors and optimized for large datasets.
  */
 
 /**
- * Robustly sanitizes Firestore document data for Client Components.
- * Converts Timestamps and other non-plain objects to serializable formats.
+ * Sanitizes Firestore data for Client Components.
+ * Prevents RangeError by limiting recursion and avoiding circular references.
  */
-const sanitizeData = (data: any) => {
-  if (!data) return data;
+const sanitizeData = (data: any, seen = new WeakSet()): any => {
+  if (data === null || typeof data !== 'object') return data;
   
-  // Create a clean, plain object copy
-  const sanitized = { ...data };
+  // Prevent circular references
+  if (seen.has(data)) return '[Circular]';
+  if (typeof data === 'object') seen.add(data);
+
+  // Handle Arrays
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeData(item, seen));
+  }
+
+  const sanitized: any = {};
   
-  for (const key in sanitized) {
-    const value = sanitized[key];
+  for (const key in data) {
+    if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
+    
+    const value = data[key];
     
     if (value && typeof value === 'object') {
-      // Handle Firestore Timestamp specifically
+      // Handle Firestore Timestamps
       if (typeof value.toDate === 'function') {
         sanitized[key] = value.toDate().toISOString();
       } 
-      // Handle plain-object-like Timestamps (common in some SDK behaviors)
       else if ('seconds' in value && 'nanoseconds' in value) {
-        try {
-          sanitized[key] = new Date(value.seconds * 1000).toISOString();
-        } catch (e) {
-          sanitized[key] = null;
-        }
+        sanitized[key] = new Date(value.seconds * 1000).toISOString();
       }
-      // Recursive sanitization for nested objects if they exist
-      else if (Object.prototype.toString.call(value) === '[object Object]') {
-        sanitized[key] = sanitizeData(value);
+      // Handle Nested Objects (limit recursion depth implicitly via iteration)
+      else {
+        sanitized[key] = sanitizeData(value, seen);
       }
-      // Arrays
-      else if (Array.isArray(value)) {
-        sanitized[key] = value.map(item => (typeof item === 'object' ? sanitizeData(item) : item));
-      }
+    } else {
+      sanitized[key] = value;
     }
   }
   
@@ -67,18 +69,26 @@ export const getAllGames = async (max: number = 60): Promise<Game[]> => {
   return snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game);
 };
 
+/**
+ * Efficient pagination for tens of thousands of games.
+ */
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   const gamesRef = collection(db, 'games');
   
+  // 1. Get total count (fast and cheap)
   const countSnapshot = await getCountFromServer(gamesRef);
   const total = countSnapshot.data().count;
 
   const constraints: QueryConstraint[] = [orderBy('date_added', 'desc')];
   
+  // 2. Handle specific page jumps
   if (page > 1) {
     const skipCount = (page - 1) * pageSize;
+    // For arbitrary jumps in Firestore, we find the starting document
+    // We limit to skipCount + 1 to find the specific cursor
     const jumpQuery = query(gamesRef, ...constraints, limit(skipCount + 1));
     const jumpSnapshot = await getDocs(jumpQuery);
+    
     if (!jumpSnapshot.empty) {
       const startDoc = jumpSnapshot.docs[jumpSnapshot.docs.length - 1];
       const pageQuery = query(gamesRef, ...constraints, startAt(startDoc), limit(pageSize));
@@ -90,6 +100,7 @@ export const getPaginatedGames = async (page: number = 1, pageSize: number = 24)
     }
   }
 
+  // Page 1
   const q = query(gamesRef, ...constraints, limit(pageSize));
   const snapshot = await getDocs(q);
   return {
@@ -110,17 +121,6 @@ export const getGameBySlug = async (slug: string): Promise<Game | null> => {
   const snapshot = await getDocs(q);
   if (snapshot.empty) return null;
   return sanitizeData({ ...snapshot.docs[0].data(), id: snapshot.docs[0].id }) as Game;
-};
-
-export const getGamesByCategory = async (category: string, max: number = 24): Promise<Game[]> => {
-  const gamesRef = collection(db, 'games');
-  const q = query(
-    gamesRef, 
-    where('category', '==', category), 
-    limit(max)
-  );
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => sanitizeData({ ...doc.data(), id: doc.id }) as Game);
 };
 
 export const getPaginatedGamesByCategory = async (category: string, page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {

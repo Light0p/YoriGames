@@ -5,21 +5,31 @@ import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { getAllGames } from '@/lib/games';
+import { collection, onSnapshot, getCountFromServer } from 'firebase/firestore';
 
 export const Hero = () => {
   const db = useFirestore();
   const [playerCount, setPlayerCount] = useState<number>(0);
-  const games = getAllGames();
-  const gameCount = games.length;
+  const [gameCount, setGameCount] = useState<number>(0);
 
   useEffect(() => {
+    // 1. Sync Player Count (Active Users)
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
       setPlayerCount(snapshot.size);
     }, (error) => {
       // Quietly handle stats sync issues
     });
+
+    // 2. Fetch Total Game Count (Once)
+    const fetchGameCount = async () => {
+      try {
+        const snapshot = await getCountFromServer(collection(db, 'games'));
+        setGameCount(snapshot.data().count);
+      } catch (err) {
+        console.error("Failed to fetch total games", err);
+      }
+    };
+    fetchGameCount();
 
     return () => unsubscribe();
   }, [db]);
@@ -69,7 +79,7 @@ export const Hero = () => {
         {/* Grounded Stats */}
         <div className="relative z-20 mt-20 grid grid-cols-3 gap-4 sm:gap-12 opacity-80 px-4 max-w-lg mx-auto border-t border-white/10 pt-10">
           <div className="flex flex-col items-center">
-            <span className="font-pixel text-lg sm:text-xl text-white">{gameCount}</span>
+            <span className="font-pixel text-lg sm:text-xl text-white">{formatNumber(gameCount)}</span>
             <span className="text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
           <div className="flex flex-col items-center border-x border-white/20">

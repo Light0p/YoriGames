@@ -13,13 +13,15 @@ interface Props {
   searchParams: Promise<{ page?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const { page: pageStr } = await searchParams;
   const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
+  const page = pageStr ? ` - Page ${pageStr}` : '';
   
   return {
-    title: `${categoryName} Games | YoriGames`,
-    description: `Browse the best ${categoryName} pixel-art games on YoriGames. Play instantly in your browser.`,
+    title: `${categoryName} Games${page} | YoriGames`,
+    description: `Browse the best ${categoryName} pixel-art games on YoriGames. Play instantly in your browser. Page ${pageStr || '1'}.`,
     alternates: {
       canonical: `/categories/${slug}`,
     },
@@ -31,15 +33,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const { page: pageStr } = await searchParams;
   const decodedSlug = decodeURIComponent(slug).toLowerCase();
   
-  const currentPage = parseInt(pageStr || '1', 10);
+  const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
   const pageSize = 24;
 
   const { games, total } = await getPaginatedGamesByCategory(decodedSlug, currentPage, pageSize);
   const totalPages = Math.ceil(total / pageSize);
-
-  if (total === 0 && currentPage === 1) {
-    // Optionally handle empty category
-  }
 
   const categoryName = games[0]?.category || slug.charAt(0).toUpperCase() + slug.slice(1);
   const startRange = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
