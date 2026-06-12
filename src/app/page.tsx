@@ -9,10 +9,10 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { ArcadeInsightWrapper } from '@/components/ai/ArcadeInsightWrapper';
 
-export default function Home() {
-  const featuredGames = getFeaturedGames();
-  const trendingGames = getTrendingGames();
-  const newGames = getNewArrivals();
+export default async function Home() {
+  const featuredGames = await getFeaturedGames(5);
+  const trendingGames = await getTrendingGames(5);
+  const newGames = await getNewArrivals(5);
 
   const categories = [
     { name: 'Action', color: 'hover:border-neon-pink hover:bg-neon-pink/5', description: 'Fast-paced challenges and reflex-testing gameplay.' },

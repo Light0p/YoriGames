@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { Metadata } from 'next';
-import gamesData from '@/data/games.json';
-import { Game } from '@/types/game';
+import { getGameBySlug, getAllGames } from '@/lib/games';
 import { notFound } from 'next/navigation';
 import { GameView } from '@/components/game/GameView';
 
@@ -12,12 +10,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const game = (gamesData as Game[]).find((g) => g.slug === slug);
+  const game = await getGameBySlug(slug);
 
   if (!game) {
-    return {
-      title: 'Game Not Found',
-    };
+    return { title: 'Game Not Found' };
   }
 
   const title = `Play ${game.title} Online Free | YoriGames Arcade`;
@@ -26,9 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: {
-      canonical: `/games/${game.slug}`,
-    },
+    alternates: { canonical: `/games/${game.slug}` },
     openGraph: {
       title,
       description,
@@ -47,13 +41,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GamePage({ params }: Props) {
   const { slug } = await params;
-  const game = (gamesData as Game[]).find((g) => g.slug === slug);
+  const game = await getGameBySlug(slug);
 
-  if (!game) {
-    notFound();
-  }
+  if (!game) notFound();
 
-  // Structured Data (JSON-LD) for SEO
+  // Fetch related games from Firestore
+  const relatedGamesRef = await getAllGames(50); 
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VideoGame',
@@ -75,13 +69,10 @@ export default async function GamePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <GameView game={game} allGames={gamesData as Game[]} />
+      <GameView game={game} allGames={relatedGamesRef} />
     </>
   );
 }
 
-export async function generateStaticParams() {
-  return gamesData.map((game) => ({
-    slug: game.slug,
-  }));
-}
+// Disable static params to ensure new GameMonetize games are served instantly
+export const dynamic = 'force-dynamic';

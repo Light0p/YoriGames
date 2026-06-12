@@ -4,8 +4,7 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GameGrid } from '@/components/pixel/GameGrid';
-import gamesData from '@/data/games.json';
-import { Game } from '@/types/game';
+import { getTrendingGames } from '@/lib/games';
 import { TrendingUp } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -16,8 +15,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TrendingPage() {
-  const trendingGames: Game[] = gamesData.filter(g => g.trending);
+export default async function TrendingPage() {
+  const trendingGames = await getTrendingGames(24);
 
   return (
     <main className="min-h-screen">

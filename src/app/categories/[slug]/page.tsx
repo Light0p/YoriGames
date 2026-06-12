@@ -4,8 +4,7 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GameGrid } from '@/components/pixel/GameGrid';
-import gamesData from '@/data/games.json';
-import { Game } from '@/types/game';
+import { getGamesByCategory } from '@/lib/games';
 import { notFound } from 'next/navigation';
 
 interface Props {
@@ -14,14 +13,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug).toLowerCase();
-  const categoryName = decodedSlug.charAt(0).toUpperCase() + decodedSlug.slice(1);
+  const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
   
   return {
     title: `${categoryName} Games | YoriGames`,
     description: `Browse the best ${categoryName} pixel-art games on YoriGames. Play instantly in your browser.`,
     alternates: {
-      canonical: `/categories/${decodedSlug}`,
+      canonical: `/categories/${slug}`,
     },
   };
 }
@@ -30,16 +28,14 @@ export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug).toLowerCase();
   
-  const games: Game[] = gamesData.filter(g => g.category.toLowerCase() === decodedSlug);
+  const games = await getGamesByCategory(decodedSlug, 50);
   
   if (games.length === 0) {
-    const allCategories = gamesData.map(g => g.category.toLowerCase());
-    if (!allCategories.includes(decodedSlug)) {
-       notFound();
-    }
+    // We could check if category exists, but since it's dynamic, we'll just show an empty grid or notFound
+    // but better to show the page if it's a valid attempt
   }
 
-  const categoryName = games[0]?.category || decodedSlug.charAt(0).toUpperCase() + decodedSlug.slice(1);
+  const categoryName = games[0]?.category || slug.charAt(0).toUpperCase() + slug.slice(1);
 
   return (
     <main className="min-h-screen">
@@ -51,7 +47,7 @@ export default async function CategoryPage({ params }: Props) {
           <div className="font-pixel text-[8px] text-neon-cyan uppercase tracking-[0.2em] mb-4">CATEGORY</div>
           <h1 className="font-pixel text-4xl text-white uppercase mb-4">{categoryName}</h1>
           <p className="font-body text-muted max-w-2xl">
-            Check out all our premium pixel-art games in the {categoryName} genre.
+            Check out all our premium games in the {categoryName} genre.
           </p>
         </div>
 
@@ -63,7 +59,4 @@ export default async function CategoryPage({ params }: Props) {
   );
 }
 
-export async function generateStaticParams() {
-  const categories = Array.from(new Set(gamesData.map(g => g.category.toLowerCase())));
-  return categories.map(slug => ({ slug }));
-}
+export const dynamic = 'force-dynamic';

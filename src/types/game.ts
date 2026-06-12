@@ -1,5 +1,6 @@
 export interface Game {
   id: string;
+  gameId?: string; // Original GameMonetize ID
   title: string;
   slug: string;
   description: string;
@@ -14,5 +15,9 @@ export interface Game {
   play_count: number;
   likes: number;
   rating: number;
-  game_source: 'local' | 'gamedistribution';
+  game_source: 'local' | 'gamemonetize';
+  width?: string;
+  height?: string;
+  importedAt?: string;
+  updatedAt?: string;
 }

@@ -1,50 +1,82 @@
-import gamesData from '@/data/games.json';
+import { db } from '@/firebase';
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  limit, 
+  orderBy, 
+  doc, 
+  getDoc 
+} from 'firebase/firestore';
 import { Game } from '@/types/game';
 
 /**
- * Data Access Layer for the YoriGames catalog.
- * This abstraction allows us to swap local JSON for Firestore/API fetching later.
+ * Data Access Layer for YoriGames.
+ * Migrated from JSON to Firestore for dynamic GameMonetize integration.
  */
 
-export const getAllGames = (): Game[] => {
-  return gamesData as Game[];
+export const getAllGames = async (max: number = 100): Promise<Game[]> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(gamesRef, limit(max));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
 };
 
-export const getGameBySlug = (slug: string): Game | undefined => {
-  return getAllGames().find((g) => g.slug === slug);
+export const getGameBySlug = async (slug: string): Promise<Game | null> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(gamesRef, where('slug', '==', slug), limit(1));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return null;
+  return { ...snapshot.docs[0].data(), id: snapshot.docs[0].id } as Game;
 };
 
-export const getGamesByCategory = (category: string): Game[] => {
-  return getAllGames().filter((g) => g.category.toLowerCase() === category.toLowerCase());
-};
-
-export const getFeaturedGames = (): Game[] => {
-  return getAllGames().filter((g) => g.featured);
-};
-
-export const getTrendingGames = (): Game[] => {
-  return getAllGames().filter((g) => g.trending);
-};
-
-export const getNewArrivals = (limit: number = 5): Game[] => {
-  return [...getAllGames()]
-    .sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime())
-    .slice(0, limit);
-};
-
-export const searchGames = (query: string): Game[] => {
-  const q = query.toLowerCase().trim();
-  if (!q) return [];
-  
-  return getAllGames().filter((g) => 
-    g.title.toLowerCase().includes(q) || 
-    g.category.toLowerCase().includes(q) ||
-    g.tags.some(t => t.toLowerCase().includes(q))
+export const getGamesByCategory = async (category: string, max: number = 24): Promise<Game[]> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(
+    gamesRef, 
+    where('category', '==', category), 
+    limit(max)
   );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
 };
 
-export const getRelatedGames = (currentGame: Game, limit: number = 4): Game[] => {
-  return getAllGames()
-    .filter(g => g.id !== currentGame.id && g.category === currentGame.category)
-    .slice(0, limit);
+export const getFeaturedGames = async (max: number = 10): Promise<Game[]> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(gamesRef, where('featured', '==', true), limit(max));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
+};
+
+export const getTrendingGames = async (max: number = 10): Promise<Game[]> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(gamesRef, where('trending', '==', true), limit(max));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
+};
+
+export const getNewArrivals = async (max: number = 10): Promise<Game[]> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(
+    gamesRef, 
+    orderBy('date_added', 'desc'), 
+    limit(max)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Game));
+};
+
+export const getRelatedGames = async (currentGame: Game, max: number = 4): Promise<Game[]> => {
+  const gamesRef = collection(db, 'games');
+  const q = query(
+    gamesRef, 
+    where('category', '==', currentGame.category),
+    limit(max + 1)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs
+    .map(doc => ({ ...doc.data(), id: doc.id } as Game))
+    .filter(g => g.slug !== currentGame.slug)
+    .slice(0, max);
 };
