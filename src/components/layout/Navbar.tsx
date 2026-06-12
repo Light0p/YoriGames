@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, User, Menu, LogOut, Settings, Loader2, X, Gamepad2 } from 'lucide-react';
+import { Search, User, Menu, LogOut, Settings, X, Gamepad2, Loader2 } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth } from '@/firebase';
@@ -164,7 +164,7 @@ export const Navbar = () => {
                         className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group"
                       >
                         <div className="relative w-12 h-10 bg-black border border-[#1B123D] overflow-hidden shrink-0">
-                          <Image src={game.thumbnail} alt={game.title} fill className="object-cover group-hover:scale-110 transition-transform" />
+                          <Image src={game.thumbnail || (game as any).thumb} alt={game.title} fill className="object-cover group-hover:scale-110 transition-transform" />
                         </div>
                         <div className="min-w-0">
                           <div className="font-pixel text-[8px] text-white truncate uppercase">

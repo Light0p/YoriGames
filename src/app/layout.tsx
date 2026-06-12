@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { GameProvider } from '@/context/GameContext';
+import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -41,40 +42,10 @@ export const metadata: Metadata = {
     default: 'YoriGames | Play Great Browser Games Instantly',
   },
   description: 'A growing collection of fun, fast-loading browser games built for quick sessions. No downloads, no installations—just pure arcade magic right in your browser.',
-  keywords: ['pixel art', 'arcade', 'browser games', 'indie games', 'retro gaming', 'free games', 'no download games', 'html5 games'],
-  openGraph: {
-    title: 'YoriGames | Simple Browser Gaming',
-    description: 'A collection of fun, fast-loading indie games. No downloads, just pure arcade magic right in your browser.',
-    url: 'https://yorigamesonline.online',
-    siteName: 'YoriGames',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'YoriGames - Simple Browser Gaming',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'YoriGames | Simple Browser Games',
-    description: 'Play fun, fast-loading indie games instantly. No downloads required.',
-    images: ['/og-image.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: '/',
-  },
-  other: {
-    "google-adsense-account": "ca-pub-7395050320323237",
-  },
 };
+
+// SET TO TRUE TO LOCK THE SITE BEHIND MAINTENANCE SCREEN
+const isMaintenanceMode = true;
 
 export default function RootLayout({
   children,
@@ -98,14 +69,18 @@ export default function RootLayout({
         pixelify.variable,
         pressStart.variable
       )}>
-        <FirebaseClientProvider>
-          <GameProvider>
-            <GalaxyBackground />
-            <div className="relative z-10 overflow-x-hidden w-full">
-              {children}
-            </div>
-          </GameProvider>
-        </FirebaseClientProvider>
+        {isMaintenanceMode ? (
+          <MaintenanceMode />
+        ) : (
+          <FirebaseClientProvider>
+            <GameProvider>
+              <GalaxyBackground />
+              <div className="relative z-10 overflow-x-hidden w-full">
+                {children}
+              </div>
+            </GameProvider>
+          </FirebaseClientProvider>
+        )}
         <Analytics />
       </body>
     </html>

@@ -1,12 +1,25 @@
-import gamesData from '@/data/games.json';
+
 import { Game } from '@/types/game';
+import gamesData from './games-data.json';
 
 /**
  * Static-First Data Access Layer
  * No Firestore reads are performed here for public catalog data.
  */
-
-const allGames = gamesData as Game[];
+const allGames = (gamesData as any[]).map(g => ({
+  ...g,
+  id: g.id,
+  title: g.title,
+  thumbnail: g.thumb,
+  description: g.description,
+  iframe_url: g.iframe_url,
+  category: g.category || 'Arcade',
+  slug: g.slug || g.id,
+  rating: g.rating || 5.0,
+  play_count: g.play_count || 1000,
+  tags: g.tags || [],
+  date_added: g.date_added || new Date().toISOString()
+})) as Game[];
 
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   const start = (page - 1) * pageSize;
@@ -39,15 +52,15 @@ export const getPaginatedGamesByCategory = async (category: string, page: number
 };
 
 export const getGameBySlug = async (slug: string): Promise<Game | null> => {
-  return allGames.find(g => g.slug === slug) || null;
+  return allGames.find(g => g.slug === slug || g.id === slug) || null;
 };
 
 export const getFeaturedGames = async (max: number = 10): Promise<Game[]> => {
-  return allGames.filter(g => g.featured).slice(0, max);
+  return allGames.slice(0, max);
 };
 
 export const getTrendingGames = async (max: number = 10): Promise<Game[]> => {
-  return allGames.filter(g => g.trending).slice(0, max);
+  return [...allGames].reverse().slice(0, max);
 };
 
 export const getNewArrivals = async (max: number = 10): Promise<Game[]> => {

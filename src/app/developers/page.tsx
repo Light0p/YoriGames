@@ -2,7 +2,7 @@ import React from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Code, Terminal, Rocket, Globe, Share2 } from 'lucide-react';
+import { Code, Terminal, Rocket, Globe, Share2, Boxes } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 
 export const metadata = {
@@ -78,6 +78,3 @@ yori.on('ready', () => {
     </main>
   );
 }
-
-// Fixed import error by adding missing Boxes icon
-import { Boxes } from 'lucide-react';

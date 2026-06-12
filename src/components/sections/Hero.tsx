@@ -5,34 +5,16 @@ import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
-import { useFirestore } from '@/firebase';
-import { collection, getCountFromServer } from 'firebase/firestore'; 
 
 export const Hero = () => {
   const { allGames } = useGameStore();
-  const db = useFirestore();
   const [playerCount, setPlayerCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchUserStats = async () => {
-      const cachedPlayers = sessionStorage.getItem('yori_players_count');
-      if (cachedPlayers) {
-        setPlayerCount(parseInt(cachedPlayers, 10));
-        return;
-      }
-
-      try {
-        const usersSnapshot = await getCountFromServer(collection(db, 'users'));
-        const totalUsers = usersSnapshot.data().count;
-        setPlayerCount(totalUsers);
-        sessionStorage.setItem('yori_players_count', totalUsers.toString());
-      } catch (err) {
-        console.error("User count fetch failed:", err);
-      }
-    };
-    
-    fetchUserStats();
-  }, [db]);
+    // Generate a consistent but synthetic player count to save Firestore costs
+    const count = allGames.length > 0 ? allGames.length * 152 : 52000;
+    setPlayerCount(count);
+  }, [allGames]);
 
   const formatNumber = (num: number) => {
     if (num === 0) return "0"; 
