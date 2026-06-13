@@ -16,14 +16,14 @@ interface GameCardProps {
 const GameCardComponent = ({ title, genre, rating, imageUrl, className }: GameCardProps) => {
   return (
     <article className={cn(
-      "group relative w-full overflow-hidden bg-[#140A2E] border-4 border-[#1B123D] cursor-pointer transition-all duration-300 hover:border-neon-purple hover:-translate-y-1 shadow-[4px_4px_0_0_#000]",
+      "group relative w-full overflow-hidden bg-[#140A2E] border-4 border-[#1B123D] cursor-pointer transition-all duration-300 hover:border-neon-purple hover:-translate-y-1 shadow-[4px_4px_0_0_#000] min-h-[120px]",
       className
     )}>
-      {/* Game Image Container */}
+      {/* Game Image Container - Using aspect-video to prevent Layout Shift */}
       <div className="relative aspect-video w-full overflow-hidden bg-black border-b-4 border-[#1B123D]">
         <Image 
           src={imageUrl || 'https://picsum.photos/seed/yorigame/600/400'} 
-          alt={title}
+          alt={`Play ${title} on YoriGames`}
           fill
           loading="lazy"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -33,7 +33,7 @@ const GameCardComponent = ({ title, genre, rating, imageUrl, className }: GameCa
         {/* Neon Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#140A2E] via-transparent to-transparent opacity-60" />
         
-        {/* Play Icon Overlay */}
+        {/* Play Icon Overlay - Large touch area for mobile */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
           <div className="bg-neon-pink p-3 border-4 border-black shadow-[4px_4px_0_0_#000] transform translate-y-4 group-hover:translate-y-0 transition-transform">
             <Play className="w-6 h-6 text-white fill-white" />

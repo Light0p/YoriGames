@@ -114,7 +114,7 @@ export const Navbar = () => {
               href={link.href} 
               onClick={(e) => handleNavClick(e, link.type, link.href)}
               className={cn(
-                "transition-colors",
+                "transition-colors py-2 px-1 min-h-[44px] flex items-center",
                 pathname === link.href ? link.color : "text-muted hover:text-white"
               )}
             >
@@ -127,6 +127,7 @@ export const Navbar = () => {
           <div className="relative" ref={searchRef}>
             <button 
               onClick={() => setIsSearchOpen(!isSearchOpen)}
+              aria-label="Toggle Search"
               className={cn(
                 "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
                 isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
@@ -144,7 +145,7 @@ export const Navbar = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="SCAN UNIVERSE..."
                     autoFocus
-                    className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple uppercase"
+                    className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple uppercase min-h-[44px]"
                   />
                   {gamesLoading && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
@@ -161,7 +162,7 @@ export const Navbar = () => {
                           setIsSearchOpen(false);
                           setSearchQuery('');
                         }}
-                        className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group"
+                        className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group min-h-[50px]"
                       >
                         <div className="relative w-12 h-10 bg-black border border-[#1B123D] overflow-hidden shrink-0">
                           <Image src={game.thumbnail || (game as any).thumb} alt={game.title} fill className="object-cover group-hover:scale-110 transition-transform" />
@@ -198,7 +199,7 @@ export const Navbar = () => {
               <div className="hidden sm:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
-                    <button className="flex items-center gap-3">
+                    <button className="flex items-center gap-3 min-h-[44px]">
                       <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
                         {user.displayName || 'PLAYER'}
                       </span>
@@ -212,7 +213,7 @@ export const Navbar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
                     <DropdownMenuItem className="hover:bg-neon-purple/20 cursor-pointer py-4" asChild>
-                      <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase">
+                      <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
                         <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
                       </Link>
                     </DropdownMenuItem>
@@ -240,6 +241,7 @@ export const Navbar = () => {
 
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Menu"
             className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -269,7 +271,7 @@ export const Navbar = () => {
                   href={link.href} 
                   onClick={(e) => handleNavClick(e, link.type, link.href)}
                   className={cn(
-                    "transition-all py-2 w-full text-center",
+                    "transition-all py-3 w-full text-center min-h-[44px] flex items-center justify-center",
                     pathname === link.href ? link.color : "text-muted"
                   )}
                 >
@@ -297,3 +299,9 @@ export const Navbar = () => {
     </nav>
   );
 };
+
+const XIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.932zm-1.292 19.494h2.039L6.486 3.24H4.298l13.311 17.407z" />
+  </svg>
+);

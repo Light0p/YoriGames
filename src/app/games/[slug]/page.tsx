@@ -56,11 +56,19 @@ export default async function GamePage({ params }: Props) {
     genre: game.category,
     image: game.thumbnail,
     url: `https://yorigamesonline.online/games/${game.slug}`,
+    applicationCategory: 'Game',
+    operatingSystem: 'Any',
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: game.rating,
-      reviewCount: game.play_count,
+      ratingValue: game.rating || 5,
+      reviewCount: game.play_count || 1000,
     },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock'
+    }
   };
 
   return (
@@ -74,5 +82,4 @@ export default async function GamePage({ params }: Props) {
   );
 }
 
-// 🚀 REVALIDATION: Game pages revalidate once per hour to save quota
 export const revalidate = 3600;

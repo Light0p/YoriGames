@@ -52,14 +52,14 @@ export const InteractiveArcade = () => {
           </p>
         </div>
 
-        {/* Category Filters */}
+        {/* Category Filters - Touch targets optimized */}
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-16 sm:mb-20">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => handleCategoryChange(cat)}
               className={cn(
-                "px-5 py-3 sm:px-8 sm:py-4 font-pixel text-[8px] sm:text-[10px] uppercase tracking-widest border-4 transition-all active:scale-95 shadow-[4px_4px_0_0_#000]",
+                "px-5 py-3 sm:px-8 sm:py-4 font-pixel text-[8px] sm:text-[10px] uppercase tracking-widest border-4 transition-all active:scale-95 shadow-[4px_4px_0_0_#000] min-h-[44px]",
                 activeCategory === cat 
                   ? "bg-neon-cyan border-white text-black -translate-y-1"
                   : "bg-[#140A2E] border-[#1B123D] text-muted hover:border-neon-cyan hover:text-white"
@@ -70,11 +70,16 @@ export const InteractiveArcade = () => {
           ))}
         </div>
 
-        {/* Game Grid - Fixed 4 Column Layout */}
+        {/* Optimized Grid System */}
         {currentGames.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-10 mb-16 sm:mb-24">
             {currentGames.map((game) => (
-              <Link key={game.id} href={`/games/${game.slug}`} className="block">
+              <Link 
+                key={game.id} 
+                href={`/games/${game.slug}`} 
+                className="block focus:outline-none"
+                aria-label={`Play ${game.title}`}
+              >
                 <GameCard 
                   title={game.title}
                   genre={game.category}
@@ -91,7 +96,7 @@ export const InteractiveArcade = () => {
           </div>
         )}
 
-        {/* Pagination */}
+        {/* Pagination - Touch Targets >= 44px */}
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 border-t-2 border-[#1B123D] pt-12">
             <div className="flex items-center gap-4">
