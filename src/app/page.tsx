@@ -42,7 +42,7 @@ export default async function Home() {
         </section>
 
         {/* Quota-Safe Interactive Category Section */}
-        <InteractiveArcade initialGames={discoveryGames} />
+        <InteractiveArcade />
 
         <div className="w-full py-16 flex justify-center opacity-10 overflow-hidden" aria-hidden="true">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-white to-transparent" />

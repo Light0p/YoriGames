@@ -14,6 +14,7 @@ export const PixelButton = ({
   size = 'md', 
   children, 
   className, 
+  type = 'button',
   ...props 
 }: PixelButtonProps) => {
   const variants = {
@@ -31,6 +32,7 @@ export const PixelButton = ({
 
   return (
     <button
+      type={type}
       className={cn(
         'relative inline-block font-pixel transition-transform active:scale-95 group overflow-hidden touch-manipulation uppercase tracking-wider',
         variants[variant],
@@ -44,8 +46,8 @@ export const PixelButton = ({
         {children}
       </span>
       {/* Pixel highlight */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-white/20 pointer-events-none" />
-      <div className="absolute top-0 left-0 w-1 h-full bg-white/20 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-white/20 pointer-events-none" aria-hidden="true" />
+      <div className="absolute top-0 left-0 w-1 h-full bg-white/20 pointer-events-none" aria-hidden="true" />
     </button>
   );
 };
