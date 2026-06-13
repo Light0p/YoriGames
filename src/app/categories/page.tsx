@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, Suspense } from 'react';
@@ -9,22 +8,24 @@ import { GameCard } from '@/components/pixel/GameCard';
 import { useGameStore } from '@/context/GameContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Gamepad2, Rocket, Sword, Trophy, Zap, Globe, Target, User2 } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 import { Pagination } from '@/components/pixel/Pagination';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
- * Helper to map category names to representative icons
+ * Helper to map category names to representative images
  */
-const getCategoryIcon = (category: string) => {
+const getCategoryThumb = (category: string) => {
   const cat = category.toLowerCase();
-  if (cat.includes('race') || cat.includes('car')) return <Rocket className="w-6 h-6" />;
-  if (cat.includes('sport') || cat.includes('ball')) return <Trophy className="w-6 h-6" />;
-  if (cat.includes('action') || cat.includes('shoot')) return <Target className="w-6 h-6" />;
-  if (cat.includes('adventure') || cat.includes('quest')) return <Sword className="w-6 h-6" />;
-  if (cat.includes('io') || cat.includes('multi')) return <Globe className="w-6 h-6" />;
-  if (cat.includes('2 player')) return <User2 className="w-6 h-6" />;
-  return <Zap className="w-6 h-6" />;
+  if (cat === 'all') return { url: 'https://picsum.photos/seed/yori-all/400/250', hint: 'arcade games' };
+  if (cat.includes('race') || cat.includes('car')) return { url: 'https://picsum.photos/seed/yori-race/400/250', hint: 'racing cars' };
+  if (cat.includes('sport') || cat.includes('ball')) return { url: 'https://picsum.photos/seed/yori-sports/400/250', hint: 'sports pixels' };
+  if (cat.includes('action') || cat.includes('shoot')) return { url: 'https://picsum.photos/seed/yori-action/400/250', hint: 'action combat' };
+  if (cat.includes('adventure') || cat.includes('quest')) return { url: 'https://picsum.photos/seed/yori-adv/400/250', hint: 'adventure pixel' };
+  if (cat.includes('io') || cat.includes('multi')) return { url: 'https://picsum.photos/seed/yori-io/400/250', hint: 'io games' };
+  if (cat.includes('2 player')) return { url: 'https://picsum.photos/seed/yori-2p/400/250', hint: 'multiplayer local' };
+  return { url: `https://picsum.photos/seed/yori-${cat}/400/250`, hint: `${cat} game` };
 };
 
 const ITEMS_PER_PAGE = 50;
@@ -84,36 +85,54 @@ function CategoriesContent() {
 
       {/* Category Card Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-20">
-        {categories.map((cat) => {
+        {categories.map((cat, i) => {
           const isActive = activeGenre === cat;
           const gameCount = allGames.filter(g => g.category === cat || (cat === 'All')).length;
+          const thumb = getCategoryThumb(cat);
           
           return (
             <button
               key={cat}
               onClick={() => handleCategoryClick(cat)}
               className={cn(
-                "group relative flex flex-col items-center justify-center p-6 bg-[#140A2E] border-4 border-[#1B123D] transition-all duration-300",
+                "group relative flex flex-col bg-[#140A2E] border-4 border-[#1B123D] transition-all duration-300",
                 "hover:-translate-y-1 hover:border-neon-cyan active:translate-y-0 shadow-[4px_4px_0_0_#000]",
                 isActive && "border-neon-cyan ring-2 ring-neon-cyan/20"
               )}
             >
-              <div className={cn(
-                "mb-4 p-3 border-2 border-[#1B123D] transition-colors",
-                isActive ? "text-neon-cyan border-neon-cyan bg-neon-cyan/10" : "text-muted group-hover:text-white"
-              )}>
-                {cat === 'All' ? <Gamepad2 className="w-6 h-6" /> : getCategoryIcon(cat)}
+              {/* Category Thumbnail Container */}
+              <div className="relative w-full aspect-[16/10] overflow-hidden bg-black border-b-2 border-[#1B123D]">
+                <Image 
+                  src={thumb.url}
+                  alt={`${cat} category`}
+                  fill
+                  className={cn(
+                    "object-cover transition-all duration-500 group-hover:scale-110",
+                    isActive ? "opacity-100 grayscale-0" : "opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-80"
+                  )}
+                  sizes="(max-width: 768px) 50vw, 20vw"
+                  loading={i < 6 ? undefined : "lazy"}
+                  priority={i < 6}
+                  data-ai-hint={thumb.hint}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#140A2E] via-transparent to-transparent opacity-60" />
+                
+                {/* Active Indicator */}
+                {isActive && (
+                  <div className="absolute top-2 left-2 w-2 h-2 bg-neon-cyan animate-pulse shadow-[0_0_8px_#22D3EE]" />
+                )}
               </div>
               
-              <h3 className={cn(
-                "font-pixel text-[9px] uppercase tracking-tighter text-center",
-                isActive ? "text-white" : "text-muted group-hover:text-white"
-              )}>
-                {cat}
-              </h3>
-              
-              <div className="absolute top-2 right-2 font-pixel text-[6px] text-muted-foreground opacity-50 group-hover:opacity-100">
-                {gameCount}
+              <div className="p-4 flex items-center justify-between">
+                <h3 className={cn(
+                  "font-pixel text-[9px] uppercase tracking-tighter text-left",
+                  isActive ? "text-white" : "text-muted group-hover:text-white"
+                )}>
+                  {cat}
+                </h3>
+                <span className="font-pixel text-[6px] text-muted-foreground opacity-50 group-hover:opacity-100">
+                  {gameCount}
+                </span>
               </div>
             </button>
           );

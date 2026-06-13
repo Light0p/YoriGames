@@ -83,6 +83,42 @@
       "description": "Epic starry nebula background for arcade hero",
       "imageUrl": "https://picsum.photos/seed/nebulaspace/1920/1080",
       "imageHint": "space nebula"
+    },
+    {
+      "id": "cat-racing",
+      "description": "Neon racing car on track",
+      "imageUrl": "https://picsum.photos/seed/cat-race/400/300",
+      "imageHint": "racing cars"
+    },
+    {
+      "id": "cat-sports",
+      "description": "Retro sports equipment icons",
+      "imageUrl": "https://picsum.photos/seed/cat-sports/400/300",
+      "imageHint": "sports game"
+    },
+    {
+      "id": "cat-action",
+      "description": "Cyborg character in combat pose",
+      "imageUrl": "https://picsum.photos/seed/cat-action/400/300",
+      "imageHint": "action combat"
+    },
+    {
+      "id": "cat-adventure",
+      "description": "Pixel-art dungeon entrance",
+      "imageUrl": "https://picsum.photos/seed/cat-adv/400/300",
+      "imageHint": "adventure quest"
+    },
+    {
+      "id": "cat-io",
+      "description": "Colorful cells floating in void",
+      "imageUrl": "https://picsum.photos/seed/cat-io/400/300",
+      "imageHint": "io multiplayer"
+    },
+    {
+      "id": "cat-multiplayer",
+      "description": "Two game controllers connected",
+      "imageUrl": "https://picsum.photos/seed/cat-2p/400/300",
+      "imageHint": "multiplayer games"
     }
   ]
 }
