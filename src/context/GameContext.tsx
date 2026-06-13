@@ -45,29 +45,40 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch('/games.json');
         
         if (!response.ok) {
-          console.warn('Game catalog fetch failed. Using internal defaults.');
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const text = await response.text();
+        
+        // Handle empty response gracefully
+        if (!text || text.trim() === "") {
+          console.warn('Game catalog response was empty. Using internal defaults.');
           setAllGames(DEFAULT_GAMES);
           setLoading(false);
           return;
         }
 
-        const data = await response.json();
-        
-        if (Array.isArray(data) && data.length > 0) {
-          // Robust normalization to handle any key variations from the feed/manual file
-          const normalizedGames = data.map((g: any) => ({
-            ...g,
-            id: g.id || g.gameId,
-            thumbnail: g.thumb || g.thumbnail || '',
-            iframe_url: g.iframe_url || g.url || '',
-            slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
-            rating: g.rating || 5.0,
-            category: g.category || 'Arcade'
-          })) as Game[];
+        try {
+          const data = JSON.parse(text);
           
-          setAllGames(normalizedGames);
-        } else {
-          setAllGames(DEFAULT_GAMES);
+          if (Array.isArray(data) && data.length > 0) {
+            // Robust normalization to handle any key variations from the feed/manual file
+            const normalizedGames = data.map((g: any) => ({
+              ...g,
+              id: g.id || g.gameId,
+              thumbnail: g.thumb || g.thumbnail || '',
+              iframe_url: g.iframe_url || g.url || '',
+              slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
+              rating: g.rating || 5.0,
+              category: g.category || 'Arcade'
+            })) as Game[];
+            
+            setAllGames(normalizedGames);
+          } else {
+            setAllGames(DEFAULT_GAMES);
+          }
+        } catch (jsonErr) {
+          throw new Error('Failed to parse game catalog JSON.');
         }
       } catch (err: any) {
         console.error('Game catalog system error:', err.message);
