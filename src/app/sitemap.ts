@@ -3,7 +3,7 @@ import { getSearchableGames } from '@/lib/games';
 
 /**
  * Bulletproof Sitemap Generator for YoriGames
- * Implements strict URL sanitization and XML entity escaping for Google Search compliance.
+ * Compliant with Google XML standards and the 50,000 URL protocol limit.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://yorigamesonline.online';
@@ -23,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   /**
    * Helper: Explicitly escapes problematic XML characters to prevent parsing errors.
-   * Although Next.js handles some escaping, this provides a "bulletproof" layer.
    */
   const xmlEscape = (str: string): string => {
     return str
@@ -35,8 +34,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   };
 
   try {
-    // Fetch all games from the consolidated static source
-    const allGames = await getSearchableGames(5000);
+    // Fetch games (Limit to 49,000 to leave room for static/category pages)
+    const allGames = await getSearchableGames(49000);
     
     // 1. Generate Game Page Entries
     const gameEntries = allGames
@@ -83,10 +82,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: page.priority,
     }));
 
-    // Combine all entries and filter out any potential malformed data
-    const fullSitemap = [...staticPages, ...gameEntries, ...categoryEntries].filter(
-      entry => entry.url && entry.url.startsWith('http')
-    );
+    // Combine all entries, filter malformed data, and enforce 50,000 URL limit
+    const fullSitemap = [...staticPages, ...gameEntries, ...categoryEntries]
+      .filter(entry => entry.url && entry.url.startsWith('http'))
+      .slice(0, 50000); 
 
     return fullSitemap as MetadataRoute.Sitemap;
 
