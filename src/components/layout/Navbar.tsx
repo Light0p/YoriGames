@@ -62,8 +62,20 @@ export const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Prevent scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const handleNavClick = (e: React.MouseEvent, type: string, href: string) => {
-    setIsMobileMenuOpen(false); // Close mobile menu on any navigation
+    setIsMobileMenuOpen(false);
     if (type === 'scroll') {
       e.preventDefault();
       if (pathname === '/') {
@@ -93,7 +105,6 @@ export const Navbar = () => {
 
   return (
     <>
-      {/* Spacer to preserve layout flow since the nav is fixed */}
       <div className="h-24" aria-hidden="true" />
       
       <nav 
@@ -259,51 +270,62 @@ export const Navbar = () => {
           </div>
         </div>
 
+        {/* Improved Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-[45] bg-[#140A2E] flex flex-col pt-24 px-6 animate-in fade-in slide-in-from-top-4" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
-            <div className="flex flex-col gap-6 items-center w-full">
+          <div className="lg:hidden fixed inset-0 z-[110] bg-[#0d051c] flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-200" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+            {/* Close Button for Overlay */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-8 right-8 p-4 text-white hover:text-neon-pink transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-8 h-8" />
+            </button>
+
+            <nav className="w-full max-w-sm" aria-label="Mobile Menu Content">
               {user && (
-                <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-[#1B123D] w-full">
+                <div className="flex flex-col items-center gap-4 mb-12 pb-8 border-b border-[#2a1744]">
                   <Avatar className="w-20 h-20 border-4 border-neon-purple">
                     <AvatarImage src={user.photoURL || undefined} alt="" />
                     <AvatarFallback className="bg-neon-purple text-white font-pixel text-lg uppercase">
                       {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-pixel text-xs text-white uppercase">{user.displayName || 'PLAYER'}</span>
+                  <span className="font-pixel text-xs text-white uppercase tracking-widest">{user.displayName || 'PLAYER'}</span>
                 </div>
               )}
 
-              <div className="flex flex-col gap-8 items-center w-full font-pixel text-xs tracking-[0.2em] uppercase">
+              <ul className="flex flex-col items-center gap-y-8 w-full font-pixel text-sm tracking-[0.2em] uppercase">
                 {navLinks.map((link) => (
-                  <Link 
-                    key={link.label} 
-                    href={link.href} 
-                    onClick={(e) => handleNavClick(e, link.type, link.href)}
-                    className={cn(
-                      "transition-all py-3 w-full text-center min-h-[44px] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-neon-cyan",
-                      pathname === link.href ? link.color : "text-muted"
-                    )}
-                  >
-                    {link.label}
-                  </Link>
+                  <li key={link.label} className="w-full text-center">
+                    <Link 
+                      href={link.href} 
+                      onClick={(e) => handleNavClick(e, link.type, link.href)}
+                      className={cn(
+                        "transition-all py-2 block hover:scale-110",
+                        pathname === link.href ? link.color : "text-muted"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
 
-              <div className="mt-12 w-full">
+              <div className="mt-16 w-full flex flex-col gap-4">
                 {user ? (
                   <PixelButton variant="secondary" className="w-full py-6" onClick={handleLogout} aria-label="Logout">
-                    <LogOut className="w-5 h-5" aria-hidden="true" /> EXIT SYSTEM
+                    <LogOut className="w-4 h-4 mr-2" /> EXIT SYSTEM
                   </PixelButton>
                 ) : (
                   <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
                     <PixelButton variant="primary" className="w-full py-6" aria-label="Login to account">
-                      <User className="w-5 h-5" aria-hidden="true" /> PLAYER LOGIN
+                      <User className="w-4 h-4 mr-2" /> PLAYER LOGIN
                     </PixelButton>
                   </Link>
                 )}
               </div>
-            </div>
+            </nav>
           </div>
         )}
       </nav>
