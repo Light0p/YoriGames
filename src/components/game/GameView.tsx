@@ -9,6 +9,7 @@ import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, Info, BookOpen } fro
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useGameStore } from '@/context/GameContext';
 
 interface GameViewProps {
   game: Game;
@@ -18,6 +19,26 @@ interface GameViewProps {
 export function GameView({ game, allGames }: GameViewProps) {
   const [loading, setLoading] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { recordPlay } = useGameStore();
+  const hasCountedRef = useRef(false);
+
+  // 10-Second Engagement Watchdog
+  useEffect(() => {
+    // Reset guard on game change
+    hasCountedRef.current = false;
+    
+    const timer = setTimeout(() => {
+      if (!hasCountedRef.current) {
+        recordPlay();
+        hasCountedRef.current = true;
+        console.info(`Engagement verified for ${game.title}. Play recorded.`);
+      }
+    }, 10000); // 10 seconds
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [game.id, recordPlay, game.title]);
 
   const relatedGames = allGames
     .filter(g => g.id !== game.id && g.category === game.category)
