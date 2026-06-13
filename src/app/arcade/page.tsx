@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function ArcadePage() {
   // Use the standardized data layer instead of direct import
-  const { games } = await getPaginatedGames(1, 100);
+  const { games } = await getPaginatedGames(1, 50);
 
   return (
     <main className="min-h-screen">

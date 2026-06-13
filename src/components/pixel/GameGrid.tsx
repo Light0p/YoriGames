@@ -13,7 +13,7 @@ export const GameGrid = ({ games }: GameGridProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={containerRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+    <div ref={containerRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-2">
       {games.map((game) => (
         <Link 
           key={game.id} 
