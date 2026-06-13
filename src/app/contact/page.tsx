@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState } from 'react';
@@ -122,6 +121,9 @@ export default function ContactPage() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <input type="hidden" name="access_key" value="4c662864-7bcc-401a-82e9-3440fedbd94b" />
+                <input type="hidden" name="subject" value="New Transmission: YoriGames Contact Form" />
+                <input type="hidden" name="from_name" value="YoriGames Contact System" />
+                <input type="hidden" name="replyto" value="@{email}" />
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
