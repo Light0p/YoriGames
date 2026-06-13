@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
@@ -8,12 +8,18 @@ import { useGameStore } from '@/context/GameContext';
 
 export const Hero = () => {
   const { allGames } = useGameStore();
-  const [playerCount, setPlayerCount] = useState<number>(0);
 
-  useEffect(() => {
+  // Instant calculation for stats based on the hydrated static list
+  const stats = useMemo(() => {
+    const gameCount = allGames.length || 0;
     // Generate a consistent but synthetic player count to save Firestore costs
-    const count = allGames.length > 0 ? allGames.length * 152 : 52000;
-    setPlayerCount(count);
+    // 152 is a baseline multiplier to make the arcade floor look populated
+    const playerCount = gameCount > 0 ? gameCount * 152 : 52000;
+    
+    return {
+      games: gameCount,
+      players: playerCount
+    };
   }, [allGames]);
 
   const formatNumber = (num: number) => {
@@ -61,11 +67,11 @@ export const Hero = () => {
 
         <div className="relative z-20 mt-16 sm:mt-20 grid grid-cols-3 gap-2 sm:gap-12 opacity-80 px-4 max-w-lg mx-auto border-t border-white/10 pt-8 sm:pt-10">
           <div className="flex flex-col items-center">
-            <span className="font-pixel text-sm sm:text-xl text-white">{formatNumber(allGames.length)}</span>
+            <span className="font-pixel text-sm sm:text-xl text-white">{formatNumber(stats.games)}</span>
             <span className="text-[6px] sm:text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
           <div className="flex flex-col items-center border-x border-white/20">
-            <span className="font-pixel text-sm sm:text-xl text-white">{formatNumber(playerCount)}</span>
+            <span className="font-pixel text-sm sm:text-xl text-white">{formatNumber(stats.players)}</span>
             <span className="text-[6px] sm:text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Players</span>
           </div>
           <div className="flex flex-col items-center">

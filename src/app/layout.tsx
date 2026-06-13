@@ -8,6 +8,7 @@ import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { GameProvider } from '@/context/GameContext';
 import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
+import { getSearchableGames } from '@/lib/games';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -47,11 +48,14 @@ export const metadata: Metadata = {
 // SET TO TRUE TO LOCK THE SITE BEHIND MAINTENANCE SCREEN
 const isMaintenanceMode = false;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Static Pre-fetch: Read games at build time to hydrate the client instantly
+  const initialGames = await getSearchableGames();
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -73,7 +77,7 @@ export default function RootLayout({
           <MaintenanceMode />
         ) : (
           <FirebaseClientProvider>
-            <GameProvider>
+            <GameProvider initialGames={initialGames}>
               <GalaxyBackground />
               <div className="relative z-10 overflow-x-hidden w-full">
                 {children}
