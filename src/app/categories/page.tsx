@@ -25,18 +25,27 @@ export default async function CategoriesPage() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 py-16 sm:px-8">
-        <h1 className="font-pixel text-4xl text-white uppercase mb-12 text-center">Browse by <span className="text-neon-pink">Category</span></h1>
+        <div className="text-center mb-16">
+          <div className="font-pixel text-[8px] text-neon-cyan uppercase tracking-[0.4em] mb-4">SECTOR DIRECTORY</div>
+          <h1 className="font-pixel text-4xl text-white uppercase">Browse by <span className="text-neon-pink">Category</span></h1>
+          <p className="font-body text-muted mt-4 max-w-2xl mx-auto leading-relaxed">
+            Explore our curated selection of indie titles organized by genre. Choose a sector to begin your mission.
+          </p>
+        </div>
         
-        <div className="space-y-20">
+        <div className="space-y-24">
           {categories.map(cat => {
-            const catGames = gamesData.filter(g => g.category === cat).slice(0, 5);
+            const catGames = gamesData.filter(g => g.category === cat).slice(0, 10);
             return (
-              <section key={cat}>
-                <div className="flex items-center justify-between mb-8 border-b-2 border-[#1B123D] pb-4">
-                  <h2 className="font-pixel text-2xl text-white uppercase">{cat}</h2>
-                  <Link href={`/categories/${cat.toLowerCase()}`} className="font-pixel text-[8px] text-neon-cyan hover:underline uppercase">View All</Link>
+              <section key={cat} id={cat.toLowerCase()}>
+                <div className="flex items-center gap-6 mb-8 border-b-2 border-[#1B123D] pb-6">
+                  <h2 className="font-pixel text-2xl text-white uppercase tracking-tighter">{cat}</h2>
+                  <div className="h-[2px] flex-1 bg-gradient-to-r from-[#1B123D] to-transparent" />
+                  <div className="bg-[#140A2E] border-2 border-[#1B123D] px-3 py-1 font-pixel text-[8px] text-muted-foreground uppercase">
+                    {gamesData.filter(g => g.category === cat).length} Games
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                   {catGames.map(game => (
                     <Link key={game.id} href={`/games/${game.slug}`}>
                       <GameCard 
@@ -58,3 +67,5 @@ export default async function CategoriesPage() {
     </main>
   );
 }
+
+export const revalidate = 3600;

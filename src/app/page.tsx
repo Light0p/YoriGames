@@ -6,7 +6,6 @@ import { GameStrip } from '@/components/sections/GameStrip';
 import { Footer } from '@/components/layout/Footer';
 import { getFeaturedGames, getTrendingGames, getNewArrivals, getDiscoveryGames } from '@/lib/games';
 import { ArcadeInsightWrapper } from '@/components/ai/ArcadeInsightWrapper';
-import { InteractiveArcade } from '@/components/sections/InteractiveArcade';
 
 export default async function Home() {
   // Optimized Parallel fetch using ISR to minimize hits on request
@@ -14,7 +13,7 @@ export default async function Home() {
     getFeaturedGames(5),
     getTrendingGames(5),
     getNewArrivals(5),
-    getDiscoveryGames(100) // Reduced from 300 to 100 to significantly save quota
+    getDiscoveryGames(100)
   ]);
 
   return (
@@ -37,12 +36,9 @@ export default async function Home() {
           <ArcadeInsightWrapper />
         </section>
 
-        <section aria-label="Curated Hits">
+        <section aria-label="Curated Hits" className="mb-20">
           <GameStrip title="Featured" category="CURATED" games={featuredGames} />
         </section>
-
-        {/* Quota-Safe Interactive Category Section */}
-        <InteractiveArcade />
 
         <div className="w-full py-16 flex justify-center opacity-10 overflow-hidden" aria-hidden="true">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-white to-transparent" />

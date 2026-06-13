@@ -38,14 +38,14 @@ export const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 px-6">
-          <Link href="/trending" className="w-full sm:w-auto">
+          <Link href="/games" className="w-full sm:w-auto">
             <PixelButton variant="primary" size="lg" className="w-full">
               <Gamepad2 className="w-5 h-5" />
               <span>START PLAYING</span>
             </PixelButton>
           </Link>
           
-          <Link href="#categories" className="w-full sm:w-auto">
+          <Link href="/categories" className="w-full sm:w-auto">
             <PixelButton variant="gold" size="lg" className="w-full">
               <span>EXPLORE LIBRARY</span>
               <ChevronRight className="w-5 h-5" />
