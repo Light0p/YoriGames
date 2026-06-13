@@ -270,27 +270,30 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Overlay: Surgical Solid Opaque Fix */}
+        {/* Mobile Menu Overlay: Surgical Solid Opaque Fix with Forced Visibility */}
         {isMobileMenuOpen && (
           <div 
-            className="lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex flex-col items-center justify-start pt-24 px-8 overflow-y-auto pointer-events-auto animate-in fade-in duration-200" 
-            style={{ backgroundColor: '#0d051c' }}
+            className="lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex flex-col items-center justify-start pt-24 px-8 overflow-y-auto pointer-events-auto opacity-100 visible animate-in fade-in duration-200" 
+            style={{ backgroundColor: '#0d051c', opacity: 1, visibility: 'visible', display: 'flex' }}
             role="dialog" 
             aria-modal="true" 
             aria-label="Mobile Navigation"
           >
-            {/* Close Button for Overlay */}
-            <button 
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="absolute top-8 right-8 p-4 text-white hover:text-neon-pink transition-colors z-[10000]"
-              aria-label="Close menu"
-            >
-              <X className="w-8 h-8" />
-            </button>
+            {/* Separate Container for Close Button */}
+            <div className="absolute top-8 right-8 z-[10000]">
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-4 text-white hover:text-neon-pink transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-8 h-8" />
+              </button>
+            </div>
 
-            <nav className="w-full max-w-sm" aria-label="Mobile Menu Content">
+            {/* Separate Container for Navigation Links */}
+            <nav className="w-full max-w-sm h-auto flex flex-col items-center" aria-label="Mobile Menu Content">
               {user && (
-                <div className="flex flex-col items-center gap-4 mb-12 pb-8 border-b border-[#2a1744]">
+                <div className="flex flex-col items-center gap-4 mb-12 pb-8 border-b border-[#2a1744] w-full">
                   <Avatar className="w-20 h-20 border-4 border-neon-purple">
                     <AvatarImage src={user.photoURL || undefined} alt="" />
                     <AvatarFallback className="bg-neon-purple text-white font-pixel text-lg uppercase">
@@ -301,15 +304,15 @@ export const Navbar = () => {
                 </div>
               )}
 
-              <ul className="flex flex-col items-center gap-y-10 w-full font-pixel text-sm tracking-[0.2em] uppercase">
+              <ul className="flex flex-col items-center gap-y-10 w-full font-pixel text-sm tracking-[0.2em] uppercase opacity-100 visible">
                 {navLinks.map((link) => (
-                  <li key={link.label} className="w-full text-center">
+                  <li key={link.label} className="w-full text-center list-none">
                     <Link 
                       href={link.href} 
                       onClick={(e) => handleNavClick(e, link.type, link.href)}
                       className={cn(
-                        "transition-all py-2 block hover:scale-110",
-                        pathname === link.href ? link.color : "text-muted"
+                        "transition-all py-2 block hover:scale-110 text-white font-bold",
+                        pathname === link.href ? link.color : "text-white"
                       )}
                     >
                       {link.label}
@@ -318,7 +321,7 @@ export const Navbar = () => {
                 ))}
               </ul>
 
-              <div className="mt-16 w-full flex flex-col gap-4">
+              <div className="mt-16 w-full flex flex-col gap-4 pb-20">
                 {user ? (
                   <PixelButton variant="secondary" className="w-full py-6" onClick={handleLogout} aria-label="Logout">
                     <LogOut className="w-4 h-4 mr-2" /> EXIT SYSTEM
