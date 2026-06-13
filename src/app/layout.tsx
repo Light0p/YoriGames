@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 };
 
 // SET TO TRUE TO LOCK THE SITE BEHIND MAINTENANCE SCREEN
-const isMaintenanceMode = true;
+const isMaintenanceMode = false;
 
 export default function RootLayout({
   children,
