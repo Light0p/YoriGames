@@ -1,19 +1,27 @@
 "use client"
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GameCard } from '@/components/pixel/GameCard';
-import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Gamepad2, Loader2 } from 'lucide-react';
+import { Gamepad2, Loader2 } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Pagination } from '@/components/pixel/Pagination';
 
 const ITEMS_PER_PAGE = 12;
 
 export const InteractiveArcade = () => {
   const { allGames, categories, loading } = useGameStore();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const sectionRef = useRef<HTMLElement>(null);
+  
   const [activeCategory, setActiveCategory] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Read current page from URL
+  const pageParam = searchParams.get('page');
+  const currentPage = Math.max(1, parseInt(pageParam || '1', 10));
 
   const filteredGames = useMemo(() => {
     if (activeCategory === 'All') return allGames;
@@ -27,9 +35,24 @@ export const InteractiveArcade = () => {
     return filteredGames.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredGames, currentPage]);
 
+  // Handle smooth scroll when page changes via pagination
+  useEffect(() => {
+    if (pageParam && sectionRef.current) {
+      const offset = 100;
+      const elementPosition = sectionRef.current.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: 'smooth'
+      });
+    }
+  }, [pageParam]);
+
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
-    setCurrentPage(1);
+    // Reset page to 1 when changing category
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('page');
+    router.push(`/?${params.toString()}`, { scroll: false });
   };
 
   if (loading && allGames.length <= 1) {
@@ -42,7 +65,7 @@ export const InteractiveArcade = () => {
   }
 
   return (
-    <section id="categories" className="py-16 sm:py-24 px-4 sm:px-8 bg-[#0D0925]/50 border-y-4 border-[#1B123D]">
+    <section id="categories" ref={sectionRef} className="py-16 sm:py-24 px-4 sm:px-8 bg-[#0D0925]/50 border-y-4 border-[#1B123D]">
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-12 sm:mb-20">
           <div className="font-pixel text-[8px] text-neon-cyan uppercase mb-4 tracking-[0.4em]">EXPLORE SECTORS</div>
@@ -52,7 +75,6 @@ export const InteractiveArcade = () => {
           </p>
         </div>
 
-        {/* Category Filters - Touch targets optimized */}
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-16 sm:mb-20">
           {categories.map((cat) => (
             <button
@@ -70,7 +92,6 @@ export const InteractiveArcade = () => {
           ))}
         </div>
 
-        {/* Optimized Grid System */}
         {currentGames.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-10 mb-16 sm:mb-24">
             {currentGames.map((game) => (
@@ -96,36 +117,11 @@ export const InteractiveArcade = () => {
           </div>
         )}
 
-        {/* Pagination - Touch Targets >= 44px */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 border-t-2 border-[#1B123D] pt-12">
-            <div className="flex items-center gap-4">
-              <PixelButton 
-                variant="secondary" 
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                className="min-w-[100px]"
-              >
-                <ChevronLeft className="w-4 h-4" /> PREV
-              </PixelButton>
-              
-              <div className="font-pixel text-[10px] text-white bg-[#140A2E] px-4 py-2 border-2 border-[#1B123D] whitespace-nowrap">
-                PAGE <span className="text-neon-cyan">{currentPage}</span> / {totalPages}
-              </div>
-
-              <PixelButton 
-                variant="secondary" 
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                className="min-w-[100px]"
-              >
-                NEXT <ChevronRight className="w-4 h-4" />
-              </PixelButton>
-            </div>
-          </div>
-        )}
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          baseUrl="/" 
+        />
       </div>
     </section>
   );

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,28 +14,39 @@ interface PaginationProps {
 
 export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [jumpPage, setJumpPage] = useState('');
 
   if (totalPages <= 1) return null;
+
+  const createPageUrl = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (page <= 1) {
+      params.delete('page');
+    } else {
+      params.set('page', page.toString());
+    }
+    const queryString = params.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  };
 
   const handleJump = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(jumpPage, 10);
     if (pageNum >= 1 && pageNum <= totalPages) {
-      const url = pageNum === 1 ? baseUrl : `${baseUrl}?page=${pageNum}`;
-      router.push(url);
+      router.push(createPageUrl(pageNum), { scroll: false });
       setJumpPage('');
     }
   };
 
-  const renderPageLink = (page: number, label?: string | React.ReactNode, isDisabled = false) => {
+  const renderPageLink = (page: number, label?: string | React.ReactNode, isDisabled = false, keyPrefix = "") => {
     const isActive = page === currentPage;
-    const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
+    const url = createPageUrl(page);
 
     if (isDisabled) {
       return (
         <div
-          key={`disabled-${Math.random()}`}
+          key={`${keyPrefix}disabled-${page}-${Math.random()}`}
           className="min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 bg-[#1B123D] border-[#1B123D] text-muted-foreground/30 opacity-50 cursor-not-allowed"
         >
           {label || page}
@@ -45,8 +56,9 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
 
     return (
       <Link
-        key={page}
+        key={`${keyPrefix}${page}`}
         href={url}
+        scroll={false}
         className={cn(
           "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95",
           isActive 
@@ -76,15 +88,13 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
   return (
     <div className="flex flex-col items-center gap-8 mt-16">
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {/* First & Prev */}
-        {renderPageLink(1, <ChevronsLeft className="w-4 h-4" />, currentPage === 1)}
-        {renderPageLink(currentPage - 1, <ChevronLeft className="w-4 h-4" />, currentPage === 1)}
+        {renderPageLink(1, <ChevronsLeft className="w-4 h-4" />, currentPage === 1, "first")}
+        {renderPageLink(currentPage - 1, <ChevronLeft className="w-4 h-4" />, currentPage === 1, "prev")}
         
-        {/* Numbered Range */}
         {startPage > 1 && (
           <>
             {renderPageLink(1)}
-            {startPage > 2 && <span className="text-muted font-pixel text-[10px] px-2">...</span>}
+            {startPage > 2 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-start">...</span>}
           </>
         )}
 
@@ -92,17 +102,15 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
 
         {endPage < totalPages && (
           <>
-            {endPage < totalPages - 1 && <span className="text-muted font-pixel text-[10px] px-2">...</span>}
+            {endPage < totalPages - 1 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-end">...</span>}
             {renderPageLink(totalPages)}
           </>
         )}
 
-        {/* Next & Last */}
-        {renderPageLink(currentPage + 1, <ChevronRight className="w-4 h-4" />, currentPage === totalPages)}
-        {renderPageLink(totalPages, <ChevronsRight className="w-4 h-4" />, currentPage === totalPages)}
+        {renderPageLink(currentPage + 1, <ChevronRight className="w-4 h-4" />, currentPage === totalPages, "next")}
+        {renderPageLink(totalPages, <ChevronsRight className="w-4 h-4" />, currentPage === totalPages, "last")}
       </div>
 
-      {/* Jump to Page */}
       <form onSubmit={handleJump} className="flex items-center gap-3">
         <label className="font-pixel text-[8px] text-muted uppercase tracking-widest">Jump to</label>
         <div className="relative">
