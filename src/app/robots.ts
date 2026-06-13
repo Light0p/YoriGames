@@ -1,17 +1,16 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next';
 
 /**
- * @fileOverview Robots.txt configuration for YoriGames.
- * Explicitly points to the canonical sitemap URL.
+ * Standard Robots.txt for YoriGames.
+ * Allows all crawlers and points to the dynamic sitemap.
  */
-
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/private/', '/profile/', '/api/'],
+      disallow: ['/api/', '/profile/', '/admin/'],
     },
     sitemap: 'https://yorigamesonline.online/sitemap.xml',
-  }
+  };
 }
