@@ -1,5 +1,4 @@
 import { Game } from '@/types/game';
-// mirror data for server-side logic (SEO/SSR)
 import gamesData from '../../public/games.json';
 
 /**
@@ -7,21 +6,31 @@ import gamesData from '../../public/games.json';
  * Hard-linked to the consolidated public/games.json file.
  * Zero database interaction.
  */
-const allGames = (gamesData as any[]).map(g => ({
-  ...g,
-  id: g.id || g.gameId,
-  title: g.title,
-  thumb: g.thumb || g.thumbnail,
-  thumbnail: g.thumb || g.thumbnail,
-  description: g.description,
-  iframe_url: g.iframe_url || g.url,
-  category: g.category || 'Arcade',
-  slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
-  rating: g.rating || 5.0,
-  play_count: g.play_count || 1000,
-  tags: g.tags || [],
-  date_added: g.date_added || new Date().toISOString()
-})) as Game[];
+const allGames = (gamesData as any[]).map(g => {
+  // Robust tag normalization for Server Components
+  let normalizedTags: string[] = [];
+  if (Array.isArray(g.tags)) {
+    normalizedTags = g.tags;
+  } else if (typeof g.tags === 'string') {
+    normalizedTags = g.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+  }
+
+  return {
+    ...g,
+    id: g.id || g.gameId,
+    title: g.title,
+    thumb: g.thumb || g.thumbnail,
+    thumbnail: g.thumb || g.thumbnail,
+    description: g.description,
+    iframe_url: g.iframe_url || g.url,
+    category: g.category || 'Arcade',
+    slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
+    rating: g.rating || 5.0,
+    play_count: g.play_count || 1000,
+    tags: normalizedTags,
+    date_added: g.date_added || new Date().toISOString()
+  };
+}) as Game[];
 
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   const start = (page - 1) * pageSize;

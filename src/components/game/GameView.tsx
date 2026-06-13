@@ -145,7 +145,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                   {game.instructions || "No special instructions provided for this mission."}
                 </p>
                 <div className="mt-6 sm:mt-8 flex flex-wrap gap-2">
-                  {game.tags.map(tag => (
+                  {Array.isArray(game.tags) && game.tags.map(tag => (
                     <Link href={`/search?q=${tag}`} key={tag} className="font-pixel text-[7px] sm:text-[8px] px-3 py-3 sm:py-1 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple uppercase hover:bg-neon-purple hover:text-white transition-colors min-h-[32px] flex items-center">
                       #{tag}
                     </Link>
@@ -164,7 +164,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                     <Link key={g.id} href={`/games/${g.slug}`} className="flex gap-4 group min-h-[64px]">
                       <div className="relative w-16 sm:w-20 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
                         <Image 
-                          src={g.thumbnail} 
+                          src={g.thumb || g.thumbnail} 
                           alt={g.title} 
                           fill 
                           className="object-cover group-hover:scale-110 transition-transform" 

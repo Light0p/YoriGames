@@ -43,7 +43,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchCatalog = async () => {
       try {
-        // Sole source of truth: public/games.json
         const response = await fetch('/games.json');
         
         if (!response.ok) {
@@ -53,26 +52,36 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const data = await response.json();
         
         if (Array.isArray(data) && data.length > 0) {
-          // Normalize keys to ensure UI components always find what they need
-          const normalizedGames = data.map((g: any) => ({
-            ...g,
-            id: g.id || g.gameId,
-            thumb: g.thumb || g.thumbnail || '',
-            thumbnail: g.thumb || g.thumbnail || '', // Mirror for component compatibility
-            iframe_url: g.iframe_url || g.url || '',
-            slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
-            rating: g.rating || 5.0,
-            category: g.category || 'Arcade'
-          })) as Game[];
+          const normalizedGames = data.map((g: any) => {
+            // Handle tags which might be a string in raw feed
+            let normalizedTags: string[] = [];
+            if (Array.isArray(g.tags)) {
+              normalizedTags = g.tags;
+            } else if (typeof g.tags === 'string') {
+              normalizedTags = g.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+            }
+
+            return {
+              ...g,
+              id: g.id || g.gameId,
+              thumb: g.thumb || g.thumbnail || '',
+              thumbnail: g.thumb || g.thumbnail || '', 
+              iframe_url: g.iframe_url || g.url || '',
+              slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
+              rating: g.rating || 5.0,
+              category: g.category || 'Arcade',
+              tags: normalizedTags
+            };
+          }) as Game[];
           
           setAllGames(normalizedGames);
         } else {
           setAllGames(DEFAULT_GAMES);
         }
       } catch (err: any) {
-        console.error('Game catalog uplink error:', err.message);
+        console.error('Game catalog system error:', err.message);
         setAllGames(DEFAULT_GAMES);
-        setError('System operating on backup data.');
+        setError('System operating on backup data uplink.');
       } finally {
         setLoading(false);
       }
