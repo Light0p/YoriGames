@@ -273,7 +273,7 @@ export const Navbar = () => {
         {/* Improved Opaque Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div 
-            className="lg:hidden fixed inset-0 z-[999] bg-[#0d051c] opacity-100 flex flex-col items-center justify-center p-8 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto" 
+            className="lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex flex-col items-center justify-start pt-24 px-8 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto" 
             role="dialog" 
             aria-modal="true" 
             aria-label="Mobile Navigation"
@@ -300,7 +300,7 @@ export const Navbar = () => {
                 </div>
               )}
 
-              <ul className="flex flex-col items-center gap-y-8 w-full font-pixel text-sm tracking-[0.2em] uppercase">
+              <ul className="flex flex-col items-center gap-y-10 w-full font-pixel text-sm tracking-[0.2em] uppercase">
                 {navLinks.map((link) => (
                   <li key={link.label} className="w-full text-center">
                     <Link 
