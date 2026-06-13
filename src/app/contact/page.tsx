@@ -43,7 +43,7 @@ export default function ContactPage() {
       name: formData.get("name"),
       email: formData.get("email"),
       message: formData.get("message"),
-      subject: `[${selectedPriority}] - New Transmission`,
+      subject: `[${selectedPriority}] - New Message`,
       from_name: "YoriGames Contact System"
     };
 
@@ -67,6 +67,15 @@ export default function ContactPage() {
     }
   };
 
+  const getStatusText = () => {
+    switch (status) {
+      case "SENDING": return "SENDING...";
+      case "SUCCESS": return "SENT!";
+      case "ERROR": return "ERROR";
+      default: return "STANDBY";
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#0d051c] font-pixel relative overflow-x-hidden">
       {/* Background Atmosphere */}
@@ -81,29 +90,29 @@ export default function ContactPage() {
       <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24 relative z-10">
         <div className="text-center mb-16">
           <h1 className="text-3xl sm:text-5xl text-[#EC4899] uppercase tracking-tighter mb-4 [text-shadow:4px_4px_0px_#00f0ff]">
-            TERMINAL INTERFACE
+            CONTACT US
           </h1>
           <div className="inline-block border-2 border-[#2a1744] px-4 py-2 bg-[#160a2c]">
              <span className="text-[#00ff41] text-[10px] uppercase animate-pulse">
-               ● UPLINK STATUS: [{status === "SENDING" ? "TRANSMITTING..." : "STANDBY"}]
+               ● STATUS: [{getStatusText()}]
              </span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Panel: Intel & Security */}
+          {/* Left Panel: Direct Email */}
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-[#160a2c] border-2 border-[#2a1744] p-8 rounded-none shadow-[8px_8px_0_0_#000]">
               <div className="flex items-center gap-4 mb-6 border-b-2 border-[#2a1744] pb-4">
                 <Terminal className="text-[#00f0ff] w-5 h-5" />
-                <h2 className="text-white text-xs uppercase tracking-widest">{">_"} MANUAL OVERRIDE</h2>
+                <h2 className="text-[#00f0ff] text-xs uppercase tracking-widest">DIRECT EMAIL</h2>
               </div>
               <p className="text-muted text-[10px] leading-relaxed mb-8 uppercase">
-                If the automated uplink fails, bypass the terminal and contact Central Command directly via secure frequency.
+                If the contact form is not working, you can reach us directly at our email address.
               </p>
               
               <div className="bg-[#05020a] border-2 border-[#00f0ff] p-4 group hover:bg-[#00f0ff]/5 transition-colors">
-                <div className="text-[#00f0ff] text-[8px] uppercase mb-1">Central Command</div>
+                <div className="text-[#00f0ff] text-[8px] uppercase mb-1">Email Address</div>
                 <a href="mailto:yorionlinegames@gmail.com" className="text-white text-[10px] break-all">
                   yorionlinegames@gmail.com
                 </a>
@@ -113,10 +122,10 @@ export default function ContactPage() {
             <div className="bg-[#160a2c] border-2 border-[#2a1744] p-8 rounded-none shadow-[8px_8px_0_0_#000]">
               <div className="flex items-center gap-4 mb-6 border-b-2 border-[#2a1744] pb-4">
                 <ShieldAlert className="text-red-500 w-5 h-5 animate-pulse" />
-                <h2 className="text-red-500 text-xs uppercase tracking-widest">[ ENCRYPTION ACTIVE ]</h2>
+                <h2 className="text-red-500 text-xs uppercase tracking-widest">[ SECURITY ACTIVE ]</h2>
               </div>
               <p className="text-muted text-[10px] leading-relaxed uppercase">
-                AES-256 SECURE CHANNEL ESTABLISHED. ALL TRANSMISSIONS ARE LOGGED. UNAUTHORIZED INTERCEPTION WILL BE MET WITH COUNTER-MEASURES.
+                SECURE CHANNEL ESTABLISHED. ALL MESSAGES ARE LOGGED TO PREVENT SPAM. UNAUTHORIZED USE IS MONITORED.
               </p>
             </div>
           </div>
@@ -127,7 +136,7 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <label className="text-muted text-[8px] uppercase tracking-widest block">Call Sign</label>
+                    <label className="text-muted text-[8px] uppercase tracking-widest block">Name</label>
                     <div className="relative">
                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2a1744]" />
                        <input 
@@ -140,14 +149,14 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-muted text-[8px] uppercase tracking-widest block">Frequency (Email)</label>
+                    <label className="text-muted text-[8px] uppercase tracking-widest block">Email Address</label>
                     <div className="relative">
                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2a1744]" />
                        <input 
                         type="email" 
                         name="email"
                         required
-                        placeholder="NAME@NEXUS.COM"
+                        placeholder="NAME@EMAIL.COM"
                         className="w-full bg-[#05020a] border-2 border-[#2a1744] px-12 py-4 text-white placeholder:text-[#2a1744] outline-none focus:border-[#a855f7] transition-colors text-xs rounded-none"
                       />
                     </div>
@@ -156,7 +165,7 @@ export default function ContactPage() {
 
                 {/* Custom Pixel-Art Dropdown */}
                 <div className="space-y-3" ref={dropdownRef}>
-                  <label className="text-muted text-[8px] uppercase tracking-widest block">Transmission Priority</label>
+                  <label className="text-muted text-[8px] uppercase tracking-widest block">Subject</label>
                   <div className="relative">
                     <div 
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -186,14 +195,14 @@ export default function ContactPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-muted text-[8px] uppercase tracking-widest block">Message Payload</label>
+                  <label className="text-muted text-[8px] uppercase tracking-widest block">Message</label>
                   <div className="relative">
                     <MessageSquare className="absolute left-4 top-5 w-4 h-4 text-[#2a1744]" />
                     <textarea 
                       name="message"
                       required
                       rows={6}
-                      placeholder="ENTER SIGNAL DATA..."
+                      placeholder="ENTER YOUR MESSAGE..."
                       className="w-full bg-[#05020a] border-2 border-[#2a1744] px-12 py-4 text-white placeholder:text-[#2a1744] outline-none focus:border-[#a855f7] transition-colors text-xs resize-none rounded-none"
                     ></textarea>
                   </div>
@@ -206,11 +215,11 @@ export default function ContactPage() {
                 >
                   <span className="flex items-center justify-center gap-4">
                     {status === "SENDING" ? (
-                      <span className="animate-pulse">INITIALIZING UPLINK...</span>
+                      <span className="animate-pulse">Sending...</span>
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        <span>INITIATE TRANSMISSION</span>
+                        <span>SEND MESSAGE</span>
                       </>
                     )}
                   </span>
@@ -237,17 +246,17 @@ export default function ContactPage() {
               {status === "SUCCESS" ? (
                 <div className="flex flex-col items-center">
                   <div className="text-6xl mb-6 animate-bounce">🚀</div>
-                  <h2 className="text-[#00ff41] text-xl uppercase mb-4 tracking-tighter">Transmission Successful!</h2>
+                  <h2 className="text-[#00ff41] text-xl uppercase mb-4 tracking-tighter">Message Sent!</h2>
                   <p className="text-white/60 text-xs uppercase leading-relaxed">
-                    Your message has cleared the atmosphere and is being processed by Central Command.
+                    Your message has been received. We will get back to you as soon as possible.
                   </p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
                   <div className="text-6xl mb-6 animate-pulse scale-110">💥</div>
-                  <h2 className="text-red-500 text-xl uppercase mb-4 tracking-tighter">Uplink Failed!</h2>
+                  <h2 className="text-red-500 text-xl uppercase mb-4 tracking-tighter">Sending Failed!</h2>
                   <p className="text-white/60 text-xs uppercase leading-relaxed">
-                    Atmospheric interference detected. The signal was lost in deep space. Please attempt a secondary uplink.
+                    Something went wrong while sending your message. Please try again or email us directly.
                   </p>
                 </div>
               )}
@@ -257,7 +266,7 @@ export default function ContactPage() {
               onClick={() => setStatus("IDLE")}
               className="bg-white text-black px-8 py-4 text-[10px] uppercase tracking-widest border-b-4 border-r-4 border-gray-400 hover:bg-gray-200 active:translate-y-1 active:border-0 transition-all"
             >
-              Return to Base
+              Return to Page
             </button>
           </div>
         </div>
