@@ -1,21 +1,40 @@
 "use client"
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 
 export const Hero = () => {
-  const { allGames, categories } = useGameStore();
+  const { allGames } = useGameStore();
+  
+  // Believable base number for total arcade plays
+  const [totalPlays, setTotalPlays] = useState(2543000);
 
-  // Instant calculation for stats based on the hydrated static list
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    // Recursive timeout to allow for a randomized delay between every single tick
+    const scheduleNextTick = () => {
+      const delay = Math.floor(Math.random() * 5000) + 3000; // 3 to 8 seconds
+      timeoutId = setTimeout(() => {
+        setTotalPlays(prev => prev + Math.floor(Math.random() * 4) + 1); // Increment by 1 to 4
+        scheduleNextTick();
+      }, delay);
+    };
+
+    scheduleNextTick();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Instant calculation for stats
   const stats = useMemo(() => {
     return {
       games: allGames.length || 0,
-      categories: categories.length ? categories.filter(c => c !== 'All').length : 0
+      playsFormatted: totalPlays.toLocaleString('en-US') // Clean comma-separated formatting
     };
-  }, [allGames, categories]);
+  }, [allGames, totalPlays]);
 
   return (
     <section className="relative w-full min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden px-4 py-12 sm:py-24">
@@ -53,14 +72,16 @@ export const Hero = () => {
           </Link>
         </div>
 
-        <div className="relative z-20 mt-16 sm:mt-20 grid grid-cols-3 gap-2 sm:gap-12 opacity-80 px-4 max-w-lg mx-auto border-t border-white/10 pt-8 sm:pt-10">
+        <div className="relative z-20 mt-16 sm:mt-20 grid grid-cols-3 gap-2 sm:gap-4 opacity-80 px-4 max-w-2xl mx-auto border-t border-white/10 pt-8 sm:pt-10">
           <div className="flex flex-col items-center">
             <span className="font-pixel text-sm sm:text-xl text-white">{stats.games}</span>
             <span className="text-[6px] sm:text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Games</span>
           </div>
-          <div className="flex flex-col items-center border-x border-white/20">
-            <span className="font-pixel text-sm sm:text-xl text-white">{stats.categories}</span>
-            <span className="text-[6px] sm:text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Sectors</span>
+          <div className="flex flex-col items-center border-x border-white/20 px-2 sm:px-8">
+            <span className="font-pixel text-sm sm:text-xl text-neon-cyan tabular-nums transition-all">
+              {stats.playsFormatted}
+            </span>
+            <span className="text-[6px] sm:text-[10px] font-pixel text-muted mt-2 tracking-widest uppercase">Plays</span>
           </div>
           <div className="flex flex-col items-center">
             <span className="font-pixel text-sm sm:text-xl text-white">100%</span>
