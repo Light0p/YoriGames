@@ -1,4 +1,3 @@
-
 import { Game } from '@/types/game';
 import gamesData from './games-data.json';
 
@@ -10,9 +9,9 @@ const allGames = (gamesData as any[]).map(g => ({
   ...g,
   id: g.id,
   title: g.title,
-  thumbnail: g.thumb,
+  thumbnail: g.thumb || g.thumbnail,
   description: g.description,
-  iframe_url: g.iframe_url,
+  iframe_url: g.iframe_url || g.url,
   category: g.category || 'Arcade',
   slug: g.slug || g.id,
   rating: g.rating || 5.0,

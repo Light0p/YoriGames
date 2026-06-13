@@ -42,6 +42,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchCatalog = async () => {
       try {
+        // Fetch from the root path (public/games.json)
         const response = await fetch('/games.json');
         
         if (!response.ok) {
@@ -65,8 +66,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           setAllGames(normalizedGames);
         }
       } catch (err: any) {
-        console.error('Static catalog fetch error:', err.message);
-        setError('Operating on local backup.');
+        console.error('Game catalog system error:', err.message);
+        setError('System operating on backup data uplink.');
       } finally {
         setLoading(false);
       }
