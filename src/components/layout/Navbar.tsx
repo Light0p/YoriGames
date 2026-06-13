@@ -34,7 +34,7 @@ export const Navbar = () => {
   const navLinks = [
     { href: '/games', label: 'Games', color: 'text-neon-purple', type: 'link' },
     { href: '/trending', label: 'Trending', color: 'text-neon-pink', type: 'link' },
-    { href: '#categories', label: 'Categories', color: 'text-neon-cyan', type: 'scroll' },
+    { href: '/categories', label: 'Categories', color: 'text-neon-cyan', type: 'link' },
     { href: '/about', label: 'About Us', color: 'text-neon-pink', type: 'link' },
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
