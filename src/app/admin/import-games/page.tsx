@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -122,28 +121,28 @@ export default function AdminImportPage() {
           break;
         }
 
-        // Mutation Loop
-        const importPromises = games.map(async (game: any) => {
+        // Mutation Loop - Non-blocking per guidelines
+        games.forEach((game: any) => {
           const gameRef = doc(db, 'games', `gm_${game.gameId}`);
-          try {
-            await setDoc(gameRef, {
-              ...game,
-              lastImportedAt: serverTimestamp()
-            }, { merge: true });
-            totalImported++;
-          } catch (err: any) {
-            totalFailed++;
-            const permissionError = new FirestorePermissionError({
-              path: gameRef.path,
-              operation: 'write',
-              requestResourceData: game,
-            } satisfies SecurityRuleContext);
-            errorEmitter.emit('permission-error', permissionError);
-          }
+          setDoc(gameRef, {
+            ...game,
+            lastImportedAt: serverTimestamp()
+          }, { merge: true })
+            .catch(async (err: any) => {
+              if (err.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                  path: gameRef.path,
+                  operation: 'write',
+                  requestResourceData: game,
+                } satisfies SecurityRuleContext);
+                errorEmitter.emit('permission-error', permissionError);
+              }
+            });
+          
+          // Optimistically increment as logic continues
+          totalImported++;
         });
 
-        await Promise.all(importPromises);
-        
         // Final condition: if we got less than 100 games, it's the last page
         if (games.length < 100) {
           hasMore = false;

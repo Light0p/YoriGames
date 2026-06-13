@@ -31,13 +31,20 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
         setData(items);
         setLoading(false);
       },
-      async (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: (query as any)._query?.path?.segments?.join('/') || 'unknown/path',
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setError(permissionError);
+      async (err: any) => {
+        // Only trigger the error overlay for permission issues (Security Rules)
+        if (err.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: (query as any)._query?.path?.segments?.join('/') || 'unknown/path',
+            operation: 'list',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          setError(permissionError);
+        } else {
+          // Connectivity errors (e.g. 'unavailable') are logged but don't crash the UI
+          console.warn(`Firestore listener error: ${err.message}`);
+          setError(err);
+        }
         setLoading(false);
       }
     );

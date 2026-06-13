@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useMemo, useEffect, useRef 
 import { Game } from '@/types/game';
 import { db } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface GameContextType {
   allGames: Game[];
@@ -43,8 +45,18 @@ export function GameProvider({
           // Use the real number from database, strictly fallback to 0 if missing
           setTotalPlays(snap.data().totalPlays || 0);
         } else {
-          // Initialize doc with zero if it doesn't exist. NO MOCK FALLBACKS.
-          await setDoc(statsRef, { totalPlays: 0 }, { merge: true });
+          // Initialize doc with zero if it doesn't exist.
+          // Note: we don't await this as it will happen in the background and SDK handles offline
+          setDoc(statsRef, { totalPlays: 0 }, { merge: true }).catch((err: any) => {
+            if (err.code === 'permission-denied') {
+              const permissionError = new FirestorePermissionError({
+                path: statsRef.path,
+                operation: 'write',
+                requestResourceData: { totalPlays: 0 }
+              });
+              errorEmitter.emit('permission-error', permissionError);
+            }
+          });
         }
       } catch (err) {
         console.warn("Stats uplink currently unreachable. Plays will sync when restored.");
@@ -54,23 +66,34 @@ export function GameProvider({
   }, []);
 
   // 2. Batch Sync Logic - Sends accumulated plays to Firestore in one operation
-  const syncPendingPlays = async () => {
+  const syncPendingPlays = () => {
     if (pendingPlaysRef.current <= 0 || isSyncingRef.current) return;
     
     isSyncingRef.current = true;
     const playsToSync = pendingPlaysRef.current;
+    const statsRef = doc(db, 'stats', 'global');
     
-    try {
-      const statsRef = doc(db, 'stats', 'global');
-      await updateDoc(statsRef, {
-        totalPlays: increment(playsToSync)
-      });
+    // Non-blocking mutation pattern
+    updateDoc(statsRef, {
+      totalPlays: increment(playsToSync)
+    })
+    .then(() => {
       pendingPlaysRef.current -= playsToSync;
-    } catch (err) {
+    })
+    .catch(async (err: any) => {
+      if (err.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: statsRef.path,
+          operation: 'update',
+          requestResourceData: { totalPlays: `increment(${playsToSync})` }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
       console.error("Failed to sync batched plays:", err);
-    } finally {
+    })
+    .finally(() => {
       isSyncingRef.current = false;
-    }
+    });
   };
 
   // Periodic Sync Timer
