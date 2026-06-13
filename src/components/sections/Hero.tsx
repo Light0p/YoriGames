@@ -1,40 +1,22 @@
+
 "use client"
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 
 export const Hero = () => {
-  const { allGames } = useGameStore();
-  
-  // Believable base number for total arcade plays
-  const [totalPlays, setTotalPlays] = useState(2543000);
+  const { allGames, totalPlays, categories } = useGameStore();
 
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    // Recursive timeout to allow for a randomized delay between every single tick
-    const scheduleNextTick = () => {
-      const delay = Math.floor(Math.random() * 5000) + 3000; // 3 to 8 seconds
-      timeoutId = setTimeout(() => {
-        setTotalPlays(prev => prev + Math.floor(Math.random() * 4) + 1); // Increment by 1 to 4
-        scheduleNextTick();
-      }, delay);
-    };
-
-    scheduleNextTick();
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  // Instant calculation for stats
   const stats = useMemo(() => {
     return {
       games: allGames.length || 0,
-      playsFormatted: totalPlays.toLocaleString('en-US') // Clean comma-separated formatting
+      playsFormatted: totalPlays.toLocaleString('en-US'),
+      categoryCount: (categories.length - 1) || 0 // Exclude 'All'
     };
-  }, [allGames, totalPlays]);
+  }, [allGames, totalPlays, categories]);
 
   return (
     <section className="relative w-full min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden px-4 py-12 sm:py-24">

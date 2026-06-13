@@ -1,9 +1,11 @@
+
 "use client"
 
 import React, { memo } from 'react';
 import Image from 'next/image';
 import { Star, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useGameStore } from '@/context/GameContext';
 
 interface GameCardProps {
   title: string;
@@ -14,11 +16,16 @@ interface GameCardProps {
 }
 
 const GameCardComponent = ({ title, genre, rating, imageUrl, className }: GameCardProps) => {
+  const { recordPlay } = useGameStore();
+
   return (
-    <article className={cn(
-      "group relative w-full overflow-hidden bg-[#140A2E] border-4 border-[#1B123D] cursor-pointer transition-all duration-300 hover:border-neon-purple hover:-translate-y-1 shadow-[4px_4px_0_0_#000] min-h-[120px]",
-      className
-    )}>
+    <article 
+      onClick={recordPlay}
+      className={cn(
+        "group relative w-full overflow-hidden bg-[#140A2E] border-4 border-[#1B123D] cursor-pointer transition-all duration-300 hover:border-neon-purple hover:-translate-y-1 shadow-[4px_4px_0_0_#000] min-h-[120px]",
+        className
+      )}
+    >
       {/* Game Image Container - Using aspect-video to prevent Layout Shift */}
       <div className="relative aspect-video w-full overflow-hidden bg-black border-b-4 border-[#1B123D]">
         <Image 

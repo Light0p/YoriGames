@@ -38,15 +38,12 @@
         "xp": { "type": "number" }
       }
     },
-    "FriendRequest": {
-      "title": "FriendRequest",
-      "description": "A request sent from one user to another to become friends.",
+    "GlobalStats": {
+      "title": "GlobalStats",
+      "description": "Platform-wide aggregated statistics.",
       "type": "object",
       "properties": {
-        "senderId": { "type": "string" },
-        "receiverId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "accepted", "declined"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "totalPlays": { "type": "number" }
       }
     }
   },
@@ -62,9 +59,9 @@
       "schema": "#/backend/entities/UserProfile",
       "description": "Public and private user profiles."
     },
-    "/friendRequests/{requestId}": {
-      "schema": "#/backend/entities/FriendRequest",
-      "description": "Collection of friend requests between users."
+    "/stats/global": {
+      "schema": "#/backend/entities/GlobalStats",
+      "description": "Global platform statistics."
     }
   }
 }
