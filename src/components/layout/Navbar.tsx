@@ -35,6 +35,7 @@ export const Navbar = () => {
     { href: '/games', label: 'Games', color: 'text-neon-purple', type: 'link' },
     { href: '/trending', label: 'Trending', color: 'text-neon-pink', type: 'link' },
     { href: '#categories', label: 'Categories', color: 'text-neon-cyan', type: 'scroll' },
+    { href: '/about', label: 'About Us', color: 'text-neon-pink', type: 'link' },
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
 
@@ -62,9 +63,9 @@ export const Navbar = () => {
   }, []);
 
   const handleNavClick = (e: React.MouseEvent, type: string, href: string) => {
+    setIsMobileMenuOpen(false); // Close mobile menu on any navigation
     if (type === 'scroll') {
       e.preventDefault();
-      setIsMobileMenuOpen(false);
       if (pathname === '/') {
         const target = document.querySelector(href);
         target?.scrollIntoView({ behavior: 'smooth' });
@@ -93,7 +94,7 @@ export const Navbar = () => {
   return (
     <>
       {/* Spacer to preserve layout flow since the nav is fixed */}
-      <div className="h-20 sm:h-24" aria-hidden="true" />
+      <div className="h-24" aria-hidden="true" />
       
       <nav 
         className="fixed top-4 left-0 right-0 z-[100] mx-auto w-[95%] max-w-7xl bg-[#0d051c]/95 backdrop-blur-md border border-[#2a1744] shadow-xl rounded-none" 
