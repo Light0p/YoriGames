@@ -9,6 +9,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { GameProvider } from '@/context/GameContext';
 import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 import { getSearchableGames } from '@/lib/games';
+import ScrollToTop from '@/components/layout/ScrollToTop';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -73,6 +74,7 @@ export default async function RootLayout({
         pixelify.variable,
         pressStart.variable
       )}>
+        <ScrollToTop />
         {isMaintenanceMode ? (
           <MaintenanceMode />
         ) : (
