@@ -1,13 +1,13 @@
-
 import React from 'react';
 import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { Gamepad2, Rocket, Zap, Shield, Heart } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'About Us | YoriGames',
-  description: 'The story behind YoriGames—a solo developer project dedicated to fast browser gaming.',
+  title: 'About | YoriGames',
+  description: 'The story behind YoriGames—a project built for the love of browser gaming and pixel art.',
   alternates: {
     canonical: '/about',
   },
@@ -15,72 +15,96 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#0d051c] text-gray-300 font-pixel py-16 px-4 relative overflow-x-hidden">
+    <main className="min-h-screen">
       <SpaceBackground />
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-24 relative z-10">
-        {/* Hero Section */}
-        <section className="text-center mb-24" aria-labelledby="about-heading">
-          <h1 id="about-heading" className="text-3xl sm:text-5xl text-[#EC4899] uppercase tracking-tighter mb-8 [text-shadow:4px_4px_0px_#00f0ff]">
-            ABOUT YORIGAMES
+      <div className="max-w-6xl mx-auto px-6 py-24">
+        <div className="text-center mb-24">
+          <div className="font-pixel text-[10px] text-neon-cyan uppercase tracking-[0.5em] mb-4">PROJECT ORIGIN</div>
+          <h1 className="font-pixel text-4xl sm:text-6xl text-white uppercase tracking-tighter mb-8 leading-tight">
+            ABOUT <span className="text-neon-cyan">YoriGames</span>
           </h1>
-          <p className="font-headline text-xl sm:text-2xl text-[#00f0ff] uppercase max-w-3xl mx-auto leading-relaxed">
-            A passion project dedicated to bringing high-performance, zero-install browser games to everyone.
+          <p className="font-headline text-lg sm:text-xl text-muted uppercase max-w-2xl mx-auto leading-relaxed">
+            Simple games. Fast loading. Built for fun.
           </p>
-        </section>
+        </div>
 
-        {/* The Developer Section */}
-        <section className="max-w-4xl mx-auto mb-32" aria-labelledby="dev-heading">
-          <div className="bg-[#110822] border-4 border-[#2a1744] p-8 sm:p-12 rounded-none shadow-[12px_12px_0_0_#000] relative overflow-hidden group">
-            {/* Design Accent */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-[#EC4899]" />
-            
-            <div className="flex flex-col md:flex-row gap-10 items-center md:items-start relative z-10">
-              <div className="w-24 h-24 bg-[#0d051c] border-2 border-[#2a1744] flex-shrink-0 flex items-center justify-center" aria-hidden="true">
-                 <span className="text-2xl text-[#00f0ff] animate-pulse">Y</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-40">
+          <div className="space-y-8">
+            <h2 className="font-pixel text-lg text-white uppercase leading-tight border-l-4 border-neon-cyan pl-6">The Developer Note</h2>
+            <div className="font-body text-base text-muted space-y-6 leading-relaxed">
+              <p>
+                I'm the solo developer behind YoriGames. I balance building this platform purely for fun, alongside my college studies and a corporate night shift job.
+              </p>
+              <p>
+                What started as a simple way to kill boredom quickly turned into an addictive habit of creating fast, browser-native experiences. There's no massive team or corporate backing here—just me, coding when I get the time, and a genuine love for web games.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-5 flex items-center gap-4">
+                <Zap className="w-5 h-5 text-neon-cyan" />
+                <span className="font-pixel text-[9px] text-white uppercase">Zero Installs</span>
               </div>
-              
-              <div className="flex-1">
-                <h2 id="dev-heading" className="text-lg text-[#EC4899] uppercase mb-8 border-b-2 border-[#2a1744] pb-4 inline-block tracking-wider">
-                  Yogesh - Solo Developer
-                </h2>
-                <p className="font-body text-base sm:text-lg leading-relaxed text-gray-300 normal-case">
-                  I'm the solo developer behind YoriGames. I balance building this project alongside my college studies and a corporate night shift job. What started as a fun way to kill boredom quickly turned into an addictive hobby of creating fast, accessible web experiences. No massive team, just pure love for coding and retro games.
-                </p>
+              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-5 flex items-center gap-4">
+                <Shield className="w-5 h-5 text-neon-pink" />
+                <span className="font-pixel text-[9px] text-white uppercase">Privacy First</span>
               </div>
             </div>
           </div>
-        </section>
+          
+          {/* Animated Terminal Box replacement */}
+          <div className="relative aspect-video bg-[#140A2E] border-4 border-[#1B123D] overflow-hidden flex flex-col items-center justify-center p-8 text-center group">
+            {/* Retro Noise and Gradient Background */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 to-transparent pointer-events-none" />
+            
+            {/* Looping Floating Animation */}
+            <div className="animate-[bounce_3s_infinite] mb-6 z-10 relative">
+              <Rocket className="w-12 h-12 text-neon-cyan opacity-80 drop-shadow-[0_0_8px_rgba(0,240,255,0.5)]" />
+            </div>
 
-        {/* Core Features Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16" aria-label="Core platform features">
+            {/* Terminal Text with Blinking Cursor */}
+            <div className="font-pixel text-[10px] sm:text-xs text-white leading-loose z-10 mt-4">
+              <span className="text-neon-pink mr-2">{">_"}</span>
+              WE WILL SHARE OUR WHOLE JOURNEY SOON
+              <span className="animate-pulse inline-block ml-2 w-2 h-3 bg-neon-cyan align-middle"></span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32">
           {[
             {
-              title: "Instant Play",
-              desc: "No downloads required",
-              border: "hover:border-[#00f0ff]"
+              title: "Retro Modern",
+              icon: <Rocket className="w-8 h-8 text-neon-purple" />,
+              desc: "Using WebGL and HTML5 to deliver smooth pixel-art experiences without the friction of traditional apps."
             },
             {
-              title: "Pure Pixels",
-              desc: "Authentic arcade aesthetics",
-              border: "hover:border-[#EC4899]"
+              title: "Indie First",
+              icon: <Heart className="w-8 h-8 text-neon-pink" />,
+              desc: "A platform designed for simplicity. We focus on the games and the players, keeping things straightforward."
             },
             {
-              title: "Built for Fun",
-              desc: "Constantly updated with new projects and ideas",
-              border: "hover:border-[#00ff41]"
+              title: "Cross Play",
+              icon: <Zap className="w-8 h-8 text-neon-cyan" />,
+              desc: "Whether you're on mobile, tablet, or desktop, your session is just a click away. No barriers to entry."
             }
-          ].map((feature, i) => (
-            <article key={i} className={`bg-[#110822] border-2 border-[#2a1744] p-10 rounded-none text-center transition-all shadow-[6px_6px_0_0_#000] active:translate-y-1 active:shadow-none ${feature.border}`}>
-              <h3 className="text-[10px] text-white mb-6 uppercase tracking-[0.2em]">{feature.title}</h3>
-              <div className="w-12 h-px bg-[#2a1744] mx-auto mb-6" aria-hidden="true" />
-              <p className="font-body text-sm text-gray-400 uppercase tracking-tight leading-relaxed">
-                {feature.desc}
-              </p>
-            </article>
+          ].map((item, i) => (
+            <div key={i} className="bg-[#140A2E] border-2 border-[#1B123D] p-10 hover:border-neon-cyan transition-all group">
+              <div className="mb-6 group-hover:scale-105 transition-transform origin-left">{item.icon}</div>
+              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-wider">{item.title}</h3>
+              <p className="font-body text-sm text-muted leading-relaxed">{item.desc}</p>
+            </div>
           ))}
-        </section>
+        </div>
+
+        <div className="bg-[#09061B] border-4 border-dashed border-[#1B123D] p-12 text-center">
+          <h2 className="font-pixel text-lg text-white uppercase mb-6">Join the Journey</h2>
+          <p className="font-body text-base text-muted mb-8 max-w-xl mx-auto leading-relaxed">
+            YoriGames is constantly evolving. If you're a player or a creator who shares this vision of simple, fun web gaming, there's always a seat for you.
+          </p>
+        </div>
       </div>
 
       <Footer />
