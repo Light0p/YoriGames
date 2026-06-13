@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Mail, MessageSquare, Shield, Briefcase, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, MessageSquare, Shield, Briefcase, User, Loader2 } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
+import { TransmissionModal } from '@/components/contact/TransmissionModal';
 
 export default function ContactPage() {
   const [result, setResult] = useState<"IDLE" | "SENDING" | "SUCCESS" | "ERROR">("IDLE");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const contactOptions = [
     { title: "General Support", email: "support@yorigamesonline.online", icon: <MessageSquare className="w-5 h-5" /> },
@@ -18,11 +20,12 @@ export default function ContactPage() {
     { title: "Feedback", email: "feedback@yorigamesonline.online", icon: <Mail className="w-5 h-5" /> },
   ];
 
-  const teamBio = "We are a small team of indie developers building YoriGames as a passion project. We love creating things on the internet, learning new technologies, and experimenting with ideas around gaming and web development. This project is built for the experience, the challenge, and because we genuinely enjoy building cool stuff that people can use. Thanks for checking out the project, and feel free to reach out with feedback, suggestions, or just to say hi!";
+  const teamBio = "We are a small team of indie developers building YoriGames as a passion project. We love creating things on the internet, learning new technologies, and experimenting with ideas around gaming and web development. This project is built for the experience, the challenge, and because we genuinely enjoy building cool stuff that people can use.";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setResult("SENDING");
+    setIsModalOpen(true);
     
     const formData = new FormData(e.currentTarget);
     const object = Object.fromEntries(formData);
@@ -51,6 +54,15 @@ export default function ContactPage() {
       setResult("ERROR");
       setErrorMessage("Network anomaly detected.");
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    // Reset state after animation finishes
+    setTimeout(() => {
+      setResult("IDLE");
+      setErrorMessage("");
+    }, 300);
   };
 
   return (
@@ -105,20 +117,6 @@ export default function ContactPage() {
             <div className="bg-[#140A2E] border-4 border-[#1B123D] p-8 sm:p-12 shadow-[8px_8px_0_0_#000]">
               <h2 className="font-pixel text-xl text-white uppercase mb-8">Send Transmission</h2>
               
-              {result === "SUCCESS" && (
-                <div className="mb-8 p-6 bg-green-500/10 border-2 border-green-500 flex items-center gap-4 text-green-500 font-pixel text-[10px] uppercase">
-                  <CheckCircle2 className="w-6 h-6" />
-                  <span>Transmission Successful! Our operators have received your signal.</span>
-                </div>
-              )}
-
-              {result === "ERROR" && (
-                <div className="mb-8 p-6 bg-destructive/10 border-2 border-destructive flex items-center gap-4 text-destructive font-pixel text-[10px] uppercase">
-                  <AlertCircle className="w-6 h-6" />
-                  <span>Uplink Error: {errorMessage}</span>
-                </div>
-              )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 <input type="hidden" name="access_key" value="4c662864-7bcc-401a-82e9-3440fedbd94b" />
                 <input type="hidden" name="subject" value="New Transmission: YoriGames Contact Form" />
@@ -178,6 +176,14 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+
+      {/* Animation Overlay */}
+      <TransmissionModal 
+        isOpen={isModalOpen}
+        status={result === "IDLE" ? "SENDING" : result}
+        error={errorMessage}
+        onClose={closeModal}
+      />
 
       <Footer />
     </main>
