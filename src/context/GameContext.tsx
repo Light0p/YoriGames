@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { createContext, useContext, useState, useMemo, useEffect, useRef } from 'react';
@@ -17,8 +16,7 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-const SYNC_INTERVAL = 3 * 60 * 1000; // 3 minutes
-const BASE_PLAYS = 2543000;
+const SYNC_INTERVAL = 3 * 60 * 1000; // 3 minutes (Optimization for quota)
 
 export function GameProvider({ 
   children, 
@@ -28,7 +26,7 @@ export function GameProvider({
   initialGames?: Game[] 
 }) {
   const [allGames] = useState<Game[]>(initialGames);
-  const [totalPlays, setTotalPlays] = useState(BASE_PLAYS);
+  const [totalPlays, setTotalPlays] = useState(0); // STRICT ZERO INITIAL STATE
   const [error, setError] = useState<string | null>(null);
   
   const pendingPlaysRef = useRef(0);
@@ -42,19 +40,20 @@ export function GameProvider({
         const snap = await getDoc(statsRef);
         
         if (snap.exists()) {
-          setTotalPlays(snap.data().totalPlays || BASE_PLAYS);
+          // Use the real number from database, strictly fallback to 0 if missing
+          setTotalPlays(snap.data().totalPlays || 0);
         } else {
-          // Initialize doc if it doesn't exist
-          await setDoc(statsRef, { totalPlays: BASE_PLAYS }, { merge: true });
+          // Initialize doc with zero if it doesn't exist. NO MOCK FALLBACKS.
+          await setDoc(statsRef, { totalPlays: 0 }, { merge: true });
         }
       } catch (err) {
-        console.warn("Stats uplink offline, using local simulation.");
+        console.warn("Stats uplink currently unreachable. Plays will sync when restored.");
       }
     };
     fetchGlobalStats();
   }, []);
 
-  // 2. Batch Sync Logic
+  // 2. Batch Sync Logic - Sends accumulated plays to Firestore in one operation
   const syncPendingPlays = async () => {
     if (pendingPlaysRef.current <= 0 || isSyncingRef.current) return;
     
@@ -80,12 +79,10 @@ export function GameProvider({
     return () => clearInterval(interval);
   }, []);
 
-  // Final Sync on page close
+  // Final Sync attempt on page close
   useEffect(() => {
     const handleUnload = () => {
       if (pendingPlaysRef.current > 0) {
-        // Use keep-alive or beacon if possible, but Firestore update is async.
-        // We trigger it and hope for the best, or rely on next session sync.
         syncPendingPlays();
       }
     };
@@ -94,9 +91,9 @@ export function GameProvider({
   }, []);
 
   const recordPlay = () => {
-    // Instant Optimistic UI
+    // Instant Optimistic UI Update
     setTotalPlays(prev => prev + 1);
-    // Queue for batching
+    // Add to queue for batched write
     pendingPlaysRef.current += 1;
   };
 
