@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
@@ -22,7 +23,7 @@ export default function ContactPage() {
     { title: "Feedback", email: "feedback@yorigamesonline.online", icon: <Mail className="w-5 h-5" /> },
   ];
 
-  const yogeshBio = "Hey! I'm Yogesh, a 19-year-old indie developer building YoriGames as a passion project. I love creating things on the internet, learning new technologies, and experimenting with ideas around gaming and web development. Most of this project is being built and managed by me, from the design and coding to deployment and optimization. I'm doing this for the experience, the challenge, and because I genuinely enjoy building cool stuff that people can use. Thanks for checking out the project, and feel free to reach out with feedback, suggestions, or just to say hi!";
+  const teamBio = "We are a small team of indie developers building YoriGames as a passion project. We love creating things on the internet, learning new technologies, and experimenting with ideas around gaming and web development. This project is built for the experience, the challenge, and because we genuinely enjoy building cool stuff that people can use. Thanks for checking out the project, and feel free to reach out with feedback, suggestions, or just to say hi!";
 
   return (
     <main className="min-h-screen">
@@ -45,14 +46,14 @@ export default function ContactPage() {
                 <div className="bg-neon-purple p-2 border-b-2 border-r-2 border-black">
                   <User className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="font-pixel text-xs text-white uppercase">The Developer</h2>
+                <h2 className="font-pixel text-xs text-white uppercase">The Team</h2>
               </div>
               <p className="font-body text-sm text-muted leading-relaxed mb-6">
-                {yogeshBio}
+                {teamBio}
               </p>
               <div className="pt-6 border-t border-[#1B123D]">
                  <div className="font-pixel text-[8px] text-neon-purple uppercase mb-2">Primary Contact</div>
-                 <div className="font-body text-white">yogeshyadav0630@gmail.com</div>
+                 <a href="mailto:yorionlinegames@gmail.com" className="font-body text-white hover:text-neon-pink transition-colors break-all">yorionlinegames@gmail.com</a>
               </div>
             </div>
 
@@ -81,7 +82,7 @@ export default function ContactPage() {
                     <label className="font-pixel text-[8px] text-muted uppercase">Player Name</label>
                     <input 
                       type="text" 
-                      defaultValue="Yogesh Yadav"
+                      placeholder="ENTER CALL SIGN..."
                       className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-body focus:outline-none focus:border-neon-pink"
                     />
                   </div>
@@ -89,7 +90,7 @@ export default function ContactPage() {
                     <label className="font-pixel text-[8px] text-muted uppercase">Comm Frequency (Email)</label>
                     <input 
                       type="email" 
-                      defaultValue="yogeshyadav0630@gmail.com"
+                      placeholder="YOUR@EMAIL.COM"
                       className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-body focus:outline-none focus:border-neon-pink"
                     />
                   </div>
@@ -98,7 +99,7 @@ export default function ContactPage() {
                   <label className="font-pixel text-[8px] text-muted uppercase">Message Payload</label>
                   <textarea 
                     rows={6}
-                    defaultValue={yogeshBio}
+                    placeholder="ENTER YOUR MESSAGE..."
                     className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-body focus:outline-none focus:border-neon-pink resize-none"
                   ></textarea>
                 </div>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -29,7 +30,7 @@ export default function AdminImportPage() {
   const [currentSyncPage, setCurrentSyncPage] = useState<number>(0);
   const [retryStatus, setRetryStatus] = useState<string | null>(null);
 
-  const isAdmin = user?.email === 'yogeshyadav0630@gmail.com'; 
+  const isAdmin = user?.email === 'yorionlinegames@gmail.com'; 
 
   useEffect(() => {
     if (isAdmin) {

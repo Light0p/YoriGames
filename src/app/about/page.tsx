@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
@@ -38,7 +39,7 @@ export default function AboutPage() {
                 YoriGames started as a personal challenge: to build a platform that strips away the bloat of modern gaming. No massive downloads, no intrusive updates—just clean, browser-native experiences that respect your time.
               </p>
               <p>
-                Founded by Yogesh Yadav, this project is a growing collection of indie titles that prove greatness doesn't require gigabytes. It's about that "click and play" magic we used to have, rebuilt with modern web technologies.
+                Founded as an indie passion project, this platform is a growing collection of titles that prove greatness doesn't require gigabytes. It's about that "click and play" magic we used to have, rebuilt with modern web technologies.
               </p>
             </div>
             <div className="flex flex-wrap gap-4 pt-4">

@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -83,9 +84,9 @@ export const Footer = () => {
           <div className="md:col-span-3">
             <div className="bg-[#140A2E] p-6 border border-[#1B123D]">
               <h4 className="font-pixel text-[9px] text-neon-gold uppercase mb-3 tracking-widest">Developer Note</h4>
-              <p className="font-pixel text-[11px] text-white mb-2 uppercase">Yogesh Yadav</p>
+              <p className="font-pixel text-[11px] text-white mb-2 uppercase">YoriGames Team</p>
               <p className="font-body text-[11px] text-muted leading-relaxed">
-                Independent developer building YoriGames one update at a time. Authentically indie.
+                Independent developers building YoriGames one update at a time. Authentically indie.
               </p>
             </div>
           </div>
