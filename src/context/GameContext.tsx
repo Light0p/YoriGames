@@ -53,7 +53,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         
         if (Array.isArray(data) && data.length > 0) {
           const normalizedGames = data.map((g: any) => {
-            // Handle tags which might be a string in raw feed
+            // Robust tag normalization
             let normalizedTags: string[] = [];
             if (Array.isArray(g.tags)) {
               normalizedTags = g.tags;

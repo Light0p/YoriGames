@@ -70,7 +70,6 @@ export default function LoginPage() {
         router.push('/');
       }
     } catch (err: any) {
-      console.error("Auth Error Code:", err.code);
       setError(err.message || 'AUTHENTICATION FAILED');
     } finally {
       setLoading(false);
@@ -83,7 +82,6 @@ export default function LoginPage() {
     setSuccess(null);
     try {
       const provider = new GoogleAuthProvider();
-      // Use signInWithPopup for a direct, robust authentication experience
       const result = await signInWithPopup(auth, provider);
       if (result.user) {
         await syncUserToFirestore(result.user);
@@ -91,13 +89,15 @@ export default function LoginPage() {
         router.push('/');
       }
     } catch (err: any) {
-      console.error("Google Auth Error Code:", err.code);
-      // Handle cancellation and other common errors gracefully
+      // Silence console error for user-initiated cancellation
       if (err.code === 'auth/popup-closed-by-user') {
         setError("LOGIN CANCELLED BY USER.");
+        console.info("Authentication popup closed by user.");
       } else if (err.code === 'auth/network-request-failed') {
-        setError("NETWORK ERROR. PLEASE CHECK YOUR CONNECTION.");
+        setError("NETWORK ERROR. PLEASE CHECK CONNECTION.");
+        console.error("Network error during Google Auth:", err);
       } else {
+        console.error("Google Auth Error:", err.code, err.message);
         setError(err.message || 'GOOGLE AUTHENTICATION FAILED');
       }
     } finally {
