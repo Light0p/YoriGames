@@ -68,7 +68,7 @@ export const SpaceBackground = () => {
       <div className="absolute bottom-[-10%] left-[-20%] w-[70%] h-[70%] rounded-full bg-neon-pink/5 blur-[120px] animate-pulse will-change-transform" style={{ animationDelay: '2s' }} />
       <div className="absolute top-[30%] left-[20%] w-[40%] h-[40%] rounded-full bg-neon-cyan/5 blur-[100px] animate-pulse will-change-transform" style={{ animationDelay: '4s' }} />
 
-      {/* Removed broken noise.svg reference to eliminate 404 errors and improve network performance */}
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
 
       {/* Stars Layer */}
       {elements.stars.map((star) => (

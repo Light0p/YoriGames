@@ -21,21 +21,16 @@ const GameCardComponent = ({ title, genre, rating, imageUrl, className }: GameCa
         className
       )}
     >
-      {/* Game Image Container - Using aspect-video to prevent Layout Shift */}
       <div className="relative aspect-video w-full overflow-hidden bg-black border-b-4 border-[#1B123D]">
         <Image 
           src={imageUrl || 'https://picsum.photos/seed/yorigame/600/400'} 
           alt={`Play ${title} on YoriGames`}
           fill
-          loading="lazy"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
         
-        {/* Neon Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#140A2E] via-transparent to-transparent opacity-60" />
         
-        {/* Play Icon Overlay - Large touch area for mobile */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
           <div className="bg-neon-pink p-3 border-4 border-black shadow-[4px_4px_0_0_#000] transform translate-y-4 group-hover:translate-y-0 transition-transform">
             <Play className="w-6 h-6 text-white fill-white" />
@@ -43,7 +38,6 @@ const GameCardComponent = ({ title, genre, rating, imageUrl, className }: GameCa
         </div>
       </div>
 
-      {/* Info Panel */}
       <div className="p-3 sm:p-4 bg-[#140A2E]">
         <h3 className="font-headline text-base sm:text-lg leading-tight truncate text-white group-hover:text-neon-cyan transition-colors mb-2 uppercase">
           {title}
@@ -61,7 +55,6 @@ const GameCardComponent = ({ title, genre, rating, imageUrl, className }: GameCa
         </div>
       </div>
 
-      {/* Decorative Corner Pixels */}
       <div className="absolute top-0 left-0 w-1 h-1 bg-white/20" />
       <div className="absolute top-0 right-0 w-1 h-1 bg-white/20" />
     </article>

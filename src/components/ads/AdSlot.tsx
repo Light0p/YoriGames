@@ -1,6 +1,6 @@
 "use client"
 
-import React, { memo, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AdSlotProps {
@@ -8,20 +8,16 @@ interface AdSlotProps {
   slot: string;
   format?: 'auto' | 'fluid' | 'rectangle' | 'horizontal';
   responsive?: 'true' | 'false';
-  minHeight?: string;
 }
 
 /**
- * CLS-Safe AdSlot Component.
- * Reserves layout space before the ad loads to prevent Cumulative Layout Shift.
- * Memoized to prevent unnecessary re-renders.
+ * Standard AdSlot Component.
  */
-const AdSlotComponent = ({ 
+export const AdSlot = ({ 
   className, 
   slot, 
   format = 'auto', 
-  responsive = 'true',
-  minHeight = '90px' 
+  responsive = 'true'
 }: AdSlotProps) => {
   useEffect(() => {
     try {
@@ -33,16 +29,10 @@ const AdSlotComponent = ({
   }, []);
 
   return (
-    <div 
-      className={cn(
-        "w-full bg-[#140A2E]/30 border border-[#1B123D] flex items-center justify-center overflow-hidden my-8",
-        className
-      )}
-      style={{ minHeight }}
-    >
+    <div className={cn("w-full flex items-center justify-center my-8", className)}>
       <ins
         className="adsbygoogle"
-        style={{ display: 'block', width: '100%', height: '100%' }}
+        style={{ display: 'block' }}
         data-ad-client="ca-pub-7395050320323237"
         data-ad-slot={slot}
         data-ad-format={format}
@@ -51,5 +41,3 @@ const AdSlotComponent = ({
     </div>
   );
 };
-
-export const AdSlot = memo(AdSlotComponent);

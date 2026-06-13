@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { GameCard } from '@/components/pixel/GameCard';
 import { cn } from '@/lib/utils';
 import { Gamepad2, Loader2 } from 'lucide-react';
@@ -34,18 +34,6 @@ export const InteractiveArcade = () => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredGames.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredGames, currentPage]);
-
-  // Handle smooth scroll when page changes via pagination
-  useEffect(() => {
-    if (pageParam && sectionRef.current) {
-      const offset = 100;
-      const elementPosition = sectionRef.current.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: elementPosition - offset,
-        behavior: 'smooth'
-      });
-    }
-  }, [pageParam]);
 
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);

@@ -53,7 +53,7 @@ export default function AboutPage() {
             </div>
           </div>
           <div className="relative aspect-video bg-[#140A2E] border-4 border-[#1B123D] overflow-hidden flex items-center justify-center">
-            {/* Removed broken noise.svg background to eliminate network errors */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             <Gamepad2 className="w-24 h-24 text-neon-cyan opacity-20" />
             <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 to-transparent" />
           </div>
