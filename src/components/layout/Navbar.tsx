@@ -91,8 +91,8 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4" aria-label="Main Navigation">
-      <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/90 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
+    <nav className="sticky top-0 z-50 w-full bg-[#0d051c]/95 backdrop-blur-md border-b-2 border-[#2a1744] shadow-[0_4px_0_0_rgba(0,0,0,0.5)]" aria-label="Main Navigation">
+      <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-8 py-4 relative z-50">
         <Link href="/" className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan" aria-label="YoriGames Home" onClick={() => setIsMobileMenuOpen(false)}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges" aria-hidden="true">
             <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
