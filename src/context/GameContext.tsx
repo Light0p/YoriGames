@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Game } from '@/types/game';
 
-// Bulletproof fallback data to ensure the UI never shows "0 games"
+// Bulletproof fallback data
 const DEFAULT_GAMES: Game[] = [
   {
     id: "gm_1",
@@ -35,18 +35,18 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [allGames, setAllGames] = useState<Game[]>(DEFAULT_GAMES);
+  const [allGames, setAllGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCatalog = async () => {
       try {
-        // Fetch from the root path (public/games.json)
         const response = await fetch('/games.json');
         
         if (!response.ok) {
           console.warn('Game catalog fetch failed. Using internal defaults.');
+          setAllGames(DEFAULT_GAMES);
           setLoading(false);
           return;
         }
@@ -54,19 +54,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const data = await response.json();
         
         if (Array.isArray(data) && data.length > 0) {
-          // Standardize data from any source
+          // Robust normalization to handle any key variations from the feed/manual file
           const normalizedGames = data.map((g: any) => ({
             ...g,
             id: g.id || g.gameId,
             thumbnail: g.thumb || g.thumbnail || '',
             iframe_url: g.iframe_url || g.url || '',
-            slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id)
+            slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
+            rating: g.rating || 5.0,
+            category: g.category || 'Arcade'
           })) as Game[];
           
           setAllGames(normalizedGames);
+        } else {
+          setAllGames(DEFAULT_GAMES);
         }
       } catch (err: any) {
         console.error('Game catalog system error:', err.message);
+        setAllGames(DEFAULT_GAMES);
         setError('System operating on backup data uplink.');
       } finally {
         setLoading(false);
@@ -79,7 +84,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const categories = useMemo(() => {
     const set = new Set(allGames.map(g => g.category));
     const cats = Array.from(set).sort();
-    return cats;
+    return ['All', ...cats.filter(c => c !== 'All')];
   }, [allGames]);
 
   return (

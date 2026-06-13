@@ -3,17 +3,17 @@ import gamesData from './games-data.json';
 
 /**
  * Static-First Data Access Layer
- * No Firestore reads are performed here for public catalog data.
+ * Standardizes data on the server side to match the UI keys.
  */
 const allGames = (gamesData as any[]).map(g => ({
   ...g,
-  id: g.id,
+  id: g.id || g.gameId,
   title: g.title,
   thumbnail: g.thumb || g.thumbnail,
   description: g.description,
   iframe_url: g.iframe_url || g.url,
   category: g.category || 'Arcade',
-  slug: g.slug || g.id,
+  slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
   rating: g.rating || 5.0,
   play_count: g.play_count || 1000,
   tags: g.tags || [],
