@@ -91,10 +91,10 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4">
+    <nav className="sticky top-0 z-50 w-full px-2 sm:px-8 py-4" aria-label="Main Navigation">
       <div className="mx-auto max-w-7xl flex items-center justify-between bg-[#140A2E]/90 backdrop-blur-md border-2 border-[#1B123D] px-4 sm:px-6 py-3 shadow-[0_4px_0_0_#000] relative z-50">
-        <Link href="/" className="flex items-center gap-3 group" onClick={() => setIsMobileMenuOpen(false)}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges">
+        <Link href="/" className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan" aria-label="YoriGames Home" onClick={() => setIsMobileMenuOpen(false)}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges" aria-hidden="true">
             <path fill="#A855F7" d="M6 6h12v2h2v2h2v4h-2v4h-4v-2H8v2H4v-4H2v-4h2V8h2V6z"/>
             <path fill="#FFFFFF" d="M6 10h2v2h2v2h-2v2H6v-2H4v-2h2v-2z"/>
             <rect x="16" y="10" width="2" height="2" fill="#00F0FF"/>
@@ -114,7 +114,7 @@ export const Navbar = () => {
               href={link.href} 
               onClick={(e) => handleNavClick(e, link.type, link.href)}
               className={cn(
-                "transition-colors py-2 px-1 min-h-[44px] flex items-center",
+                "transition-colors py-2 px-1 min-h-[44px] flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan",
                 pathname === link.href ? link.color : "text-muted hover:text-white"
               )}
             >
@@ -127,9 +127,9 @@ export const Navbar = () => {
           <div className="relative" ref={searchRef}>
             <button 
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              aria-label="Toggle Search"
+              aria-label={isSearchOpen ? "Close Search" : "Open Search"}
               className={cn(
-                "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center",
+                "p-2 text-muted hover:text-white hover:bg-white/5 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan",
                 isSearchOpen && "text-neon-purple border-b-2 border-neon-purple"
               )}
             >
@@ -137,7 +137,7 @@ export const Navbar = () => {
             </button>
 
             {isSearchOpen && (
-              <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[400px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[400px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2" role="search">
                 <form onSubmit={handleSearchSubmit} className="relative mb-4">
                   <input 
                     type="text" 
@@ -145,10 +145,11 @@ export const Navbar = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="SCAN UNIVERSE..."
                     autoFocus
+                    aria-label="Search for games"
                     className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple uppercase min-h-[44px]"
                   />
                   {gamesLoading && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" />
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" aria-hidden="true" />
                   )}
                 </form>
 
@@ -162,10 +163,11 @@ export const Navbar = () => {
                           setIsSearchOpen(false);
                           setSearchQuery('');
                         }}
-                        className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group min-h-[50px]"
+                        aria-label={`Launch ${game.title}`}
+                        className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group min-h-[50px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
                       >
                         <div className="relative w-12 h-10 bg-black border border-[#1B123D] overflow-hidden shrink-0">
-                          <Image src={game.thumbnail || (game as any).thumb} alt={game.title} fill className="object-cover group-hover:scale-110 transition-transform" />
+                          <Image src={game.thumbnail || (game as any).thumb} alt="" fill className="object-cover group-hover:scale-110 transition-transform" />
                         </div>
                         <div className="min-w-0">
                           <div className="font-pixel text-[8px] text-white truncate uppercase">
@@ -179,7 +181,7 @@ export const Navbar = () => {
                     ))
                   ) : searchQuery.trim() ? (
                     <div className="py-8 text-center border-2 border-dashed border-[#1B123D]">
-                      <Gamepad2 className="w-8 h-8 text-muted mx-auto mb-2 opacity-20" />
+                      <Gamepad2 className="w-8 h-8 text-muted mx-auto mb-2 opacity-20" aria-hidden="true" />
                       <p className="font-pixel text-[8px] text-muted uppercase">No signals detected.</p>
                     </div>
                   ) : (
@@ -190,21 +192,21 @@ export const Navbar = () => {
             )}
           </div>
           
-          <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" />
+          <div className="h-6 w-[1px] bg-border mx-1 hidden sm:block" aria-hidden="true" />
 
           {userLoading ? (
-            <div className="w-10 h-10 border-2 border-[#1B123D] animate-pulse rounded-full" />
+            <div className="w-10 h-10 border-2 border-[#1B123D] animate-pulse rounded-full" aria-hidden="true" />
           ) : (
             user ? (
               <div className="hidden sm:block">
                 <DropdownMenu>
                   <DropdownMenuTrigger className="focus:outline-none flex items-center gap-3 group" asChild>
-                    <button className="flex items-center gap-3 min-h-[44px]">
+                    <button className="flex items-center gap-3 min-h-[44px] focus-visible:ring-2 focus-visible:ring-neon-cyan p-1" aria-label={`Open profile menu for ${user.displayName || 'Player'}`}>
                       <span className="font-pixel text-[8px] text-white uppercase truncate max-w-[150px]">
                         {user.displayName || 'PLAYER'}
                       </span>
                       <Avatar className="border-2 border-neon-purple cursor-pointer group-hover:scale-105 transition-transform">
-                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User Avatar'} />
+                        <AvatarImage src={user.photoURL || undefined} alt="" />
                         <AvatarFallback className="bg-neon-purple text-white font-pixel text-[10px]">
                           {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
                         </AvatarFallback>
@@ -214,7 +216,7 @@ export const Navbar = () => {
                   <DropdownMenuContent className="bg-[#140A2E] border-2 border-[#1B123D] text-white rounded-none min-w-[200px] mt-2">
                     <DropdownMenuItem className="hover:bg-neon-purple/20 cursor-pointer py-4" asChild>
                       <Link href="/profile" className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
-                        <Settings className="w-3 h-3 text-neon-cyan" /> PROFILE SETTINGS
+                        <Settings className="w-3 h-3 text-neon-cyan" aria-hidden="true" /> PROFILE SETTINGS
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-[#1B123D]" />
@@ -223,7 +225,7 @@ export const Navbar = () => {
                       onClick={handleLogout}
                     >
                       <div className="flex items-center gap-2 font-pixel text-[8px] uppercase w-full">
-                        <LogOut className="w-3 h-3" /> EXIT SYSTEM
+                        <LogOut className="w-3 h-3" aria-hidden="true" /> EXIT SYSTEM
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -231,8 +233,8 @@ export const Navbar = () => {
               </div>
             ) : (
               <Link href="/login" className="hidden sm:block">
-                <PixelButton variant="primary" size="sm">
-                  <User className="w-4 h-4" />
+                <PixelButton variant="primary" size="sm" aria-label="Login to Player Account">
+                  <User className="w-4 h-4" aria-hidden="true" />
                   <span>PLAYER LOGIN</span>
                 </PixelButton>
               </Link>
@@ -241,8 +243,8 @@ export const Navbar = () => {
 
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle Menu"
-            className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer"
+            aria-label={isMobileMenuOpen ? "Close Menu" : "Open Menu"}
+            className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -250,12 +252,12 @@ export const Navbar = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[45] bg-[#140A2E] flex flex-col pt-24 px-6 animate-in fade-in slide-in-from-top-4">
+        <div className="lg:hidden fixed inset-0 z-[45] bg-[#140A2E] flex flex-col pt-24 px-6 animate-in fade-in slide-in-from-top-4" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
           <div className="flex flex-col gap-6 items-center w-full">
             {user && (
               <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-[#1B123D] w-full">
                 <Avatar className="w-20 h-20 border-4 border-neon-purple">
-                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User Avatar'} />
+                  <AvatarImage src={user.photoURL || undefined} alt="" />
                   <AvatarFallback className="bg-neon-purple text-white font-pixel text-lg uppercase">
                     {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
                   </AvatarFallback>
@@ -271,7 +273,7 @@ export const Navbar = () => {
                   href={link.href} 
                   onClick={(e) => handleNavClick(e, link.type, link.href)}
                   className={cn(
-                    "transition-all py-3 w-full text-center min-h-[44px] flex items-center justify-center",
+                    "transition-all py-3 w-full text-center min-h-[44px] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-neon-cyan",
                     pathname === link.href ? link.color : "text-muted"
                   )}
                 >
@@ -282,13 +284,13 @@ export const Navbar = () => {
 
             <div className="mt-12 w-full">
               {user ? (
-                <PixelButton variant="secondary" className="w-full py-6" onClick={handleLogout}>
-                  <LogOut className="w-5 h-5" /> EXIT SYSTEM
+                <PixelButton variant="secondary" className="w-full py-6" onClick={handleLogout} aria-label="Logout">
+                  <LogOut className="w-5 h-5" aria-hidden="true" /> EXIT SYSTEM
                 </PixelButton>
               ) : (
                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
-                  <PixelButton variant="primary" className="w-full py-6">
-                    <User className="w-5 h-5" /> PLAYER LOGIN
+                  <PixelButton variant="primary" className="w-full py-6" aria-label="Login to account">
+                    <User className="w-5 h-5" aria-hidden="true" /> PLAYER LOGIN
                   </PixelButton>
                 </Link>
               )}
@@ -299,9 +301,3 @@ export const Navbar = () => {
     </nav>
   );
 };
-
-const XIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.932zm-1.292 19.494h2.039L6.486 3.24H4.298l13.311 17.407z" />
-  </svg>
-);

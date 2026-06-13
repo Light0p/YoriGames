@@ -39,7 +39,7 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
     }
   };
 
-  const renderPageLink = (page: number, label?: string | React.ReactNode, isDisabled = false, keyPrefix = "") => {
+  const renderPageLink = (page: number, label?: string | React.ReactNode, isDisabled = false, keyPrefix = "", ariaLabel?: string) => {
     const isActive = page === currentPage;
     const url = createPageUrl(page);
 
@@ -48,6 +48,7 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
         <div
           key={`${keyPrefix}disabled-${page}-${Math.random()}`}
           className="min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 bg-[#1B123D] border-[#1B123D] text-muted-foreground/30 opacity-50 cursor-not-allowed"
+          aria-hidden="true"
         >
           {label || page}
         </div>
@@ -59,8 +60,10 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
         key={`${keyPrefix}${page}`}
         href={url}
         scroll={false}
+        aria-label={ariaLabel || `Go to page ${page}`}
+        aria-current={isActive ? "page" : undefined}
         className={cn(
-          "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95",
+          "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan",
           isActive 
             ? "bg-neon-purple border-neon-purple text-white shadow-[2px_2px_0_0_#000]" 
             : "bg-[#140A2E] border-[#1B123D] text-muted hover:border-neon-purple hover:text-white"
@@ -86,15 +89,15 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
   }
 
   return (
-    <div className="flex flex-col items-center gap-8 mt-16">
+    <nav className="flex flex-col items-center gap-8 mt-16" aria-label="Pagination Navigation">
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {renderPageLink(1, <ChevronsLeft className="w-4 h-4" />, currentPage === 1, "first")}
-        {renderPageLink(currentPage - 1, <ChevronLeft className="w-4 h-4" />, currentPage === 1, "prev")}
+        {renderPageLink(1, <ChevronsLeft className="w-4 h-4" />, currentPage === 1, "first", "First page")}
+        {renderPageLink(currentPage - 1, <ChevronLeft className="w-4 h-4" />, currentPage === 1, "prev", "Previous page")}
         
         {startPage > 1 && (
           <>
             {renderPageLink(1)}
-            {startPage > 2 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-start">...</span>}
+            {startPage > 2 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-start" aria-hidden="true">...</span>}
           </>
         )}
 
@@ -102,19 +105,20 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
 
         {endPage < totalPages && (
           <>
-            {endPage < totalPages - 1 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-end">...</span>}
+            {endPage < totalPages - 1 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-end" aria-hidden="true">...</span>}
             {renderPageLink(totalPages)}
           </>
         )}
 
-        {renderPageLink(currentPage + 1, <ChevronRight className="w-4 h-4" />, currentPage === totalPages, "next")}
-        {renderPageLink(totalPages, <ChevronsRight className="w-4 h-4" />, currentPage === totalPages, "last")}
+        {renderPageLink(currentPage + 1, <ChevronRight className="w-4 h-4" />, currentPage === totalPages, "next", "Next page")}
+        {renderPageLink(totalPages, <ChevronsRight className="w-4 h-4" />, currentPage === totalPages, "last", "Last page")}
       </div>
 
       <form onSubmit={handleJump} className="flex items-center gap-3">
-        <label className="font-pixel text-[8px] text-muted uppercase tracking-widest">Jump to</label>
+        <label htmlFor="jump-page-input" className="font-pixel text-[8px] text-muted uppercase tracking-widest">Jump to</label>
         <div className="relative">
           <input 
+            id="jump-page-input"
             type="number" 
             min="1" 
             max={totalPages}
@@ -126,11 +130,12 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
         </div>
         <button 
           type="submit"
-          className="bg-[#1B123D] border-2 border-[#1B123D] hover:border-neon-purple p-2 transition-all active:scale-90"
+          aria-label="Jump to page"
+          className="bg-[#1B123D] border-2 border-[#1B123D] hover:border-neon-purple p-2 transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
         >
-          <Search className="w-4 h-4 text-neon-purple" />
+          <Search className="w-4 h-4 text-neon-purple" aria-hidden="true" />
         </button>
       </form>
-    </div>
+    </nav>
   );
 };

@@ -18,8 +18,8 @@ export const GameGrid = ({ games }: GameGridProps) => {
         <Link 
           key={game.id} 
           href={`/games/${game.slug}`} 
-          className="block focus:outline-none focus:ring-2 focus:ring-neon-purple focus:ring-offset-2 focus:ring-offset-[#09061B]"
-          aria-label={`View details for ${game.title}`}
+          className="block focus:outline-none focus-visible:ring-4 focus-visible:ring-neon-cyan"
+          aria-label={`Play ${game.title} - ${game.category} game`}
         >
           <GameCard 
             title={game.title}
