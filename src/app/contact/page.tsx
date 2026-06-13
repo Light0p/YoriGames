@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -81,8 +80,8 @@ export default function ContactPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24 relative z-10">
         <div className="text-center mb-16">
-          <h1 className="text-3xl sm:text-5xl text-white uppercase tracking-tighter mb-4 [text-shadow:4px_4px_0px_#d11a5a]">
-            TERMINAL <span className="text-[#00f0ff]">INTERFACE</span>
+          <h1 className="text-3xl sm:text-5xl text-[#EC4899] uppercase tracking-tighter mb-4 [text-shadow:4px_4px_0px_#00f0ff]">
+            TERMINAL INTERFACE
           </h1>
           <div className="inline-block border-2 border-[#2a1744] px-4 py-2 bg-[#160a2c]">
              <span className="text-[#00ff41] text-[10px] uppercase animate-pulse">
