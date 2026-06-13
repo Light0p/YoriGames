@@ -58,7 +58,7 @@ function CategoriesContent() {
     } else {
       params.set('genre', category);
     }
-    // CRITICAL: Reset page to 1 on category change
+    // CRITICAL: Reset page to 1 on category change to prevent 'empty' pages
     params.delete('page');
     router.push(`/categories?${params.toString()}`, { scroll: false });
   };
@@ -83,7 +83,7 @@ function CategoriesContent() {
         </p>
       </div>
 
-      {/* Category Card Grid */}
+      {/* Category Card Grid - Optimized for No CLS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-20">
         {categories.map((cat, i) => {
           const isActive = activeGenre === cat;
@@ -100,11 +100,11 @@ function CategoriesContent() {
                 isActive && "border-neon-cyan ring-2 ring-neon-cyan/20"
               )}
             >
-              {/* Category Thumbnail Container */}
+              {/* Category Thumbnail Container - Fixed Aspect Ratio to prevent jumping */}
               <div className="relative w-full aspect-[16/10] overflow-hidden bg-black border-b-2 border-[#1B123D]">
                 <Image 
                   src={thumb.url}
-                  alt={`${cat} category`}
+                  alt={`${cat} Games Sector`}
                   fill
                   className={cn(
                     "object-cover transition-all duration-500 group-hover:scale-110",
