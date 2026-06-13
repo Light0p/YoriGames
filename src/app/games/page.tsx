@@ -22,7 +22,7 @@ function ArcadeContent() {
   // 1. Read the current page from URL parameters
   const pageParam = searchParams.get('page');
   const currentPage = Math.max(1, parseInt(pageParam || '1', 10) || 1);
-  const pageSize = 24;
+  const pageSize = 50;
 
   // 2. Apply Slicing Logic locally
   const { currentGames, totalPages, startRange, endRange, total } = useMemo(() => {

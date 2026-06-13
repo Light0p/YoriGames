@@ -34,7 +34,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const decodedSlug = decodeURIComponent(slug).toLowerCase();
   
   const currentPage = Math.max(1, parseInt(pageStr || '1', 10));
-  const pageSize = 24;
+  const pageSize = 50;
 
   const { games, total } = await getPaginatedGamesByCategory(decodedSlug, currentPage, pageSize);
   

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Pagination } from '@/components/pixel/Pagination';
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 50;
 
 export const InteractiveArcade = () => {
   const { allGames, categories, loading } = useGameStore();
@@ -81,7 +81,7 @@ export const InteractiveArcade = () => {
         </div>
 
         {currentGames.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-10 mb-16 sm:mb-24">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-16 sm:mb-24">
             {currentGames.map((game) => (
               <Link 
                 key={game.id} 
