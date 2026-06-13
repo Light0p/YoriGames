@@ -60,11 +60,12 @@ export default async function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        {/* Optimized AdSense: lazyOnload prevents head tag blocking and improves PageSpeed */}
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7395050320323237"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       </head>
       <body className={cn(
