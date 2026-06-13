@@ -1,21 +1,17 @@
 
-import React from 'react';
-import { Metadata } from 'next';
+"use client"
+
+import React, { useState } from 'react';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Mail, MessageSquare, Shield, Briefcase, User } from 'lucide-react';
+import { Mail, MessageSquare, Shield, Briefcase, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { PixelButton } from '@/components/pixel/PixelButton';
 
-export const metadata: Metadata = {
-  title: 'Contact Us | YoriGames',
-  description: 'Reach out to the YoriGames team for support, business inquiries, or feedback.',
-  alternates: {
-    canonical: '/contact',
-  },
-};
-
 export default function ContactPage() {
+  const [result, setResult] = useState<"IDLE" | "SENDING" | "SUCCESS" | "ERROR">("IDLE");
+  const [errorMessage, setErrorMessage] = useState("");
+
   const contactOptions = [
     { title: "General Support", email: "support@yorigamesonline.online", icon: <MessageSquare className="w-5 h-5" /> },
     { title: "Business Inquiries", email: "business@yorigamesonline.online", icon: <Briefcase className="w-5 h-5" /> },
@@ -24,6 +20,39 @@ export default function ContactPage() {
   ];
 
   const teamBio = "We are a small team of indie developers building YoriGames as a passion project. We love creating things on the internet, learning new technologies, and experimenting with ideas around gaming and web development. This project is built for the experience, the challenge, and because we genuinely enjoy building cool stuff that people can use. Thanks for checking out the project, and feel free to reach out with feedback, suggestions, or just to say hi!";
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setResult("SENDING");
+    
+    const formData = new FormData(e.currentTarget);
+    const object = Object.fromEntries(formData);
+    const json = JSON.stringify(object);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: json
+      });
+      
+      const resData = await response.json();
+      
+      if (resData.success) {
+        setResult("SUCCESS");
+        (e.target as HTMLFormElement).reset();
+      } else {
+        setResult("ERROR");
+        setErrorMessage(resData.message || "Transmission failed.");
+      }
+    } catch (error) {
+      setResult("ERROR");
+      setErrorMessage("Network anomaly detected.");
+    }
+  };
 
   return (
     <main className="min-h-screen">
@@ -76,12 +105,31 @@ export default function ContactPage() {
           <div className="lg:col-span-2">
             <div className="bg-[#140A2E] border-4 border-[#1B123D] p-8 sm:p-12 shadow-[8px_8px_0_0_#000]">
               <h2 className="font-pixel text-xl text-white uppercase mb-8">Send Transmission</h2>
-              <form className="space-y-6">
+              
+              {result === "SUCCESS" && (
+                <div className="mb-8 p-6 bg-green-500/10 border-2 border-green-500 flex items-center gap-4 text-green-500 font-pixel text-[10px] uppercase">
+                  <CheckCircle2 className="w-6 h-6" />
+                  <span>Transmission Successful! Our operators have received your signal.</span>
+                </div>
+              )}
+
+              {result === "ERROR" && (
+                <div className="mb-8 p-6 bg-destructive/10 border-2 border-destructive flex items-center gap-4 text-destructive font-pixel text-[10px] uppercase">
+                  <AlertCircle className="w-6 h-6" />
+                  <span>Uplink Error: {errorMessage}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <input type="hidden" name="access_key" value="4c662864-7bcc-401a-82e9-3440fedbd94b" />
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="font-pixel text-[8px] text-muted uppercase">Player Name</label>
                     <input 
                       type="text" 
+                      name="name"
+                      required
                       placeholder="ENTER CALL SIGN..."
                       className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-body focus:outline-none focus:border-neon-pink"
                     />
@@ -90,6 +138,8 @@ export default function ContactPage() {
                     <label className="font-pixel text-[8px] text-muted uppercase">Comm Frequency (Email)</label>
                     <input 
                       type="email" 
+                      name="email"
+                      required
                       placeholder="YOUR@EMAIL.COM"
                       className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-body focus:outline-none focus:border-neon-pink"
                     />
@@ -98,13 +148,28 @@ export default function ContactPage() {
                 <div className="space-y-2">
                   <label className="font-pixel text-[8px] text-muted uppercase">Message Payload</label>
                   <textarea 
+                    name="message"
+                    required
                     rows={6}
                     placeholder="ENTER YOUR MESSAGE..."
                     className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-body focus:outline-none focus:border-neon-pink resize-none"
                   ></textarea>
                 </div>
-                <PixelButton variant="secondary" className="w-full py-5">
-                  INITIATE TRANSMISSION
+                
+                <PixelButton 
+                  type="submit" 
+                  variant="secondary" 
+                  className="w-full py-5"
+                  disabled={result === "SENDING"}
+                >
+                  {result === "SENDING" ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>TRANSMITTING...</span>
+                    </>
+                  ) : (
+                    "INITIATE TRANSMISSION"
+                  )}
                 </PixelButton>
               </form>
             </div>
