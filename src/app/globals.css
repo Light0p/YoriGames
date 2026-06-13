@@ -157,4 +157,11 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #A855F7;
   }
+
+  /* Emergency Visibility Logic for Navigation */
+  .menu-links {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
 }

@@ -261,82 +261,82 @@ export const Navbar = () => {
             )}
 
             <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label={isMobileMenuOpen ? "Close Menu" : "Open Menu"}
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open Menu"
               className="lg:hidden p-3 text-white min-w-[44px] min-h-[44px] flex items-center justify-center relative z-50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu Overlay: Surgical Solid Opaque Fix with Forced Visibility */}
-        {isMobileMenuOpen && (
-          <div 
-            className="lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex flex-col items-center justify-start pt-24 px-8 overflow-y-auto pointer-events-auto opacity-100 visible animate-in fade-in duration-200" 
-            style={{ backgroundColor: '#0d051c', opacity: 1, visibility: 'visible', display: 'flex' }}
-            role="dialog" 
-            aria-modal="true" 
-            aria-label="Mobile Navigation"
-          >
-            {/* Separate Container for Close Button */}
-            <div className="absolute top-8 right-8 z-[10000]">
-              <button 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-4 text-white hover:text-neon-pink transition-colors"
-                aria-label="Close menu"
-              >
-                <X className="w-8 h-8" />
-              </button>
-            </div>
-
-            {/* Separate Container for Navigation Links */}
-            <nav className="w-full max-w-sm h-auto flex flex-col items-center" aria-label="Mobile Menu Content">
-              {user && (
-                <div className="flex flex-col items-center gap-4 mb-12 pb-8 border-b border-[#2a1744] w-full">
-                  <Avatar className="w-20 h-20 border-4 border-neon-purple">
-                    <AvatarImage src={user.photoURL || undefined} alt="" />
-                    <AvatarFallback className="bg-neon-purple text-white font-pixel text-lg uppercase">
-                      {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-pixel text-xs text-white uppercase tracking-widest">{user.displayName || 'PLAYER'}</span>
-                </div>
-              )}
-
-              <ul className="flex flex-col items-center gap-y-10 w-full font-pixel text-sm tracking-[0.2em] uppercase opacity-100 visible">
-                {navLinks.map((link) => (
-                  <li key={link.label} className="w-full text-center list-none">
-                    <Link 
-                      href={link.href} 
-                      onClick={(e) => handleNavClick(e, link.type, link.href)}
-                      className={cn(
-                        "transition-all py-2 block hover:scale-110 text-white font-bold",
-                        pathname === link.href ? link.color : "text-white"
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-16 w-full flex flex-col gap-4 pb-20">
-                {user ? (
-                  <PixelButton variant="secondary" className="w-full py-6" onClick={handleLogout} aria-label="Logout">
-                    <LogOut className="w-4 h-4 mr-2" /> EXIT SYSTEM
-                  </PixelButton>
-                ) : (
-                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
-                    <PixelButton variant="primary" className="w-full py-6" aria-label="Login to account">
-                      <User className="w-4 h-4 mr-2" /> PLAYER LOGIN
-                    </PixelButton>
-                  </Link>
-                )}
-              </div>
-            </nav>
+        {/* Mobile Menu Overlay: Robust Opaque State-Based Fix */}
+        <div 
+          className={cn(
+            isMobileMenuOpen ? 'flex' : 'hidden',
+            "lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex-col items-center justify-center p-8 overflow-y-auto"
+          )}
+          style={{ backgroundColor: '#0d051c' }}
+          role="dialog" 
+          aria-modal="true" 
+          aria-label="Mobile Navigation"
+        >
+          {/* Top Fixed Header inside overlay */}
+          <div className="absolute top-8 right-8">
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-4 text-white hover:text-neon-pink transition-colors focus:outline-none focus:ring-2 focus:ring-neon-cyan"
+              aria-label="Close menu"
+            >
+              <X className="w-10 h-10" />
+            </button>
           </div>
-        )}
+
+          <nav className="w-full max-w-sm flex flex-col items-center justify-center" aria-label="Mobile Menu Content">
+            {user && (
+              <div className="flex flex-col items-center gap-4 mb-16 pb-8 border-b border-[#2a1744] w-full">
+                <Avatar className="w-24 h-24 border-4 border-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                  <AvatarImage src={user.photoURL || undefined} alt="" />
+                  <AvatarFallback className="bg-neon-purple text-white font-pixel text-xl uppercase">
+                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'P'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-pixel text-xs text-white uppercase tracking-[0.2em]">{user.displayName || 'PLAYER'}</span>
+              </div>
+            )}
+
+            <ul className="menu-links flex flex-col items-center gap-y-12 w-full font-pixel text-lg tracking-[0.3em] uppercase">
+              {navLinks.map((link) => (
+                <li key={link.label} className="w-full text-center list-none">
+                  <Link 
+                    href={link.href} 
+                    onClick={(e) => handleNavClick(e, link.type, link.href)}
+                    className={cn(
+                      "transition-all py-4 block hover:scale-110 active:scale-95 text-white font-bold",
+                      pathname === link.href ? link.color : "text-white"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-20 w-full flex flex-col gap-6 pb-20">
+              {user ? (
+                <PixelButton variant="secondary" className="w-full py-8 text-sm" onClick={handleLogout} aria-label="Logout">
+                  <LogOut className="w-5 h-5 mr-3" /> EXIT SYSTEM
+                </PixelButton>
+              ) : (
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
+                  <PixelButton variant="primary" className="w-full py-8 text-sm" aria-label="Login to account">
+                    <User className="w-5 h-5 mr-3" /> PLAYER LOGIN
+                  </PixelButton>
+                </Link>
+              )}
+            </div>
+          </nav>
+        </div>
       </nav>
     </>
   );
