@@ -270,10 +270,11 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Improved Opaque Mobile Menu Overlay */}
+        {/* Mobile Menu Overlay: Surgical Solid Opaque Fix */}
         {isMobileMenuOpen && (
           <div 
-            className="lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex flex-col items-center justify-start pt-24 px-8 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto" 
+            className="lg:hidden fixed inset-0 z-[9999] bg-[#0d051c] flex flex-col items-center justify-start pt-24 px-8 overflow-y-auto pointer-events-auto animate-in fade-in duration-200" 
+            style={{ backgroundColor: '#0d051c' }}
             role="dialog" 
             aria-modal="true" 
             aria-label="Mobile Navigation"
@@ -281,7 +282,7 @@ export const Navbar = () => {
             {/* Close Button for Overlay */}
             <button 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="absolute top-8 right-8 p-4 text-white hover:text-neon-pink transition-colors"
+              className="absolute top-8 right-8 p-4 text-white hover:text-neon-pink transition-colors z-[10000]"
               aria-label="Close menu"
             >
               <X className="w-8 h-8" />
