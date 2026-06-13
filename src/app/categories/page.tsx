@@ -10,6 +10,8 @@ import { useGameStore } from '@/context/GameContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Gamepad2, Rocket, Sword, Trophy, Zap, Globe, Target, User2 } from 'lucide-react';
+import { Pagination } from '@/components/pixel/Pagination';
+import Link from 'next/link';
 
 /**
  * Helper to map category names to representative icons
@@ -25,17 +27,28 @@ const getCategoryIcon = (category: string) => {
   return <Zap className="w-6 h-6" />;
 };
 
+const ITEMS_PER_PAGE = 50;
+
 function CategoriesContent() {
   const { allGames, categories, loading } = useGameStore();
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const activeGenre = searchParams.get('genre') || 'All';
+  const pageParam = searchParams.get('page');
+  const currentPage = Math.max(1, parseInt(pageParam || '1', 10));
 
   const filteredGames = useMemo(() => {
     if (activeGenre === 'All') return allGames;
     return allGames.filter(g => g.category === activeGenre);
   }, [allGames, activeGenre]);
+
+  const totalPages = Math.ceil(filteredGames.length / ITEMS_PER_PAGE);
+
+  const currentGames = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredGames.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredGames, currentPage]);
 
   const handleCategoryClick = (category: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -44,6 +57,8 @@ function CategoriesContent() {
     } else {
       params.set('genre', category);
     }
+    // CRITICAL: Reset page to 1 on category change
+    params.delete('page');
     router.push(`/categories?${params.toString()}`, { scroll: false });
   };
 
@@ -114,19 +129,32 @@ function CategoriesContent() {
           <div className="h-[2px] flex-1 bg-gradient-to-r from-[#1B123D] to-transparent" />
         </div>
 
-        {filteredGames.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-2">
-            {filteredGames.map((game) => (
-              <GameCard 
-                key={game.id}
-                title={game.title}
-                genre={game.category}
-                rating={game.rating}
-                imageUrl={game.thumbnail || (game as any).thumb}
-                className="focus-within:ring-neon-cyan"
-              />
-            ))}
-          </div>
+        {currentGames.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-2">
+              {currentGames.map((game) => (
+                <Link key={game.id} href={`/games/${game.slug}`}>
+                  <GameCard 
+                    title={game.title}
+                    genre={game.category}
+                    rating={game.rating}
+                    imageUrl={game.thumbnail || (game as any).thumb}
+                    className="focus-within:ring-neon-cyan"
+                  />
+                </Link>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="mt-16 flex justify-center">
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages} 
+                  baseUrl="/categories" 
+                />
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20 bg-[#140A2E]/50 border-4 border-dashed border-[#1B123D]">
             <Rocket className="w-12 h-12 text-muted mx-auto mb-4 opacity-20" />
