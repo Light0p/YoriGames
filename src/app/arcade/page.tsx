@@ -4,8 +4,7 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GameGrid } from '@/components/pixel/GameGrid';
-import gamesData from '@/data/games.json';
-import { Game } from '@/types/game';
+import { getPaginatedGames } from '@/lib/games';
 
 export const metadata: Metadata = {
   title: 'All Games | YoriGames Arcade',
@@ -15,8 +14,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ArcadePage() {
-  const games: Game[] = gamesData;
+export default async function ArcadePage() {
+  // Use the standardized data layer instead of direct import
+  const { games } = await getPaginatedGames(1, 100);
 
   return (
     <main className="min-h-screen">

@@ -4,7 +4,7 @@ import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GameCard } from '@/components/pixel/GameCard';
-import gamesData from '@/data/games.json';
+import { getSearchableGames } from '@/lib/games';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const gamesData = await getSearchableGames(1000);
   const categories = Array.from(new Set(gamesData.map(g => g.category)));
 
   return (
@@ -28,12 +29,12 @@ export default function CategoriesPage() {
         
         <div className="space-y-20">
           {categories.map(cat => {
-            const catGames = gamesData.filter(g => g.category === cat);
+            const catGames = gamesData.filter(g => g.category === cat).slice(0, 5);
             return (
               <section key={cat}>
                 <div className="flex items-center justify-between mb-8 border-b-2 border-[#1B123D] pb-4">
                   <h2 className="font-pixel text-2xl text-white uppercase">{cat}</h2>
-                  <span className="font-pixel text-[10px] text-muted">{catGames.length} Games</span>
+                  <Link href={`/categories/${cat.toLowerCase()}`} className="font-pixel text-[8px] text-neon-cyan hover:underline uppercase">View All</Link>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   {catGames.map(game => (
@@ -42,7 +43,7 @@ export default function CategoriesPage() {
                         title={game.title}
                         genre={game.category}
                         rating={game.rating}
-                        imageUrl={game.thumbnail}
+                        imageUrl={game.thumb || game.thumbnail}
                       />
                     </Link>
                   ))}

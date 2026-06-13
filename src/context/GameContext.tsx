@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Game } from '@/types/game';
 
-// Bulletproof fallback data
+// Absolute fallback for system integrity
 const DEFAULT_GAMES: Game[] = [
   {
     id: "gm_1",
@@ -11,6 +11,7 @@ const DEFAULT_GAMES: Game[] = [
     slug: "moto-x3m",
     description: "Moto X3M is an awesome bike racing game.",
     instructions: "Use arrows to move.",
+    thumb: "https://img.gamemonetize.com/3p8a6f8b9c8d2e1f0g7h6i5j4k3l2m1n/512x340.jpg",
     thumbnail: "https://img.gamemonetize.com/3p8a6f8b9c8d2e1f0g7h6i5j4k3l2m1n/512x340.jpg",
     category: "Racing",
     tags: ["racing", "bike", "physics"],
@@ -42,48 +43,36 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchCatalog = async () => {
       try {
+        // Sole source of truth: public/games.json
         const response = await fetch('/games.json');
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const text = await response.text();
+        const data = await response.json();
         
-        // Handle empty response gracefully
-        if (!text || text.trim() === "") {
-          console.warn('Game catalog response was empty. Using internal defaults.');
-          setAllGames(DEFAULT_GAMES);
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const data = JSON.parse(text);
+        if (Array.isArray(data) && data.length > 0) {
+          // Normalize keys to ensure UI components always find what they need
+          const normalizedGames = data.map((g: any) => ({
+            ...g,
+            id: g.id || g.gameId,
+            thumb: g.thumb || g.thumbnail || '',
+            thumbnail: g.thumb || g.thumbnail || '', // Mirror for component compatibility
+            iframe_url: g.iframe_url || g.url || '',
+            slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
+            rating: g.rating || 5.0,
+            category: g.category || 'Arcade'
+          })) as Game[];
           
-          if (Array.isArray(data) && data.length > 0) {
-            // Robust normalization to handle any key variations from the feed/manual file
-            const normalizedGames = data.map((g: any) => ({
-              ...g,
-              id: g.id || g.gameId,
-              thumbnail: g.thumb || g.thumbnail || '',
-              iframe_url: g.iframe_url || g.url || '',
-              slug: g.slug || (g.title ? g.title.toLowerCase().replace(/\s+/g, '-') : g.id),
-              rating: g.rating || 5.0,
-              category: g.category || 'Arcade'
-            })) as Game[];
-            
-            setAllGames(normalizedGames);
-          } else {
-            setAllGames(DEFAULT_GAMES);
-          }
-        } catch (jsonErr) {
-          throw new Error('Failed to parse game catalog JSON.');
+          setAllGames(normalizedGames);
+        } else {
+          setAllGames(DEFAULT_GAMES);
         }
       } catch (err: any) {
-        console.error('Game catalog system error:', err.message);
+        console.error('Game catalog uplink error:', err.message);
         setAllGames(DEFAULT_GAMES);
-        setError('System operating on backup data uplink.');
+        setError('System operating on backup data.');
       } finally {
         setLoading(false);
       }

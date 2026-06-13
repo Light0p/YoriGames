@@ -1,14 +1,17 @@
 import { Game } from '@/types/game';
-import gamesData from './games-data.json';
+// mirror data for server-side logic (SEO/SSR)
+import gamesData from '../../public/games.json';
 
 /**
  * Static-First Data Access Layer
- * Standardizes data on the server side to match the UI keys.
+ * Hard-linked to the consolidated public/games.json file.
+ * Zero database interaction.
  */
 const allGames = (gamesData as any[]).map(g => ({
   ...g,
   id: g.id || g.gameId,
   title: g.title,
+  thumb: g.thumb || g.thumbnail,
   thumbnail: g.thumb || g.thumbnail,
   description: g.description,
   iframe_url: g.iframe_url || g.url,
@@ -23,10 +26,8 @@ const allGames = (gamesData as any[]).map(g => ({
 export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
-  const sorted = [...allGames].sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime());
-  
   return {
-    games: sorted.slice(start, end),
+    games: allGames.slice(start, end),
     total: allGames.length
   };
 };
@@ -63,9 +64,7 @@ export const getTrendingGames = async (max: number = 10): Promise<Game[]> => {
 };
 
 export const getNewArrivals = async (max: number = 10): Promise<Game[]> => {
-  return [...allGames]
-    .sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime())
-    .slice(0, max);
+  return [...allGames].slice(0, max);
 };
 
 export const getRelatedGames = async (category: string, currentGameId: string, limitMax: number = 6): Promise<Game[]> => {
