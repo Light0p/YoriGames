@@ -8,7 +8,6 @@ import { GalaxyBackground } from '@/components/layout/GalaxyBackground';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { GameProvider } from '@/context/GameContext';
 import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
-import { getSearchableGames } from '@/lib/games';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 
 const inter = Inter({ 
@@ -54,9 +53,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Static Pre-fetch: Read games at build time to hydrate the client instantly
-  const initialGames = await getSearchableGames();
-
+  /**
+   * OPTIMIZATION: Removed getSearchableGames() from RootLayout.
+   * This prevents 5,000+ games from being loaded into every page's HTML payload.
+   * hydration is now handled locally within route segments (Server Components).
+   */
   return (
     <html lang="en" className="dark">
       <head>
@@ -79,7 +80,7 @@ export default async function RootLayout({
           <MaintenanceMode />
         ) : (
           <FirebaseClientProvider>
-            <GameProvider initialGames={initialGames}>
+            <GameProvider initialGames={[]}>
               <GalaxyBackground />
               <div className="relative z-10 overflow-x-hidden w-full">
                 {children}

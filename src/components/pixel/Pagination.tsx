@@ -29,66 +29,37 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
 
-  // 🚀 MAGIC FIX: Bruteforce Scroll Lock logic
-  const forceNavigate = (url: string) => {
-    // 1. Record exact current scroll position
-    const currentScrollY = window.scrollY;
-    
-    // 2. Push route silently
-    router.push(url, { scroll: false });
-    
-    // 3. Force browser to stay at the exact same pixel (defeats Next.js layout jump)
-    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
-    });
-    setTimeout(() => window.scrollTo({ top: currentScrollY, behavior: 'instant' }), 50);
+  const handlePageClick = (page: number) => {
+    router.push(createPageUrl(page), { scroll: false });
   };
 
   const handleJump = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(jumpPage, 10);
     if (pageNum >= 1 && pageNum <= totalPages) {
-      forceNavigate(createPageUrl(pageNum));
+      handlePageClick(pageNum);
       setJumpPage('');
     }
   };
 
   const renderPageLink = (page: number, label?: string | React.ReactNode, isDisabled = false, keyPrefix = "", ariaLabel?: string) => {
     const isActive = page === currentPage;
-    const url = createPageUrl(page);
-
-    if (isDisabled) {
-      return (
-        <div
-          key={`${keyPrefix}disabled-${page}-${Math.random()}`}
-          className="min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 bg-[#1B123D] border-[#1B123D] text-muted-foreground/30 opacity-50 cursor-not-allowed"
-          aria-hidden="true"
-        >
-          {label || page}
-        </div>
-      );
-    }
 
     return (
-      <a
+      <button
         key={`${keyPrefix}${page}`}
-        href={url}
-        onClick={(e) => {
-          e.preventDefault(); // Stop default navigation
-          forceNavigate(url); // Trigger our custom scroll-locked navigation
-        }}
+        onClick={() => !isDisabled && !isActive && handlePageClick(page)}
+        disabled={isDisabled}
         aria-label={ariaLabel || `Go to page ${page}`}
-        aria-current={isActive ? "page" : undefined}
         className={cn(
-          "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan cursor-pointer",
+          "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95",
           isActive 
             ? "bg-neon-purple border-neon-purple text-white shadow-[2px_2px_0_0_#000]" 
-            : "bg-[#140A2E] border-[#1B123D] text-muted hover:border-neon-purple hover:text-white"
+            : "bg-[#140A2E] border-[#1B123D] text-muted hover:border-neon-purple hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
         )}
       >
         {label || page}
-      </a>
+      </button>
     );
   };
 
@@ -115,7 +86,7 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
         {startPage > 1 && (
           <>
             {renderPageLink(1)}
-            {startPage > 2 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-start" aria-hidden="true">...</span>}
+            {startPage > 2 && <span className="text-muted font-pixel text-[10px] px-2">...</span>}
           </>
         )}
 
@@ -123,7 +94,7 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
 
         {endPage < totalPages && (
           <>
-            {endPage < totalPages - 1 && <span className="text-muted font-pixel text-[10px] px-2" key="dots-end" aria-hidden="true">...</span>}
+            {endPage < totalPages - 1 && <span className="text-muted font-pixel text-[10px] px-2">...</span>}
             {renderPageLink(totalPages)}
           </>
         )}
@@ -148,10 +119,9 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
         </div>
         <button 
           type="submit"
-          aria-label="Jump to page"
-          className="bg-[#1B123D] border-2 border-[#1B123D] hover:border-neon-purple p-2 transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
+          className="bg-[#1B123D] border-2 border-[#1B123D] hover:border-neon-purple p-2 transition-all active:scale-90"
         >
-          <Search className="w-4 h-4 text-neon-purple" aria-hidden="true" />
+          <Search className="w-4 h-4 text-neon-purple" />
         </button>
       </form>
     </nav>

@@ -2,12 +2,11 @@ import { Game } from '@/types/game';
 import gamesData from '../../public/games.json';
 
 /**
- * Static-First Data Access Layer
- * Hard-linked to the consolidated public/games.json file.
- * Zero database interaction.
+ * Static-First Data Access Layer (SERVER ONLY)
+ * This logic runs only on the server in Next.js Server Components.
+ * It prevents the 5,000+ entries in games.json from being sent to the client.
  */
 const allGames = (gamesData as any[]).map(g => {
-  // Robust tag normalization for Server Components
   let normalizedTags: string[] = [];
   if (Array.isArray(g.tags)) {
     normalizedTags = g.tags;
@@ -32,12 +31,27 @@ const allGames = (gamesData as any[]).map(g => {
   };
 }) as Game[];
 
-export const getPaginatedGames = async (page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
+/**
+ * Strategy: Memory-Efficient Pagination
+ * Fetches only the requested chunk of data (e.g., 50 games).
+ */
+export const getPaginatedGames = async (page: number = 1, pageSize: number = 50): Promise<{ games: Game[], total: number }> => {
   const start = (page - 1) * pageSize;
   const end = start + pageSize;
   return {
     games: allGames.slice(start, end),
     total: allGames.length
+  };
+};
+
+export const getPaginatedGamesByCategory = async (category: string, page: number = 1, pageSize: number = 50): Promise<{ games: Game[], total: number }> => {
+  const filtered = allGames.filter(g => g.category.toLowerCase() === category.toLowerCase());
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+  
+  return {
+    games: filtered.slice(start, end),
+    total: filtered.length
   };
 };
 
@@ -47,17 +61,6 @@ export const getSearchableGames = async (max: number = 5000): Promise<Game[]> =>
 
 export const getDiscoveryGames = async (max: number = 100): Promise<Game[]> => {
   return allGames.slice(0, max);
-};
-
-export const getPaginatedGamesByCategory = async (category: string, page: number = 1, pageSize: number = 24): Promise<{ games: Game[], total: number }> => {
-  const filtered = allGames.filter(g => g.category.toLowerCase() === category.toLowerCase());
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  
-  return {
-    games: filtered.slice(start, end),
-    total: filtered.length
-  };
 };
 
 export const getGameBySlug = async (slug: string): Promise<Game | null> => {
