@@ -77,9 +77,6 @@ export function GameView({ game, allGames }: GameViewProps) {
     }
   };
 
-  // Determine the numeric ID for walkthrough (GameMonetize specific)
-  const videoId = game.gameId || game.id.replace('gm_', '');
-
   return (
     <main className="min-h-screen w-full overflow-x-hidden relative flex flex-col">
       <Navbar />
@@ -179,8 +176,8 @@ export function GameView({ game, allGames }: GameViewProps) {
               </div>
 
               {/* GameMonetize Walkthrough Uplink */}
-              {videoId && (
-                <GameWalkthrough gameId={videoId} />
+              {game.iframe_url && (
+                <GameWalkthrough gameUrl={game.iframe_url} />
               )}
             </div>
           </div>
@@ -205,7 +202,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                         <span className="font-pixel text-[8px] text-muted uppercase block mt-1">{g.category}</span>
                         <div className="flex items-center gap-1 mt-1">
                           <Star className="w-2 h-2 text-neon-gold fill-neon-gold" />
-                          <span className="font-pixel text-[8px] text-neon-gold">{g.rating}</span>
+                          <span className="font-pixel text-[8px] text-neon-gold">{game.rating}</span>
                         </div>
                       </div>
                     </Link>

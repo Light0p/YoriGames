@@ -1,48 +1,62 @@
 "use client"
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface GameWalkthroughProps {
-  gameId: string;
+  gameUrl: string;
 }
 
-/**
- * GameWalkthrough Component
- * Safely handles the injection of the GameMonetize walkthrough video script.
- * Uses React refs and effects to prevent hydration mismatches and clean up external resources.
- */
-export const GameWalkthrough = ({ gameId }: GameWalkthroughProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+export const GameWalkthrough = ({ gameUrl }: GameWalkthroughProps) => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Helper to extract the unique hash from GameMonetize URLs
+  // e.g. https://html5.gamemonetize.co/lcw5kj735t9wseirvvxd5rtdj2jx5d1m/ -> lcw5kj735t9wseirvvxd5rtdj2jx5d1m
+  const extractGameHash = (url: string) => {
+    if (!url) return null;
+    const cleanUrl = url.trim().replace(/\/$/, '');
+    const parts = cleanUrl.split('/');
+    return parts[parts.length - 1];
+  };
 
   useEffect(() => {
-    if (!gameId || !containerRef.current) return;
+    setIsMounted(true);
+    const hashId = extractGameHash(gameUrl);
+    
+    if (!hashId) return;
 
-    // Reset container for fresh uplink
-    containerRef.current.innerHTML = '<div id="gamemonetize-video" style="width:100%; height:480px;"></div>';
-
-    // Set global configuration required by video.js
+    // Set global configuration required by the GameMonetize video script
     (window as any).VIDEO_OPTIONS = {
-      gameid: gameId,
+      gameid: hashId,
       width: "100%",
       height: "480px",
-      color: "#A855F7", // Neon Purple
+      color: "#A855F7", // YoriGames Neon Purple
       getAds: "false"
     };
 
-    const script = document.createElement("script");
-    script.src = "https://api.gamemonetize.com/video.js";
-    script.async = true;
-    
-    containerRef.current.appendChild(script);
+    const scriptId = "gm-video-script";
+
+    // Inject script into document body to ensure it runs correctly across the full DOM
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://api.gamemonetize.com/video.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
 
     return () => {
-      // Cleanup: Remove global variable and clear the DOM injection site
+      // Cleanup: Remove the specific script and global options on unmount or game change
+      const scriptEl = document.getElementById(scriptId);
+      if (scriptEl) scriptEl.remove();
+      
       delete (window as any).VIDEO_OPTIONS;
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
+      
+      const container = document.getElementById("gamemonetize-video");
+      if (container) container.innerHTML = ''; 
     };
-  }, [gameId]);
+  }, [gameUrl]);
+
+  if (!isMounted) return null;
 
   return (
     <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
@@ -50,12 +64,15 @@ export const GameWalkthrough = ({ gameId }: GameWalkthroughProps) => {
         <span className="w-2 h-2 bg-neon-purple animate-pulse" /> Mission Walkthrough
       </h3>
       
-      <div 
-        ref={containerRef} 
-        className="w-full relative min-h-[300px] bg-black/20 flex items-center justify-center overflow-hidden border border-white/5"
-      >
-        {/* The video script will inject its iframe here */}
-        <div className="font-pixel text-[8px] text-muted animate-pulse uppercase">Establishing Visual Link...</div>
+      <div className="w-full relative min-h-[480px] bg-black/20 flex items-center justify-center overflow-hidden border border-white/5">
+        
+        {/* Loading Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <div className="font-pixel text-[8px] text-muted animate-pulse uppercase">Establishing Visual Link...</div>
+        </div>
+
+        {/* The video script will inject its iframe inside this specific ID */}
+        <div id="gamemonetize-video" className="w-full h-full z-10 relative"></div>
       </div>
       
       <div className="mt-6 flex items-center justify-between opacity-40">
