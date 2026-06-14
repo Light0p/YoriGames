@@ -7,15 +7,15 @@ import { Gamepad2, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 
 export const Hero = () => {
-  const { allGames, totalPlays, categories } = useGameStore();
+  const { totalGames, totalPlays, categories } = useGameStore();
 
   const stats = useMemo(() => {
     return {
-      games: allGames.length || 0,
+      games: totalGames || 0,
       playsFormatted: totalPlays.toLocaleString('en-US'),
-      categoryCount: (categories.length - 1) || 0 // Exclude 'All'
+      categoryCount: categories.length > 1 ? (categories.length - 1) : 0 // Exclude 'All'
     };
-  }, [allGames, totalPlays, categories]);
+  }, [totalGames, totalPlays, categories]);
 
   return (
     <section className="relative w-full min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden px-4 py-12 sm:py-24">

@@ -9,6 +9,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { GameProvider } from '@/context/GameContext';
 import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 import ScrollToTop from '@/components/layout/ScrollToTop';
+import { getTotalGameCount } from '@/lib/games';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -45,7 +46,6 @@ export const metadata: Metadata = {
   description: 'A growing collection of fun, fast-loading browser games built for quick sessions. No downloads, no installations—just pure arcade magic right in your browser.',
 };
 
-// SET TO TRUE TO LOCK THE SITE BEHIND MAINTENANCE SCREEN
 const isMaintenanceMode = false;
 
 export default async function RootLayout({
@@ -53,11 +53,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  /**
-   * OPTIMIZATION: Removed getSearchableGames() from RootLayout.
-   * This prevents 5,000+ games from being loaded into every page's HTML payload.
-   * hydration is now handled locally within route segments (Server Components).
-   */
+  // Fetch total game count on the server to pass as metadata
+  const totalCount = await getTotalGameCount();
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -80,7 +78,7 @@ export default async function RootLayout({
           <MaintenanceMode />
         ) : (
           <FirebaseClientProvider>
-            <GameProvider initialGames={[]}>
+            <GameProvider initialGames={[]} initialTotalGames={totalCount}>
               <GalaxyBackground />
               <div className="relative z-10 overflow-x-hidden w-full">
                 {children}

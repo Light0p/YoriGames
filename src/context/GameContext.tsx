@@ -9,6 +9,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 
 interface GameContextType {
   allGames: Game[];
+  totalGames: number;
   loading: boolean;
   error: string | null;
   categories: string[];
@@ -18,23 +19,25 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-const SYNC_INTERVAL = 3 * 60 * 1000; // 3 minutes (Optimization for quota)
+const SYNC_INTERVAL = 3 * 60 * 1000; // 3 minutes
 
 export function GameProvider({ 
   children, 
-  initialGames = [] 
+  initialGames = [],
+  initialTotalGames = 0
 }: { 
   children: React.ReactNode; 
-  initialGames?: Game[] 
+  initialGames?: Game[];
+  initialTotalGames?: number;
 }) {
   const [allGames] = useState<Game[]>(initialGames);
-  const [totalPlays, setTotalPlays] = useState(0); // STRICT ZERO INITIAL STATE
+  const [totalGames] = useState<number>(initialTotalGames);
+  const [totalPlays, setTotalPlays] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
   const pendingPlaysRef = useRef(0);
   const isSyncingRef = useRef(false);
 
-  // 1. Fetch initial count from Firestore
   useEffect(() => {
     const fetchGlobalStats = async () => {
       try {
@@ -42,11 +45,8 @@ export function GameProvider({
         const snap = await getDoc(statsRef);
         
         if (snap.exists()) {
-          // Use the real number from database, strictly fallback to 0 if missing
           setTotalPlays(snap.data().totalPlays || 0);
         } else {
-          // Initialize doc with zero if it doesn't exist.
-          // Note: we don't await this as it will happen in the background and SDK handles offline
           setDoc(statsRef, { totalPlays: 0 }, { merge: true }).catch((err: any) => {
             if (err.code === 'permission-denied') {
               const permissionError = new FirestorePermissionError({
@@ -59,13 +59,12 @@ export function GameProvider({
           });
         }
       } catch (err) {
-        console.warn("Stats uplink currently unreachable. Plays will sync when restored.");
+        console.warn("Stats uplink currently unreachable.");
       }
     };
     fetchGlobalStats();
   }, []);
 
-  // 2. Batch Sync Logic - Sends accumulated plays to Firestore in one operation
   const syncPendingPlays = () => {
     if (pendingPlaysRef.current <= 0 || isSyncingRef.current) return;
     
@@ -73,7 +72,6 @@ export function GameProvider({
     const playsToSync = pendingPlaysRef.current;
     const statsRef = doc(db, 'stats', 'global');
     
-    // Non-blocking mutation pattern
     updateDoc(statsRef, {
       totalPlays: increment(playsToSync)
     })
@@ -89,20 +87,17 @@ export function GameProvider({
         });
         errorEmitter.emit('permission-error', permissionError);
       }
-      console.error("Failed to sync batched plays:", err);
     })
     .finally(() => {
       isSyncingRef.current = false;
     });
   };
 
-  // Periodic Sync Timer
   useEffect(() => {
     const interval = setInterval(syncPendingPlays, SYNC_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
-  // Final Sync attempt on page close
   useEffect(() => {
     const handleUnload = () => {
       if (pendingPlaysRef.current > 0) {
@@ -114,9 +109,7 @@ export function GameProvider({
   }, []);
 
   const recordPlay = () => {
-    // Instant Optimistic UI Update
     setTotalPlays(prev => prev + 1);
-    // Add to queue for batched write
     pendingPlaysRef.current += 1;
   };
 
@@ -128,7 +121,8 @@ export function GameProvider({
 
   return (
     <GameContext.Provider value={{ 
-      allGames, 
+      allGames,
+      totalGames,
       loading: false, 
       error, 
       categories, 
