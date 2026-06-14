@@ -10,6 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/context/GameContext';
+import { GameWalkthrough } from './GameWalkthrough';
 
 interface GameViewProps {
   game: Game;
@@ -76,6 +77,9 @@ export function GameView({ game, allGames }: GameViewProps) {
     }
   };
 
+  // Determine the numeric ID for walkthrough (GameMonetize specific)
+  const videoId = game.gameId || game.id.replace('gm_', '');
+
   return (
     <main className="min-h-screen w-full overflow-x-hidden relative flex flex-col">
       <Navbar />
@@ -86,7 +90,7 @@ export function GameView({ game, allGames }: GameViewProps) {
             <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" /> Back to Arcade
           </Link>
           <div className="w-1 h-1 bg-muted rounded-full hidden sm:block" />
-          <Link href={`/categories/${game.category.toLowerCase()}`} className="font-pixel text-[8px] sm:text-[10px] text-neon-purple hover:underline uppercase transition-all py-2 px-1 min-h-[44px]">
+          <Link href={`/categories?genre=${encodeURIComponent(game.category)}`} className="font-pixel text-[8px] sm:text-[10px] text-neon-purple hover:underline uppercase transition-all py-2 px-1 min-h-[44px]">
             {game.category}
           </Link>
         </div>
@@ -97,7 +101,7 @@ export function GameView({ game, allGames }: GameViewProps) {
               {loading && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#09061B]">
                   <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 text-neon-purple animate-spin mb-4" />
-                  <div className="font-pixel text-[8px] sm:text-[10px] text-white uppercase animate-pulse">Initializing Core Engine...</div>
+                  <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Core Engine...</div>
                 </div>
               )}
               <iframe 
@@ -148,7 +152,7 @@ export function GameView({ game, allGames }: GameViewProps) {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 sm:space-y-8">
               <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
                 <h3 className="font-pixel text-[10px] sm:text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2 tracking-widest flex items-center gap-3">
                   <Info className="w-4 h-4 text-neon-cyan" /> Mission Briefing
@@ -173,6 +177,11 @@ export function GameView({ game, allGames }: GameViewProps) {
                   ))}
                 </div>
               </div>
+
+              {/* GameMonetize Walkthrough Uplink */}
+              {videoId && (
+                <GameWalkthrough gameId={videoId} />
+              )}
             </div>
           </div>
 
@@ -185,7 +194,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                     <Link key={g.id} href={`/games/${g.slug}`} className="flex gap-4 group min-h-[64px]">
                       <div className="relative w-16 sm:w-20 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
                         <Image 
-                          src={g.thumb || g.thumbnail} 
+                          src={g.thumbnail || g.thumb} 
                           alt={g.title} 
                           fill 
                           className="object-cover group-hover:scale-110 transition-transform" 
