@@ -26,7 +26,7 @@ export default function AboutPage() {
             ABOUT <span className="text-neon-cyan">YoriGames</span>
           </h1>
           <p className="font-headline text-base sm:text-xl text-muted uppercase max-w-2xl mx-auto leading-relaxed">
-            Specializing in high-performance browser-based software solutions.
+          Providing instant, high-quality web games experiences across all devices.
           </p>
         </div>
 
