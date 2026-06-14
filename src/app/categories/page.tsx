@@ -58,8 +58,9 @@ function CategoriesContent() {
     } else {
       params.set('genre', category);
     }
-    // CRITICAL: Reset page to 1 on category change to prevent 'empty' pages
+    // RESET: Page to 1 on category change
     params.delete('page');
+    // FORCE: Disable scroll on router push
     router.push(`/categories?${params.toString()}`, { scroll: false });
   };
 
@@ -83,7 +84,6 @@ function CategoriesContent() {
         </p>
       </div>
 
-      {/* Category Card Grid - Optimized for No CLS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-20">
         {categories.map((cat, i) => {
           const isActive = activeGenre === cat;
@@ -100,7 +100,6 @@ function CategoriesContent() {
                 isActive && "border-neon-cyan ring-2 ring-neon-cyan/20"
               )}
             >
-              {/* Category Thumbnail Container - Fixed Aspect Ratio to prevent jumping */}
               <div className="relative w-full aspect-[16/10] overflow-hidden bg-black border-b-2 border-[#1B123D]">
                 <Image 
                   src={thumb.url}
@@ -116,8 +115,6 @@ function CategoriesContent() {
                   data-ai-hint={thumb.hint}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#140A2E] via-transparent to-transparent opacity-60" />
-                
-                {/* Active Indicator */}
                 {isActive && (
                   <div className="absolute top-2 left-2 w-2 h-2 bg-neon-cyan animate-pulse shadow-[0_0_8px_#22D3EE]" />
                 )}
@@ -139,7 +136,6 @@ function CategoriesContent() {
         })}
       </div>
 
-      {/* Dynamic Results Grid */}
       <div className="space-y-12">
         <div className="flex items-center gap-6 border-b-2 border-[#1B123D] pb-6">
           <h2 className="font-pixel text-xl text-white uppercase tracking-tighter">

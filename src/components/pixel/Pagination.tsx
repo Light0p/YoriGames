@@ -34,6 +34,7 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
     e.preventDefault();
     const pageNum = parseInt(jumpPage, 10);
     if (pageNum >= 1 && pageNum <= totalPages) {
+      // FORCE: Disable scroll on router push
       router.push(createPageUrl(pageNum), { scroll: false });
       setJumpPage('');
     }
@@ -59,7 +60,7 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
       <Link
         key={`${keyPrefix}${page}`}
         href={url}
-        scroll={false}
+        scroll={false} // FORCE: Disable auto-scroll on Link
         aria-label={ariaLabel || `Go to page ${page}`}
         aria-current={isActive ? "page" : undefined}
         className={cn(
