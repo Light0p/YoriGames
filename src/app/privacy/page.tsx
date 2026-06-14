@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 
 export const metadata = {
   title: 'Privacy Policy | YoriGames',
-  description: 'How we handle your transmission data.',
+  description: 'Professional privacy policy and data usage documentation for YoriGames.',
 };
 
 export default function PrivacyPage() {
@@ -31,38 +31,106 @@ export default function PrivacyPage() {
           </div>
 
           <div className="font-body text-muted space-y-12">
+            <p className="leading-relaxed">
+              At YoriGames, accessible from yorigamesonline.online, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by YoriGames and how we use it. If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us.
+            </p>
+
             <section>
-              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">1. Data Transmission</h2>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">1. Information We Collect</h2>
               <p className="leading-relaxed">
-                At YoriGames, we prioritize the security of your digital footprint. We collect minimal information required to provide our gaming services, including your Call Sign (username), encrypted credentials, and orbital coordinates (IP address) for regional game server optimization.
+                YoriGames follows a standard procedure of using log files. The information collected by log files includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks. We also collect information regarding the device you use to access our services and the specific pages you visit within the platform.
               </p>
             </section>
 
             <section>
-              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">2. High Score Synchronization</h2>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">2. How We Use Information</h2>
               <p className="leading-relaxed">
-                When you play games on our platform, we record performance metrics such as high scores, achievements, and play duration. this data is publicly visible on our global Leaderboards unless you explicitly set your profile to "Stealth Mode" in your Dossier settings.
+                We use the information we collect in various ways, including to:
+              </p>
+              <ul className="list-disc pl-6 mt-4 space-y-2">
+                <li>Provide, operate, and maintain our website</li>
+                <li>Improve, personalize, and expand our website</li>
+                <li>Understand and analyze how you use our website</li>
+                <li>Develop new products, services, features, and functionality</li>
+                <li>Communicate with you for customer service or updates</li>
+                <li>Find and prevent fraud</li>
+                <li>Display relevant advertisements and measure their performance</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">3. Log Files</h2>
+              <p className="leading-relaxed">
+                Log files are used for analyzing trends, administering the site, tracking users' movement on the website, and gathering demographic information. These are not linked to any information that is personally identifiable.
               </p>
             </section>
 
             <section>
-              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">3. Analytics & telemetry</h2>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">4. Cookies and Web Beacons</h2>
               <p className="leading-relaxed">
-                We utilize chiptune telemetry (analytics) to understand which sectors of our galaxy are most popular. This includes browser type, device information, and game interaction events. We do not sell this data to third-party corporate entities.
+                Like any other website, YoriGames uses 'cookies'. These cookies are used to store information including visitors' preferences, and the pages on the website that the visitor accessed or visited. The information is used to optimize the users' experience by customizing our web page content based on visitors' browser type and/or other information.
               </p>
             </section>
 
             <section>
-              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">4. Sub-Processor Security</h2>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">5. Google AdSense</h2>
               <p className="leading-relaxed">
-                We employ trusted sub-processors for cloud hosting and authentication services (Google Firebase). Your data is protected by military-grade encryption during transit and at rest within their secure data vaults.
+                Google is one of our third-party vendors on our site. It also uses cookies, known as DART cookies, to serve ads to our site visitors based upon their visit to yorigamesonline.online and other sites on the internet. However, visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at the following URL: <a href="https://policies.google.com/technologies/ads" className="text-neon-cyan hover:underline">https://policies.google.com/technologies/ads</a>
               </p>
             </section>
 
             <section>
-              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">5. Your Digital Rights</h2>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">6. Analytics</h2>
               <p className="leading-relaxed">
-                You retain the right to self-destruct your account at any time. Upon deletion, all personal identifiers are purged from our active systems within 30 orbital cycles, though some anonymized high score data may persist for platform integrity.
+                We use analytics tools, such as Google Analytics and Firebase Analytics, to understand user interaction with our services. These tools help us identify popular games and optimize site performance. The data collected is generally aggregated and anonymized.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">7. Third-Party Privacy Policies</h2>
+              <p className="leading-relaxed">
+                YoriGames's Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to consult the respective Privacy Policies of these third-party ad servers for more detailed information. It may include their practices and instructions about how to opt-out of certain options.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">8. Third-Party Services</h2>
+              <p className="leading-relaxed">
+                To provide our gaming platform, we utilize services from the following third-party providers:
+              </p>
+              <ul className="list-disc pl-6 mt-4 space-y-2">
+                <li>Google AdSense (Advertising)</li>
+                <li>Google Analytics (Analytics)</li>
+                <li>Firebase (Hosting and Analytics)</li>
+                <li>GameMonetize (Game Content Feed)</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">9. Data Security</h2>
+              <p className="leading-relaxed">
+                We take reasonable measures, including encryption and secure hosting protocols, to protect your information from unauthorized access, alteration, or destruction. However, please be aware that no method of transmission over the internet is 100% secure.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">10. Children's Privacy</h2>
+              <p className="leading-relaxed">
+                Another part of our priority is adding protection for children while using the internet. We encourage parents and guardians to observe, participate in, and/or monitor and guide their online activity. YoriGames does not knowingly collect any Personal Identifiable Information from children under the age of 13. If you think that your child provided this kind of information on our website, we strongly encourage you to contact us immediately and we will do our best efforts to promptly remove such information from our records.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">11. Changes to This Policy</h2>
+              <p className="leading-relaxed font-body">
+                We may update our Privacy Policy from time to time. Thus, we advise you to review this page periodically for any changes. We will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately, after they are posted on this page.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="font-pixel text-xs text-white uppercase mb-6 tracking-widest">Contact Information</h2>
+              <p className="leading-relaxed">
+                If you have any questions about this Privacy Policy, please contact us via email at: <span className="text-white">yorionlinegames@gmail.com</span>
               </p>
             </section>
           </div>
