@@ -9,9 +9,10 @@ interface GameStripProps {
   title: string;
   category?: string;
   games?: any[];
+  viewAllHref?: string;
 }
 
-export const GameStrip = ({ title, category = "FEATURED", games = [] }: GameStripProps) => {
+export const GameStrip = ({ title, category = "FEATURED", games = [], viewAllHref = "/games" }: GameStripProps) => {
   return (
     <div className="w-full py-16 px-6 sm:px-8">
       <div className="mx-auto max-w-7xl">
@@ -23,7 +24,7 @@ export const GameStrip = ({ title, category = "FEATURED", games = [] }: GameStri
               <div className="hidden sm:block h-[2px] flex-1 bg-gradient-to-r from-[#1B123D] to-transparent" />
             </h2>
           </div>
-          <Link href="/games" className="flex items-center gap-3 font-pixel text-[10px] text-muted hover:text-white transition-colors uppercase group pb-1">
+          <Link href={viewAllHref} className="flex items-center gap-3 font-pixel text-[10px] text-muted hover:text-white transition-colors uppercase group pb-1">
             Browse All <ChevronRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
