@@ -33,7 +33,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-start mb-20 sm:mb-32">
           <div className="space-y-6 sm:space-y-8">
             <h2 className="font-pixel text-base sm:text-lg text-white uppercase leading-tight border-l-4 border-neon-cyan pl-6">
-              Organizational Background
+            The Developer Note
             </h2>
             <div className="font-body text-sm sm:text-base text-muted space-y-6 leading-relaxed">
               <p>
