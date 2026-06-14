@@ -52,6 +52,7 @@ export const Navbar = () => {
     return fuse.search(searchQuery).slice(0, 5).map(r => r.item);
   }, [searchQuery, fuse]);
 
+  // Handle Search Click Outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -62,8 +63,18 @@ export const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Lock Body Scroll when Mobile Menu is Open (Pro UI feature)
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMobileMenuOpen]);
+
   const handleNavClick = (e: React.MouseEvent, type: string, href: string) => {
-    setIsMobileMenuOpen(false); // Close mobile menu on any navigation
+    setIsMobileMenuOpen(false); 
     if (type === 'scroll') {
       e.preventDefault();
       if (pathname === '/') {
@@ -79,6 +90,7 @@ export const Navbar = () => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
     router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
   };
 
@@ -93,13 +105,19 @@ export const Navbar = () => {
 
   return (
     <>
-      {/* Spacer to preserve layout flow since the nav is fixed */}
       <div className="h-24" aria-hidden="true" />
       
       <nav 
-        className="fixed top-4 left-0 right-0 z-[100] mx-auto w-[95%] max-w-7xl bg-[#0d051c]/95 backdrop-blur-md border border-[#2a1744] shadow-xl rounded-none" 
+        className={cn(
+          "fixed left-0 right-0 z-[100] mx-auto transition-all duration-300 ease-in-out",
+          // The Magic Fix: When menu is open, the Nav expands to cover the whole screen with a solid color.
+          isMobileMenuOpen 
+            ? "top-0 w-full h-[100dvh] bg-[#0d051c] border-transparent rounded-none" 
+            : "top-4 w-[95%] max-w-7xl bg-[#0d051c]/95 backdrop-blur-md border border-[#2a1744] shadow-xl rounded-none"
+        )}
         aria-label="Main Navigation"
       >
+        {/* Header Section */}
         <div className="flex items-center justify-between px-4 sm:px-8 py-4 relative z-50">
           <Link href="/" className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan" aria-label="YoriGames Home" onClick={() => setIsMobileMenuOpen(false)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges" aria-hidden="true">
@@ -115,6 +133,7 @@ export const Navbar = () => {
             </span>
           </Link>
 
+          {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
             {navLinks.map((link) => (
               <Link 
@@ -131,6 +150,7 @@ export const Navbar = () => {
             ))}
           </div>
 
+          {/* User & Search Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="relative" ref={searchRef}>
               <button 
@@ -259,9 +279,16 @@ export const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-[45] bg-[#140A2E] flex flex-col pt-24 px-6 animate-in fade-in slide-in-from-top-4" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
-            <div className="flex flex-col gap-6 items-center w-full">
+          <div 
+            className="lg:hidden absolute top-[76px] left-0 right-0 bottom-0 z-[45] bg-[#0d051c] flex flex-col px-6 overflow-y-auto animate-in fade-in slide-in-from-bottom-4" 
+            role="dialog" 
+            aria-modal="true" 
+            aria-label="Mobile Navigation"
+            style={{ backgroundColor: '#0d051c', height: 'calc(100dvh - 76px)' }} // Strict force solid background
+          >
+            <div className="flex flex-col gap-6 items-center w-full pb-12 pt-8">
               {user && (
                 <div className="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-[#1B123D] w-full">
                   <Avatar className="w-20 h-20 border-4 border-neon-purple">
