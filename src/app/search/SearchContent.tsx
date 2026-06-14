@@ -33,7 +33,7 @@ export function SearchContent() {
 
   const recommendations = useMemo(() => {
     if (filteredGames.length > 0 || !allGames.length) return [];
-    return [...allGames].sort(() => Math.random() - 0.5).slice(0, 5);
+    return [...allGames].sort(() => Math.random() - 0.5).slice(0, 16); // Denser rows
   }, [filteredGames, allGames]);
 
   if (loading && allGames.length === 0) {
@@ -59,7 +59,7 @@ export function SearchContent() {
       </div>
 
       {query && filteredGames.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
           {filteredGames.map(game => (
             <Link key={game.id} href={`/games/${game.slug}`}>
               <GameCard 
@@ -86,7 +86,7 @@ export function SearchContent() {
                 <Sparkles className="w-5 h-5 text-neon-gold" />
                 <h2 className="font-pixel text-lg text-white uppercase">Alternative Missions</h2>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
                 {recommendations.map(game => (
                   <Link key={game.id} href={`/games/${game.slug}`}>
                     <GameCard 

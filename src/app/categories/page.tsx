@@ -146,7 +146,7 @@ function CategoriesContent() {
 
         {currentGames.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
               {currentGames.map((game) => (
                 <Link key={game.id} href={`/games/${game.slug}`}>
                   <GameCard 

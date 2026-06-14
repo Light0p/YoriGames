@@ -28,7 +28,7 @@ export const GameStrip = ({ title, category = "FEATURED", games = [] }: GameStri
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
           {games.map((game: any) => (
             <Link key={game.id} href={`/games/${game.slug}`} className="block">
               <GameCard 
