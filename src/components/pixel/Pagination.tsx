@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -30,12 +29,27 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
   };
 
+  // 🚀 MAGIC FIX: Bruteforce Scroll Lock logic
+  const forceNavigate = (url: string) => {
+    // 1. Record exact current scroll position
+    const currentScrollY = window.scrollY;
+    
+    // 2. Push route silently
+    router.push(url, { scroll: false });
+    
+    // 3. Force browser to stay at the exact same pixel (defeats Next.js layout jump)
+    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    });
+    setTimeout(() => window.scrollTo({ top: currentScrollY, behavior: 'instant' }), 50);
+  };
+
   const handleJump = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(jumpPage, 10);
     if (pageNum >= 1 && pageNum <= totalPages) {
-      // FORCE: Disable scroll on router push
-      router.push(createPageUrl(pageNum), { scroll: false });
+      forceNavigate(createPageUrl(pageNum));
       setJumpPage('');
     }
   };
@@ -57,21 +71,24 @@ export const Pagination = ({ currentPage, totalPages, baseUrl }: PaginationProps
     }
 
     return (
-      <Link
+      <a
         key={`${keyPrefix}${page}`}
         href={url}
-        scroll={false} // FORCE: Disable auto-scroll on Link
+        onClick={(e) => {
+          e.preventDefault(); // Stop default navigation
+          forceNavigate(url); // Trigger our custom scroll-locked navigation
+        }}
         aria-label={ariaLabel || `Go to page ${page}`}
         aria-current={isActive ? "page" : undefined}
         className={cn(
-          "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan",
+          "min-w-[40px] h-10 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan cursor-pointer",
           isActive 
             ? "bg-neon-purple border-neon-purple text-white shadow-[2px_2px_0_0_#000]" 
             : "bg-[#140A2E] border-[#1B123D] text-muted hover:border-neon-purple hover:text-white"
         )}
       >
         {label || page}
-      </Link>
+      </a>
     );
   };
 
