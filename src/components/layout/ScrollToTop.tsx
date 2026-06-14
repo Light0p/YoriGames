@@ -1,29 +1,38 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-export default function ScrollToTop() {
+// Asli logic humne ek alag function mein daal diya
+function ScrollLogic() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // 1. Pagination Check: Agar URL mein 'page' parameter hai (e.g., ?page=2)
+    // 1. Pagination Check
     if (searchParams.has('page') || searchParams.has('p')) {
-      return; // Scroll mat karo, yahin ruk jao
+      return; 
     }
 
-    // 2. Route Check: Agar pathname mein 'page' word hai (e.g., /games/page/2)
+    // 2. Route Check
     if (
       (pathname.includes('/games') || pathname.includes('/categories')) && 
       pathname.includes('/page/')
     ) {
-      return; // Scroll mat karo
+      return; 
     }
 
-    // Agar simple page change hai (jaise Home se About Us), toh top par bhejo
     window.scrollTo(0, 0);
   }, [pathname, searchParams]);
 
   return null;
+}
+
+// Main component isko Suspense mein wrap karke bhejega
+export default function ScrollToTop() {
+  return (
+    <Suspense fallback={null}>
+      <ScrollLogic />
+    </Suspense>
+  );
 }
