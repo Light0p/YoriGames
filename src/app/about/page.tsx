@@ -3,11 +3,11 @@ import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Gamepad2, Rocket, Zap, Shield, Heart } from 'lucide-react';
+import { Monitor, Shield, Activity, Info } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'About | YoriGames',
-  description: 'The story behind YoriGames—a project built for the love of browser gaming and pixel art.',
+  description: 'Company overview and organizational background for the YoriGames platform.',
   alternates: {
     canonical: '/about',
   },
@@ -19,93 +19,78 @@ export default function AboutPage() {
       <SpaceBackground />
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-6 py-24">
-        <div className="text-center mb-24">
-          <div className="font-pixel text-[10px] text-neon-cyan uppercase tracking-[0.5em] mb-4">PROJECT ORIGIN</div>
-          <h1 className="font-pixel text-4xl sm:text-6xl text-white uppercase tracking-tighter mb-8 leading-tight">
+      <section className="max-w-6xl mx-auto px-4 sm:px-8 py-10 sm:py-16 md:py-24" aria-label="About YoriGames">
+        <div className="text-center mb-12 sm:mb-20">
+          <div className="font-pixel text-[8px] sm:text-[10px] text-neon-cyan uppercase tracking-[0.5em] mb-4">Company Overview</div>
+          <h1 className="font-pixel text-3xl sm:text-5xl md:text-6xl text-white uppercase tracking-tighter mb-6 leading-tight">
             ABOUT <span className="text-neon-cyan">YoriGames</span>
           </h1>
-          <p className="font-headline text-lg sm:text-xl text-muted uppercase max-w-2xl mx-auto leading-relaxed">
-            Simple games. Fast loading. Built for fun.
+          <p className="font-headline text-base sm:text-xl text-muted uppercase max-w-2xl mx-auto leading-relaxed">
+            Specializing in high-performance browser-based software solutions.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-40">
-          <div className="space-y-8">
-            <h2 className="font-pixel text-lg text-white uppercase leading-tight border-l-4 border-neon-cyan pl-6">The Developer Note</h2>
-            <div className="font-body text-base text-muted space-y-6 leading-relaxed">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-start mb-20 sm:mb-32">
+          <div className="space-y-6 sm:space-y-8">
+            <h2 className="font-pixel text-base sm:text-lg text-white uppercase leading-tight border-l-4 border-neon-cyan pl-6">
+              Organizational Background
+            </h2>
+            <div className="font-body text-sm sm:text-base text-muted space-y-6 leading-relaxed">
               <p>
-                I'm the solo developer behind YoriGames. I balance building this platform purely for fun, alongside my college studies and a corporate night shift job.
+                YoriGames is an independent software development project focused on the creation of optimized, browser-native applications. Our objective is to provide efficient digital experiences that require zero installation while maintaining high standards for security and accessibility.
               </p>
               <p>
-                What started as a simple way to kill boredom quickly turned into an addictive habit of creating fast, browser-native experiences. There's no massive team or corporate backing here—just me, coding when I get the time, and a genuine love for web games.
+                Established as a commitment to web technology innovation, the platform utilizes modern protocols to deliver seamless performance across diverse hardware configurations. Our development process prioritizes user privacy and technical stability above all else.
               </p>
             </div>
             <div className="flex flex-wrap gap-4 pt-4">
-              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-5 flex items-center gap-4">
-                <Zap className="w-5 h-5 text-neon-cyan" />
-                <span className="font-pixel text-[9px] text-white uppercase">Zero Installs</span>
+              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-4 sm:p-5 flex items-center gap-4">
+                <Monitor className="w-5 h-5 text-neon-cyan" />
+                <span className="font-pixel text-[8px] sm:text-[9px] text-white uppercase">Optimized Web-Core</span>
               </div>
-              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-5 flex items-center gap-4">
+              <div className="bg-[#140A2E] border-2 border-[#1B123D] p-4 sm:p-5 flex items-center gap-4">
                 <Shield className="w-5 h-5 text-neon-pink" />
-                <span className="font-pixel text-[9px] text-white uppercase">Privacy First</span>
+                <span className="font-pixel text-[8px] sm:text-[9px] text-white uppercase">Privacy Compliant</span>
               </div>
             </div>
           </div>
           
-          {/* Animated Terminal Box replacement */}
-          <div className="relative aspect-video bg-[#140A2E] border-4 border-[#1B123D] overflow-hidden flex flex-col items-center justify-center p-8 text-center group">
-            {/* Retro Noise and Gradient Background */}
+          <div className="relative aspect-video bg-[#140A2E] border-4 border-[#1B123D] overflow-hidden flex flex-col items-center justify-center p-6 sm:p-8 text-center">
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 to-transparent pointer-events-none" />
             
-            {/* Looping Floating Animation */}
-            <div className="animate-[bounce_3s_infinite] mb-6 z-10 relative">
-              <Rocket className="w-12 h-12 text-neon-cyan opacity-80 drop-shadow-[0_0_8px_rgba(0,240,255,0.5)]" />
+            <div className="mb-6 z-10 relative">
+              <Info className="w-10 h-10 sm:w-12 h-12 text-neon-cyan opacity-80" />
             </div>
 
-            {/* Terminal Text with Blinking Cursor */}
-            <div className="font-pixel text-[10px] sm:text-xs text-white leading-loose z-10 mt-4">
-              <span className="text-neon-pink mr-2">{">_"}</span>
-              WE WILL SHARE OUR WHOLE JOURNEY SOON
+            <div className="font-pixel text-[8px] sm:text-[10px] text-white leading-loose z-10">
+              <span className="text-neon-pink mr-2">DOC:</span>
+              SYSTEM DOCUMENTATION CURRENTLY UNDER REVIEW
               <span className="animate-pulse inline-block ml-2 w-2 h-3 bg-neon-cyan align-middle"></span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32">
-          {[
-            {
-              title: "Retro Modern",
-              icon: <Rocket className="w-8 h-8 text-neon-purple" />,
-              desc: "Using WebGL and HTML5 to deliver smooth pixel-art experiences without the friction of traditional apps."
-            },
-            {
-              title: "Indie First",
-              icon: <Heart className="w-8 h-8 text-neon-pink" />,
-              desc: "A platform designed for simplicity. We focus on the games and the players, keeping things straightforward."
-            },
-            {
-              title: "Cross Play",
-              icon: <Zap className="w-8 h-8 text-neon-cyan" />,
-              desc: "Whether you're on mobile, tablet, or desktop, your session is just a click away. No barriers to entry."
-            }
-          ].map((item, i) => (
-            <div key={i} className="bg-[#140A2E] border-2 border-[#1B123D] p-10 hover:border-neon-cyan transition-all group">
-              <div className="mb-6 group-hover:scale-105 transition-transform origin-left">{item.icon}</div>
-              <h3 className="font-pixel text-[10px] text-white uppercase mb-4 tracking-wider">{item.title}</h3>
-              <p className="font-body text-sm text-muted leading-relaxed">{item.desc}</p>
+        {/* Coming Soon Banner */}
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-[#140A2E] border-4 border-[#1B123D] p-8 sm:p-12 text-center relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-cyan to-transparent opacity-30" />
+            
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Activity className="w-5 h-5 text-neon-cyan animate-pulse" />
+              <h2 className="font-pixel text-lg sm:text-xl text-white uppercase tracking-tight">Future Developments</h2>
             </div>
-          ))}
-        </div>
+            
+            <p className="font-body text-sm sm:text-base text-muted mb-8 leading-relaxed">
+              New platform features and performance optimizations are currently in the implementation phase. We are expanding our service offerings to include more robust cross-platform synchronization and advanced user preferences.
+            </p>
 
-        <div className="bg-[#09061B] border-4 border-dashed border-[#1B123D] p-12 text-center">
-          <h2 className="font-pixel text-lg text-white uppercase mb-6">Join the Journey</h2>
-          <p className="font-body text-base text-muted mb-8 max-w-xl mx-auto leading-relaxed">
-            YoriGames is constantly evolving. If you're a player or a creator who shares this vision of simple, fun web gaming, there's always a seat for you.
-          </p>
+            <div className="inline-block bg-[#09061B] border border-neon-cyan/30 px-4 py-2">
+              <span className="font-pixel text-[8px] text-neon-cyan uppercase tracking-widest">Status: Active Development</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       <Footer />
     </main>
