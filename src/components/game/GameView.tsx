@@ -103,7 +103,7 @@ export function GameView({ game, allGames }: GameViewProps) {
               )}
               <iframe 
                 ref={iframeRef}
-                src={game.iframe_url}
+                src={game.iframe_url || game.url || ''}
                 className="absolute inset-0 w-full h-full border-none z-10"
                 allow="fullscreen; autoplay; gamepad"
                 onLoad={() => setLoading(false)}
@@ -152,7 +152,7 @@ export function GameView({ game, allGames }: GameViewProps) {
             <div className="space-y-6 sm:space-y-8">
               <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
                 <h3 className="font-pixel text-[10px] sm:text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2 tracking-widest flex items-center gap-3">
-                  <Info className="w-4 h-4 text-neon-cyan" /> Mission Briefing
+                  <span className="w-2 h-2 bg-neon-cyan animate-pulse" /> Mission Briefing
                 </h3>
                 <p className="font-body text-sm sm:text-base text-muted leading-relaxed">
                   {game.description}
@@ -161,7 +161,7 @@ export function GameView({ game, allGames }: GameViewProps) {
 
               <div className="bg-[#140A2E] p-5 sm:p-8 border-2 border-[#1B123D]">
                 <h3 className="font-pixel text-[10px] sm:text-xs text-white uppercase mb-4 border-b border-[#1B123D] pb-2 tracking-widest flex items-center gap-3">
-                  <BookOpen className="w-4 h-4 text-neon-pink" /> Tactical Guide
+                  <span className="w-2 h-2 bg-neon-pink animate-pulse" /> Tactical Guide
                 </h3>
                 <p className="font-body text-sm sm:text-base text-muted leading-relaxed italic">
                   {game.instructions || "No special instructions provided for this mission."}
@@ -175,10 +175,8 @@ export function GameView({ game, allGames }: GameViewProps) {
                 </div>
               </div>
 
-              {/* GameMonetize Walkthrough Uplink */}
-              {game.iframe_url && (
-                <GameWalkthrough gameUrl={game.iframe_url} />
-              )}
+              {/* GameMonetize Walkthrough Uplink with smart auto-hide fallback */}
+              <GameWalkthrough gameUrl={game.iframe_url || game.url || ''} />
             </div>
           </div>
 
@@ -191,10 +189,11 @@ export function GameView({ game, allGames }: GameViewProps) {
                     <Link key={g.id} href={`/games/${g.slug}`} className="flex gap-4 group min-h-[64px]">
                       <div className="relative w-16 sm:w-20 aspect-square bg-[#140A2E] border-2 border-[#09061B] overflow-hidden flex-shrink-0">
                         <Image 
-                          src={g.thumbnail || g.thumb} 
+                          src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yorigame/400/400'} 
                           alt={g.title} 
                           fill 
                           className="object-cover group-hover:scale-110 transition-transform" 
+                          data-ai-hint="arcade thumbnail"
                         />
                       </div>
                       <div className="min-w-0 flex flex-col justify-center">
@@ -202,7 +201,7 @@ export function GameView({ game, allGames }: GameViewProps) {
                         <span className="font-pixel text-[8px] text-muted uppercase block mt-1">{g.category}</span>
                         <div className="flex items-center gap-1 mt-1">
                           <Star className="w-2 h-2 text-neon-gold fill-neon-gold" />
-                          <span className="font-pixel text-[8px] text-neon-gold">{game.rating}</span>
+                          <span className="font-pixel text-[8px] text-neon-gold">{g.rating}</span>
                         </div>
                       </div>
                     </Link>

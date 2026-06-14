@@ -5,10 +5,12 @@ export interface Game {
   slug: string;
   description: string;
   instructions: string;
-  thumbnail: string;
+  thumbnail?: string;
+  thumb?: string;
   category: string;
   tags: string[];
-  iframe_url: string;
+  iframe_url?: string;
+  url?: string;
   featured: boolean;
   trending: boolean;
   date_added: string;
