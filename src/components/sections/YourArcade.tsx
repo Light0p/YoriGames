@@ -31,7 +31,7 @@ export function YourArcade() {
               </h2>
             </div>
             
-            <div className="flex bg-[#050410] border-2 border-[#1B123D] p-1">
+            <div className="flex w-fit bg-[#050410] border-2 border-[#1B123D] p-1">
               <button
                 onClick={() => setActiveTab('recent')}
                 className={cn(
