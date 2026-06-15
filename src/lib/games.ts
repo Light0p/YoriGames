@@ -1,5 +1,6 @@
 import { Game } from '@/types/game';
 import gamesData from '../../public/games.json';
+import { cache } from 'react';
 
 /**
  * Static-First Data Access Layer (SERVER ONLY)
@@ -63,9 +64,13 @@ export const getDiscoveryGames = async (max: number = 100): Promise<Game[]> => {
   return allGames.slice(0, max);
 };
 
-export const getGameBySlug = async (slug: string): Promise<Game | null> => {
+/**
+ * Cached Game Fetcher
+ * Deduplicates calls within a single render pass (e.g. Metadata + Page)
+ */
+export const getGameBySlug = cache(async (slug: string): Promise<Game | null> => {
   return allGames.find(g => g.slug === slug || g.id === slug) || null;
-};
+});
 
 export const getFeaturedGames = async (max: number = 10): Promise<Game[]> => {
   return allGames.slice(0, max);
@@ -79,11 +84,14 @@ export const getNewArrivals = async (max: number = 10): Promise<Game[]> => {
   return [...allGames].slice(0, max);
 };
 
-export const getRelatedGames = async (category: string, currentGameId: string, limitMax: number = 6): Promise<Game[]> => {
+/**
+ * Cached Related Games Fetcher
+ */
+export const getRelatedGames = cache(async (category: string, currentGameId: string, limitMax: number = 6): Promise<Game[]> => {
   return allGames
     .filter(g => g.category === category && g.id !== currentGameId)
     .slice(0, limitMax);
-};
+});
 
 export const getTotalGameCount = async (): Promise<number> => {
   return allGames.length;

@@ -4,6 +4,9 @@ import { getGameBySlug, getRelatedGames } from '@/lib/games';
 import { notFound } from 'next/navigation';
 import { GameView } from '@/components/game/GameView';
 
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -88,5 +91,3 @@ export default async function GamePage({ params }: Props) {
     </>
   );
 }
-
-export const revalidate = 3600;

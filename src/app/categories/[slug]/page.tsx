@@ -7,6 +7,9 @@ import { GameGrid } from '@/components/pixel/GameGrid';
 import { getPaginatedGamesByCategory } from '@/lib/games';
 import { Pagination } from '@/components/pixel/Pagination';
 
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 interface Props {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;
@@ -81,5 +84,3 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     </main>
   );
 }
-
-export const revalidate = 3600;
