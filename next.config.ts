@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true, // eliminates Vercel image optimization bandwidth
     remotePatterns: [
       {
         protocol: 'https',
@@ -43,10 +44,6 @@ const nextConfig: NextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, s-maxage=3600, stale-while-revalidate=86400',
-          },
-          {
-            key: 'Vary',
-            value: 'Integrity, Accept, Next-Router-State-Tree, Next-Router-Prefetch',
           },
         ],
       },

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -16,7 +16,13 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Fuse from 'fuse.js';
+
+interface GameIndexItem {
+  slug: string;
+  title: string;
+  category: string;
+  thumb: string;
+}
 
 export const Navbar = () => {
   const pathname = usePathname();
@@ -27,8 +33,9 @@ export const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchIndex, setSearchIndex] = useState<any[]>([]);
+  const [gameIndex, setGameIndex] = useState<GameIndexItem[]>([]);
   const [isFetchingIndex, setIsFetchingIndex] = useState(false);
+  const [indexLoaded, setIndexLoaded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,37 +48,29 @@ export const Navbar = () => {
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
 
-  // Client-Side Fuzzy Search Setup
-  const fuse = useMemo(() => {
-    return new Fuse(searchIndex, {
-      keys: ['title', 'category'],
-      threshold: 0.3,
-      distance: 100,
-    });
-  }, [searchIndex]);
-
-  // Suggestion results: Exactly top 6 for a clean dense look
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return fuse.search(searchQuery).slice(0, 6).map(r => r.item);
-  }, [searchQuery, fuse]);
-
-  // One-Time Fetch Strategy: Only triggers when user actually focuses search
-  const handleSearchFocus = async () => {
-    if (searchIndex.length > 0 || isFetchingIndex) return;
+  const loadIndex = useCallback(async () => {
+    if (indexLoaded || isFetchingIndex) return;
     setIsFetchingIndex(true);
     try {
-      const response = await fetch('/api/search-index');
-      const data = await response.json();
-      setSearchIndex(data);
-    } catch (err) {
-      console.error("Index sync failed");
+      const res = await fetch('/api/search-index');
+      const data = await res.json();
+      setGameIndex(data);
+      setIndexLoaded(true);
+    } catch (e) {
+      console.error('Search index failed to load', e);
     } finally {
       setIsFetchingIndex(false);
     }
-  };
+  }, [indexLoaded, isFetchingIndex]);
 
-  // Keyboard Navigation Implementation
+  const searchResults = useMemo(() =>
+    searchQuery.length < 2 ? [] :
+    gameIndex
+      .filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      .slice(0, 10),
+    [searchQuery, gameIndex]
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -210,7 +209,7 @@ export const Navbar = () => {
                       type="text" 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={handleSearchFocus}
+                      onFocus={loadIndex}
                       onKeyDown={handleKeyDown}
                       placeholder="SCAN UNIVERSE..."
                       autoFocus
@@ -224,9 +223,9 @@ export const Navbar = () => {
 
                   <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
                     {searchResults.length > 0 ? (
-                      searchResults.map((game, idx) => (
+                      searchResults.map((game: any, idx) => (
                         <Link 
-                          key={game.id} 
+                          key={game.slug} 
                           href={`/games/${game.slug}`}
                           onClick={() => {
                             setIsSearchOpen(false);
@@ -239,9 +238,8 @@ export const Navbar = () => {
                           )}
                         >
                           <div className="relative w-12 h-10 bg-black border border-[#1B123D] overflow-hidden shrink-0">
-                            {/* unoptimized={true} used here to bypass Vercel Image Optimization and save bandwidth */}
                             <Image 
-                              src={game.thumbnail || (game as any).thumb} 
+                              src={game.thumb || game.thumbnail} 
                               alt="" 
                               fill 
                               unoptimized={true}

@@ -1,11 +1,12 @@
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+export const dynamicParams = true;
+
 import React from 'react';
 import { Metadata } from 'next';
 import { getGameBySlug, getDiscoveryGames } from '@/lib/games'; 
 import { notFound } from 'next/navigation';
 import { GameView } from '@/components/game/GameView';
-
-export const dynamic = 'force-static';
-export const revalidate = 3600;
 
 interface Props {
   params: Promise<{ slug: string }>;
