@@ -22,16 +22,31 @@ function subscribe(callback: () => void) {
   };
 }
 
+// Module-level cache for getSnapshot to maintain reference stability
+let cachedSnapshot = { recent: [] as ArcadeGame[], favorites: [] as ArcadeGame[] };
+let prevRecentStr: string | null = null;
+let prevFavoritesStr: string | null = null;
+
 function getSnapshot() {
-  if (typeof window === 'undefined') return { recent: [], favorites: [] };
-  try {
-    return {
-      recent: JSON.parse(localStorage.getItem(STORAGE_KEY_RECENT) || '[]') as ArcadeGame[],
-      favorites: JSON.parse(localStorage.getItem(STORAGE_KEY_FAVORITES) || '[]') as ArcadeGame[],
-    };
-  } catch (e) {
-    return { recent: [], favorites: [] };
+  if (typeof window === 'undefined') return cachedSnapshot;
+  
+  const recentStr = localStorage.getItem(STORAGE_KEY_RECENT);
+  const favoritesStr = localStorage.getItem(STORAGE_KEY_FAVORITES);
+  
+  // Only update the object reference if the data in localStorage has changed
+  if (recentStr !== prevRecentStr || favoritesStr !== prevFavoritesStr) {
+    try {
+      const recent = recentStr ? JSON.parse(recentStr) : [];
+      const favorites = favoritesStr ? JSON.parse(favoritesStr) : [];
+      cachedSnapshot = { recent, favorites };
+      prevRecentStr = recentStr;
+      prevFavoritesStr = favoritesStr;
+    } catch (e) {
+      console.error("Arcade state sync failed", e);
+    }
   }
+  
+  return cachedSnapshot;
 }
 
 function getServerSnapshot() {
