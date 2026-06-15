@@ -35,27 +35,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async headers() {
-    return [
-      {
-        source: '/games/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
-          },
-          {
-            key: 'CDN-Cache-Control',
-            value: 'public, max-age=3600, stale-while-revalidate=86400',
-          },
-          {
-            key: 'Cloudflare-CDN-Cache-Control',
-            value: 'public, max-age=3600, stale-while-revalidate=86400',
-          },
-        ],
-      },
-    ];
-  },
+  // next.config.js ke headers function mein ye change kar
+async headers() {
+  return [
+    {
+      source: '/games/:path*',
+      headers: [
+        {
+          key: 'Cache-Control',
+          // 'private' ko 'public' se replace kar rahe hain
+          value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      ],
+    },
+  ];
+},
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
