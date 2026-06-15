@@ -44,22 +44,21 @@ const nextConfig: NextConfig = {
             key: 'Cache-Control',
             value: 'public, s-maxage=3600, stale-while-revalidate=86400',
           },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'public, max-age=3600, stale-while-revalidate=86400',
+          },
+          {
+            key: 'Cloudflare-CDN-Cache-Control',
+            value: 'public, max-age=3600, stale-while-revalidate=86400',
+          },
         ],
       },
     ];
   },
-  // Production optimizations
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
-  experimental: {
-    // Explicitly allow origin requests from the Firebase Studio proxy environment
-    allowedDevOrigins: [
-      '6000-firebase-studio-1780821471623.cluster-zkm2jrwbnbd4awuedc2alqxrpk.cloudworkstations.dev',
-      '*.cloudworkstations.dev',
-      'localhost:9002'
-    ]
-  }
 };
 
 export default nextConfig;
