@@ -60,10 +60,16 @@ export default async function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        {/* Google AdSense */}
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7395050320323237"
           crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        {/* GameMonetize Ad SDK - Required for impression tracking */}
+        <Script 
+          src="https://api.gamemonetize.com/sdk.js"
           strategy="afterInteractive"
         />
       </head>

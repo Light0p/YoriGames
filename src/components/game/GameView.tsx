@@ -10,6 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/context/GameContext';
+import { GameWalkthrough } from './GameWalkthrough';
 
 interface GameViewProps {
   game: Game;
@@ -98,13 +99,18 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
                 </div>
               )}
+              {/* 
+                Primary Game Iframe 
+                - loading="eager" is required to ensure ads trigger immediately upon page arrival.
+                - allow="accelerometer; gyroscope" added to satisfy publisher ad-viewability checks.
+              */}
               <iframe 
                 ref={iframeRef}
                 src={game.iframe_url || game.url || ''}
                 className="absolute inset-0 w-full h-full border-none z-10"
-                allow="fullscreen; autoplay; gamepad"
+                allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
                 onLoad={() => setLoading(false)}
-                loading="lazy"
+                loading="eager"
               />
               <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
                 <button 
@@ -118,7 +124,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
             </div>
           </div>
 
-          {/* Side Discovery Grid (Hidden on Mobile, 2x3 on Desktop) */}
+          {/* Side Discovery Grid */}
           <div className="hidden lg:grid lg:col-span-3 grid-cols-2 grid-rows-3 gap-3">
             {displayGames.slice(0, 6).map((g) => (
               <Link key={`side-${g.id}`} href={`/games/${g.slug}`} className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl">
@@ -134,7 +140,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           </div>
         </div>
 
-        {/* MIDDLE SECTION: Discovery Floor (Infinite Grid Style) */}
+        {/* MIDDLE SECTION: Discovery Floor */}
         <div className="space-y-6 mb-12">
           <div className="flex items-center justify-between">
             <h2 className="font-pixel text-xs text-white uppercase tracking-widest flex items-center gap-2">
@@ -168,10 +174,10 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           </div>
         </div>
 
-        {/* BOTTOM SECTION: Metadata (Poki Footer Style) */}
+        {/* BOTTOM SECTION: Metadata & Walkthrough */}
         <div className="border-t-4 border-[#1B123D] pt-12 pb-16 bg-[#0d051c]/50 rounded-b-3xl px-6 sm:px-12">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
+          <div className="max-w-4xl mx-auto space-y-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
               <div className="flex-1">
                 <h1 className="font-pixel text-2xl sm:text-4xl text-white mb-4 uppercase tracking-tighter">{game.title}</h1>
                 <div className="flex items-center gap-6">
@@ -193,6 +199,9 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 </PixelButton>
               </div>
             </div>
+
+            {/* Walkthrough Section */}
+            <GameWalkthrough gameUrl={game.iframe_url || game.url || ''} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-muted leading-relaxed">
               <div className="space-y-6">
