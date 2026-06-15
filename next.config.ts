@@ -35,21 +35,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // next.config.js ke headers function mein ye change kar
-async headers() {
-  return [
-    {
-      source: '/games/:path*',
-      headers: [
-        {
-          key: 'Cache-Control',
-          // 'private' ko 'public' se replace kar rahe hain
-          value: 'public, s-maxage=3600, stale-while-revalidate=86400',
-        },
-      ],
-    },
-  ];
-},
+  async headers() {
+    return [
+      {
+        source: '/games/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+          },
+          {
+            key: 'Vary',
+            value: 'Integrity, Accept, Next-Router-State-Tree, Next-Router-Prefetch',
+          },
+        ],
+      },
+    ];
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
