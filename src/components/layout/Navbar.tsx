@@ -8,7 +8,6 @@ import { Search, User, Menu, LogOut, Settings, X, Gamepad2, Loader2 } from 'luci
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth } from '@/firebase';
-import { useGameStore } from '@/context/GameContext';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -24,12 +23,15 @@ export const Navbar = () => {
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
-  const { allGames, loading: gamesLoading } = useGameStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchIndex, setSearchIndex] = useState<any[]>([]);
+  const [isFetchingIndex, setIsFetchingIndex] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const navLinks = [
     { href: '/games', label: 'Games', color: 'text-neon-purple', type: 'link' },
@@ -39,20 +41,61 @@ export const Navbar = () => {
     { href: '/contact', label: 'Contact', color: 'text-neon-gold', type: 'link' },
   ];
 
+  // Client-Side Fuzzy Search Setup
   const fuse = useMemo(() => {
-    return new Fuse(allGames, {
-      keys: ['title', 'category', 'tags'],
+    return new Fuse(searchIndex, {
+      keys: ['title', 'category'],
       threshold: 0.3,
       distance: 100,
     });
-  }, [allGames]);
+  }, [searchIndex]);
 
+  // Suggestion results: Exactly top 6 for a clean dense look
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    return fuse.search(searchQuery).slice(0, 5).map(r => r.item);
+    return fuse.search(searchQuery).slice(0, 6).map(r => r.item);
   }, [searchQuery, fuse]);
 
-  // Handle Search Click Outside
+  // One-Time Fetch Strategy: Only triggers when user actually focuses search
+  const handleSearchFocus = async () => {
+    if (searchIndex.length > 0 || isFetchingIndex) return;
+    setIsFetchingIndex(true);
+    try {
+      const response = await fetch('/api/search-index');
+      const data = await response.json();
+      setSearchIndex(data);
+    } catch (err) {
+      console.error("Index sync failed");
+    } finally {
+      setIsFetchingIndex(false);
+    }
+  };
+
+  // Keyboard Navigation Implementation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex(prev => Math.min(prev + 1, searchResults.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex(prev => Math.max(prev - 1, -1));
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && searchResults[activeIndex]) {
+        e.preventDefault();
+        const game = searchResults[activeIndex];
+        router.push(`/games/${game.slug}`);
+        setIsSearchOpen(false);
+        setSearchQuery('');
+      }
+    } else if (e.key === 'Escape') {
+      setIsSearchOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [searchQuery]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -63,7 +106,6 @@ export const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Lock Body Scroll when Mobile Menu is Open (Pro UI feature)
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -110,14 +152,12 @@ export const Navbar = () => {
       <nav 
         className={cn(
           "fixed left-0 right-0 z-[100] mx-auto transition-all duration-300 ease-in-out",
-          // The Magic Fix: When menu is open, the Nav expands to cover the whole screen with a solid color.
           isMobileMenuOpen 
             ? "top-0 w-full h-[100dvh] bg-[#0d051c] border-transparent rounded-none" 
             : "top-4 w-[95%] max-w-7xl bg-[#0d051c]/95 backdrop-blur-md border border-[#2a1744] shadow-xl rounded-none"
         )}
         aria-label="Main Navigation"
       >
-        {/* Header Section */}
         <div className="flex items-center justify-between px-4 sm:px-8 py-4 relative z-50">
           <Link href="/" className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan" aria-label="YoriGames Home" onClick={() => setIsMobileMenuOpen(false)}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-10 h-10 shrink-0" shapeRendering="crispEdges" aria-hidden="true">
@@ -133,7 +173,6 @@ export const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-8 font-pixel text-[10px] tracking-widest uppercase">
             {navLinks.map((link) => (
               <Link 
@@ -150,7 +189,6 @@ export const Navbar = () => {
             ))}
           </div>
 
-          {/* User & Search Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="relative" ref={searchRef}>
               <button 
@@ -168,22 +206,25 @@ export const Navbar = () => {
                 <div className="absolute top-full right-0 mt-4 w-[280px] sm:w-[400px] bg-[#140A2E] border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] p-4 animate-in fade-in slide-in-from-top-2" role="search">
                   <form onSubmit={handleSearchSubmit} className="relative mb-4">
                     <input 
+                      ref={inputRef}
                       type="text" 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={handleSearchFocus}
+                      onKeyDown={handleKeyDown}
                       placeholder="SCAN UNIVERSE..."
                       autoFocus
                       aria-label="Search for games"
                       className="w-full bg-[#09061B] border-2 border-[#1B123D] px-4 py-3 text-white font-pixel text-[10px] focus:outline-none focus:border-neon-purple uppercase min-h-[44px]"
                     />
-                    {gamesLoading && (
+                    {isFetchingIndex && (
                       <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-purple animate-spin" aria-hidden="true" />
                     )}
                   </form>
 
                   <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
                     {searchResults.length > 0 ? (
-                      searchResults.map((game) => (
+                      searchResults.map((game, idx) => (
                         <Link 
                           key={game.id} 
                           href={`/games/${game.slug}`}
@@ -192,10 +233,20 @@ export const Navbar = () => {
                             setSearchQuery('');
                           }}
                           aria-label={`Launch ${game.title}`}
-                          className="flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group min-h-[50px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan"
+                          className={cn(
+                            "flex items-center gap-4 p-2 bg-[#09061B]/50 border border-[#1B123D] hover:border-neon-cyan transition-colors group min-h-[50px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan",
+                            activeIndex === idx && "border-neon-cyan bg-[#1B123D]"
+                          )}
                         >
                           <div className="relative w-12 h-10 bg-black border border-[#1B123D] overflow-hidden shrink-0">
-                            <Image src={game.thumbnail || (game as any).thumb} alt="" fill className="object-cover group-hover:scale-110 transition-transform" />
+                            {/* unoptimized={true} used here to bypass Vercel Image Optimization and save bandwidth */}
+                            <Image 
+                              src={game.thumbnail || (game as any).thumb} 
+                              alt="" 
+                              fill 
+                              unoptimized={true}
+                              className="object-cover group-hover:scale-110 transition-transform" 
+                            />
                           </div>
                           <div className="min-w-0">
                             <div className="font-pixel text-[8px] text-white truncate uppercase">
@@ -207,7 +258,7 @@ export const Navbar = () => {
                           </div>
                         </Link>
                       ))
-                    ) : searchQuery.trim() ? (
+                    ) : searchQuery.trim() && !isFetchingIndex ? (
                       <div className="py-8 text-center border-2 border-dashed border-[#1B123D]">
                         <Gamepad2 className="w-8 h-8 text-muted mx-auto mb-2 opacity-20" aria-hidden="true" />
                         <p className="font-pixel text-[8px] text-muted uppercase">No signals detected.</p>
@@ -279,14 +330,13 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div 
             className="lg:hidden absolute top-[76px] left-0 right-0 bottom-0 z-[45] bg-[#0d051c] flex flex-col px-6 overflow-y-auto animate-in fade-in slide-in-from-bottom-4" 
             role="dialog" 
             aria-modal="true" 
             aria-label="Mobile Navigation"
-            style={{ backgroundColor: '#0d051c', height: 'calc(100dvh - 76px)' }} // Strict force solid background
+            style={{ backgroundColor: '#0d051c', height: 'calc(100dvh - 76px)' }} 
           >
             <div className="flex flex-col gap-6 items-center w-full pb-12 pt-8">
               {user && (

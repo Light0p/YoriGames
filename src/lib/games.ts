@@ -65,6 +65,20 @@ export const getDiscoveryGames = async (max: number = 100): Promise<Game[]> => {
 };
 
 /**
+ * Strategy: Zero-Bandwidth Search Index
+ * Returns only the fields required for client-side suggestions.
+ */
+export const getSearchIndex = cache(async () => {
+  return allGames.map(g => ({
+    id: g.id,
+    title: g.title,
+    slug: g.slug,
+    thumbnail: g.thumbnail || g.thumb,
+    category: g.category
+  }));
+});
+
+/**
  * Cached Game Fetcher
  * Deduplicates calls within a single render pass (e.g. Metadata + Page)
  */
