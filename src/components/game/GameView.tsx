@@ -5,12 +5,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Game } from '@/types/game';
-import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
+import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Zap, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/context/GameContext';
 import { GameWalkthrough } from './GameWalkthrough';
+import { useArcadeState } from '@/hooks/useArcadeState';
 
 interface GameViewProps {
   game: Game;
@@ -22,9 +23,10 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   const [displayGames, setDisplayGames] = useState<Game[]>([]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { recordPlay } = useGameStore();
-  const hasCountedRef = useRef(false);
+  const { addRecent, toggleFavorite, isFavorite } = useArcadeState();
+  const isFav = isFavorite(game.slug);
+  const [copied, setCopied] = useState(false);
 
-  // SDK & Iframe state
   const sdkReady = useRef(false);
   const iframeMounted = useRef(false);
   const [showIframe, setShowIframe] = useState(false);
@@ -36,20 +38,17 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
       setShowIframe(true);
     }
 
-    // Listen for SDK ready signal from GameMonetize
     const handleSDKReady = () => {
       sdkReady.current = true;
       mountIframe();
     };
     window.addEventListener('gmSDKReady', handleSDKReady);
 
-    // Load SDK dynamically — does not block page render or LCP
     const script = document.createElement('script');
     script.src = 'https://api.gamemonetize.com/sdk.js';
     script.async = true;
     document.head.appendChild(script);
 
-    // Safety fallback — mount iframe after 2s even if SDK fails or is blocked
     const fallback = setTimeout(mountIframe, 2000);
 
     return () => {
@@ -58,7 +57,6 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     };
   }, []);
 
-  // Discovery logic: exactly 36 games for the Poki-style surround grid
   useEffect(() => {
     shuffleDiscovery();
   }, [discoveryPool, game.id]);
@@ -71,17 +69,18 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     setDisplayGames(shuffled);
   };
 
-  // Engagement tracking: 10 seconds of verified gameplay
   useEffect(() => {
-    hasCountedRef.current = false;
     const timer = setTimeout(() => {
-      if (!hasCountedRef.current) {
-        recordPlay();
-        hasCountedRef.current = true;
-      }
-    }, 10000);
+      recordPlay();
+      addRecent({ 
+        slug: game.slug, 
+        title: game.title, 
+        category: game.category, 
+        thumb: game.thumbnail || game.thumb || '' 
+      });
+    }, 5000);
     return () => clearTimeout(timer);
-  }, [game.id, recordPlay]);
+  }, [game.id, recordPlay, addRecent, game]);
 
   const toggleFullscreen = () => {
     if (iframeRef.current) {
@@ -99,12 +98,16 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
       try {
         await navigator.share({
           title: `Play ${game.title} on YoriGames`,
-          text: game.description,
+          text: `Check out this game: ${game.title}`,
           url: url,
         });
       } catch (err) {}
     } else {
-      try { await navigator.clipboard.writeText(url); } catch (err) {}
+      try { 
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {}
     }
   };
 
@@ -148,6 +151,38 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 >
                   <Maximize2 className="w-5 h-5 text-white" />
                 </button>
+              </div>
+            </div>
+
+            {/* Action Bar */}
+            <div className="mt-4 flex flex-wrap gap-4 items-center justify-between bg-[#140A2E] p-4 border-2 border-[#1B123D] shadow-[4px_4px_0_0_#000]">
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => toggleFavorite({ slug: game.slug, title: game.title, category: game.category, thumb: game.thumbnail || game.thumb || '' })}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase border-2 transition-all active:scale-95",
+                    isFav 
+                      ? "bg-neon-pink border-neon-pink text-white" 
+                      : "bg-[#09061B] border-[#1B123D] text-muted hover:text-white"
+                  )}
+                >
+                  <Heart className={cn("w-3 h-3", isFav && "fill-current")} />
+                  {isFav ? 'SAVED' : 'SAVE'}
+                </button>
+                <button 
+                  onClick={handleShare}
+                  className="flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase bg-[#09061B] border-2 border-[#1B123D] text-muted hover:text-neon-cyan hover:border-neon-cyan transition-all active:scale-95"
+                >
+                  {copied ? <Check className="w-3 h-3 text-green-500" /> : <Zap className="w-3 h-3 text-neon-cyan" />}
+                  {copied ? 'COPIED' : 'CHALLENGE A FRIEND'}
+                </button>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 text-muted font-pixel text-[6px] uppercase tracking-widest">
+                <span>Direct Link Established</span>
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 bg-green-500 animate-pulse" />
+                  <div className="w-1 h-1 bg-green-500 animate-pulse delay-75" />
+                </div>
               </div>
             </div>
           </div>

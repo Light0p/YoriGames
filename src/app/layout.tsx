@@ -10,6 +10,8 @@ import { GameProvider } from '@/context/GameContext';
 import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 import { getTotalGameCount } from '@/lib/games';
+import { ClientEnhancements } from '@/components/layout/ClientEnhancements';
+import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -39,6 +41,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://yorigamesonline.online'),
+  manifest: '/manifest.json',
   title: {
     template: '%s | YoriGames',
     default: 'YoriGames | Play Great Browser Games Instantly',
@@ -67,11 +70,20 @@ export default async function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        {/* GameMonetize Ad SDK - Strategy afterInteractive ensures it loads in time to catch the iframe mount */}
+        {/* GameMonetize Ad SDK */}
         <Script 
           src="https://api.gamemonetize.com/sdk.js"
           strategy="afterInteractive"
         />
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js');
+              });
+            }
+          `}
+        </Script>
       </head>
       <body className={cn(
         "min-h-screen bg-background font-body antialiased selection:bg-neon-purple selection:text-white overflow-x-hidden w-full relative",
@@ -89,6 +101,9 @@ export default async function RootLayout({
               <div className="relative z-10 overflow-x-hidden w-full">
                 {children}
               </div>
+              <ClientEnhancements>
+                <PWAInstallPrompt />
+              </ClientEnhancements>
             </GameProvider>
           </FirebaseClientProvider>
         )}

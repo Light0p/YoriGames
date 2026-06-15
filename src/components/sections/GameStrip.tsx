@@ -33,6 +33,7 @@ export const GameStrip = ({ title, category = "FEATURED", games = [], viewAllHre
           {games.map((game: any) => (
             <Link key={game.id} href={`/games/${game.slug}`} className="block">
               <GameCard 
+                slug={game.slug}
                 title={game.title}
                 genre={game.category}
                 rating={game.rating}

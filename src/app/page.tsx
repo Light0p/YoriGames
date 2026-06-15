@@ -6,6 +6,8 @@ import { GameStrip } from '@/components/sections/GameStrip';
 import { Footer } from '@/components/layout/Footer';
 import { getFeaturedGames, getTrendingGames, getNewArrivals, getDiscoveryGames } from '@/lib/games';
 import { ArcadeInsightWrapper } from '@/components/ai/ArcadeInsightWrapper';
+import { YourArcade } from '@/components/sections/YourArcade';
+import { ClientEnhancements } from '@/components/layout/ClientEnhancements';
 
 export default async function Home() {
   // Optimized Parallel fetch using ISR to minimize hits on request
@@ -24,6 +26,10 @@ export default async function Home() {
       <Hero />
 
       <div className="relative z-10 -mt-10">
+        <ClientEnhancements>
+          <YourArcade />
+        </ClientEnhancements>
+
         <section aria-label="Newest Additions">
           <GameStrip 
             title="New Arrivals" 

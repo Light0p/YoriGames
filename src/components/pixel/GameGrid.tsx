@@ -22,6 +22,7 @@ export const GameGrid = ({ games }: GameGridProps) => {
           aria-label={`Play ${game.title} - ${game.category} game`}
         >
           <GameCard 
+            slug={game.slug}
             title={game.title}
             genre={game.category}
             rating={game.rating}
