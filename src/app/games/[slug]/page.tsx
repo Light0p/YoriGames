@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { getGameBySlug, getRelatedGames } from '@/lib/games'; 
+import { getGameBySlug, getDiscoveryGames } from '@/lib/games'; 
 import { notFound } from 'next/navigation';
 import { GameView } from '@/components/game/GameView';
 
@@ -11,10 +11,6 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-/**
- * Dynamic Metadata Generator for SEO.
- * Implements the specific Title and Description patterns requested.
- */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const game = await getGameBySlug(slug);
@@ -34,14 +30,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `https://yorigamesonline.online/games/${game.slug}`,
-      images: [game.thumbnail || game.thumb],
+      images: [game.thumbnail || game.thumb || ''],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [game.thumbnail || game.thumb],
+      images: [game.thumbnail || game.thumb || ''],
     },
   };
 }
@@ -52,10 +48,12 @@ export default async function GamePage({ params }: Props) {
 
   if (!game) notFound();
 
+  // Fetch a larger pool for the client-side shuffle logic
+  const discoveryPool = await getDiscoveryGames(100);
+
   // Deterministic random review count between 100-500 based on slug length
   const reviewCount = 100 + (slug.length * 13) % 400;
 
-  // VideoGame Rich Snippets (Schema.org)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'VideoGame',
@@ -79,15 +77,13 @@ export default async function GamePage({ params }: Props) {
     }
   };
 
-  const relatedGames = await getRelatedGames(game.category, game.id, 6); 
-
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <GameView game={game} allGames={relatedGames} />
+      <GameView game={game} discoveryPool={discoveryPool} />
     </>
   );
 }
