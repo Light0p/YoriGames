@@ -67,10 +67,10 @@ export default async function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        {/* GameMonetize Ad SDK - Required for impression tracking */}
+        {/* GameMonetize Ad SDK - Required for impression tracking - Lazy loaded to prevent lag */}
         <Script 
           src="https://api.gamemonetize.com/sdk.js"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       </head>
       <body className={cn(

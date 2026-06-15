@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
@@ -20,9 +20,21 @@ interface GameViewProps {
 export function GameView({ game, discoveryPool }: GameViewProps) {
   const [loading, setLoading] = useState(true);
   const [displayGames, setDisplayGames] = useState<Game[]>([]);
+  const [delayedSrc, setDelayedSrc] = useState<string>('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { recordPlay } = useGameStore();
   const hasCountedRef = useRef(false);
+
+  // Progressive Iframe Load Strategy: 
+  // Wait 300ms for UI shell to settle before assigning iframe src
+  useEffect(() => {
+    setLoading(true);
+    setDelayedSrc('');
+    const timer = setTimeout(() => {
+      setDelayedSrc(game.iframe_url || game.url || '');
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [game.id, game.iframe_url, game.url]);
 
   // Initialize discovery grid with 36 random games
   useEffect(() => {
@@ -99,19 +111,17 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
                 </div>
               )}
-              {/* 
-                Primary Game Iframe 
-                - loading="eager" is required to ensure ads trigger immediately upon page arrival.
-                - allow="accelerometer; gyroscope" added to satisfy publisher ad-viewability checks.
-              */}
-              <iframe 
-                ref={iframeRef}
-                src={game.iframe_url || game.url || ''}
-                className="absolute inset-0 w-full h-full border-none z-10"
-                allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
-                onLoad={() => setLoading(false)}
-                loading="eager"
-              />
+              {/* Primary Game Iframe with Delayed Source */}
+              {delayedSrc && (
+                <iframe 
+                  ref={iframeRef}
+                  src={delayedSrc}
+                  className="absolute inset-0 w-full h-full border-none z-10"
+                  allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
+                  onLoad={() => setLoading(false)}
+                  loading="eager"
+                />
+              )}
               <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
                 <button 
                   onClick={toggleFullscreen}
@@ -200,8 +210,11 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
               </div>
             </div>
 
-            {/* Walkthrough Section */}
-            <GameWalkthrough gameUrl={game.iframe_url || game.url || ''} />
+            {/* Walkthrough Section with Poster Support */}
+            <GameWalkthrough 
+              gameUrl={game.iframe_url || game.url || ''} 
+              thumbnail={game.thumbnail || game.thumb}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-muted leading-relaxed">
               <div className="space-y-6">
