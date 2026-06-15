@@ -67,10 +67,10 @@ export default async function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        {/* GameMonetize Ad SDK - Required for impression tracking - Lazy loaded to prevent lag */}
+        {/* GameMonetize Ad SDK - Strategy afterInteractive ensures it loads in time to catch the iframe mount */}
         <Script 
           src="https://api.gamemonetize.com/sdk.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
       </head>
       <body className={cn(

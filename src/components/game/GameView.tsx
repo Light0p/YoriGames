@@ -20,26 +20,14 @@ interface GameViewProps {
 export function GameView({ game, discoveryPool }: GameViewProps) {
   const [loading, setLoading] = useState(true);
   const [displayGames, setDisplayGames] = useState<Game[]>([]);
-  const [delayedSrc, setDelayedSrc] = useState<string>('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { recordPlay } = useGameStore();
   const hasCountedRef = useRef(false);
 
-  // Progressive Iframe Load Strategy: 
-  // Wait 300ms for UI shell to settle before assigning iframe src
-  useEffect(() => {
-    setLoading(true);
-    setDelayedSrc('');
-    const timer = setTimeout(() => {
-      setDelayedSrc(game.iframe_url || game.url || '');
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [game.id, game.iframe_url, game.url]);
-
-  // Initialize discovery grid with 36 random games
+  // Discovery logic: exactly 36 games for the Poki-style surround grid
   useEffect(() => {
     shuffleDiscovery();
-  }, [discoveryPool]);
+  }, [discoveryPool, game.id]);
 
   const shuffleDiscovery = () => {
     const shuffled = [...discoveryPool]
@@ -49,7 +37,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     setDisplayGames(shuffled);
   };
 
-  // 10-Second Engagement Watchdog
+  // Engagement tracking: 10 seconds of verified gameplay
   useEffect(() => {
     hasCountedRef.current = false;
     const timer = setTimeout(() => {
@@ -111,17 +99,15 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
                 </div>
               )}
-              {/* Primary Game Iframe with Delayed Source */}
-              {delayedSrc && (
-                <iframe 
-                  ref={iframeRef}
-                  src={delayedSrc}
-                  className="absolute inset-0 w-full h-full border-none z-10"
-                  allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
-                  onLoad={() => setLoading(false)}
-                  loading="eager"
-                />
-              )}
+              {/* Primary Game Iframe: Mounted instantly for Ad SDK sync, loading eager */}
+              <iframe 
+                ref={iframeRef}
+                src={game.iframe_url || game.url || ''}
+                className="absolute inset-0 w-full h-full border-none z-10"
+                allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
+                onLoad={() => setLoading(false)}
+                loading="eager"
+              />
               <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
                 <button 
                   onClick={toggleFullscreen}
@@ -134,7 +120,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
             </div>
           </div>
 
-          {/* Side Discovery Grid */}
+          {/* Side Discovery Grid: unoptimized={true} to save bandwidth */}
           <div className="hidden lg:grid lg:col-span-3 grid-cols-2 grid-rows-3 gap-3">
             {displayGames.slice(0, 6).map((g) => (
               <Link key={`side-${g.id}`} href={`/games/${g.slug}`} className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl">
@@ -142,6 +128,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'} 
                   alt={g.title} 
                   fill 
+                  unoptimized={true}
                   className="object-cover group-hover:scale-110 transition-transform" 
                   sizes="15vw"
                 />
@@ -166,6 +153,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           </div>
 
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3">
+            {/* Massive Grid: ALL images unoptimized to protect Vercel credits */}
             {displayGames.slice(6).map((g) => (
               <Link 
                 key={`floor-${g.id}`} 
@@ -176,6 +164,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'} 
                   alt={g.title} 
                   fill 
+                  unoptimized={true}
                   className="object-cover" 
                   sizes="(max-width: 640px) 33vw, 12vw"
                 />
