@@ -43,10 +43,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-  const games = await getSearchableGames();
-  return games.map((game) => ({
-    slug: game.slug,
-  }));
+  try {
+    const games = await getSearchableGames();
+
+    if (!games || games.length === 0) {
+      console.warn("No games found during build, returning fallback slug.");
+      return [{ slug: 'demo-game' }];
+    }
+
+    return games.map((game) => {
+      if (!game.slug) {
+        return { slug: 'demo-game' };
+      }
+      return { slug: game.slug.toString() };
+    });
+  } catch (error) {
+    console.error("Error in generateStaticParams (Games):", error);
+    return [{ slug: 'demo-game' }];
+  }
 }
 
 export default async function GamePage({ params }: Props) {
@@ -55,10 +69,7 @@ export default async function GamePage({ params }: Props) {
 
   if (!game) notFound();
 
-  // Fetch a larger pool for the client-side shuffle logic
   const discoveryPool = await getDiscoveryGames(100);
-
-  // Deterministic random review count between 100-500 based on slug length
   const reviewCount = 100 + (slug.length * 13) % 400;
 
   const jsonLd = {

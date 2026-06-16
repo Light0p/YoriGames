@@ -3,12 +3,12 @@ import { Metadata } from 'next';
 import { SpaceBackground } from '@/components/layout/SpaceBackground';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { GameGrid } from '@/components/pixel/GameGrid';
-import { getPaginatedGamesByCategory } from '@/lib/games';
+import { getPaginatedGamesByCategory, getSearchableGames } from '@/lib/games';
 import { Pagination } from '@/components/pixel/Pagination';
+import { GameGrid } from '@/components/pixel/GameGrid';
 
 export const dynamic = 'force-static';
-export const revalidate = 3600;
+export const dynamicParams = false;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -25,10 +25,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/**
- * CategoryPage Server Component
- * Handles sector-specific pagination purely on the server.
- */
+export async function generateStaticParams() {
+  try {
+    const games = await getSearchableGames();
+    if (!games || games.length === 0) {
+      return [{ slug: 'arcade' }];
+    }
+    
+    const categories = Array.from(new Set(games.map(g => 
+      g.category.toLowerCase().replace(/\s+/g, '-')
+    )));
+    
+    return categories.map(slug => ({ slug }));
+  } catch (error) {
+    console.error("Error in generateStaticParams (Categories):", error);
+    return [{ slug: 'arcade' }];
+  }
+}
+
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { page: pageStr } = await searchParams;
@@ -41,8 +55,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   
   const totalPages = Math.ceil(total / pageSize);
   const categoryName = games[0]?.category || slug.charAt(0).toUpperCase() + slug.slice(1);
-  const startRange = total > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-  const endRange = Math.min(currentPage * pageSize, total);
 
   return (
     <main className="min-h-screen flex flex-col">

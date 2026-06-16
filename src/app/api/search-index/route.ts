@@ -1,20 +1,5 @@
-import { getSearchableGames } from '@/lib/games';
-
-export const revalidate = 3600;
-
+// This route is disabled for static export. 
+export const dynamic = 'force-static';
 export async function GET() {
-  const games = await getSearchableGames(5000);
-  
-  const index = games.map(g => ({
-    slug: g.slug,
-    title: g.title,
-    category: g.category,
-    thumb: g.thumb || g.thumbnail || '',
-  }));
-
-  return Response.json(index, {
-    headers: {
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-    },
-  });
+  return new Response('API Disabled for Static Export', { status: 404 });
 }
