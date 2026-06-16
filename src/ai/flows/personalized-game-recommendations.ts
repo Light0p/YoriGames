@@ -1,14 +1,12 @@
-'use server';
 /**
- * @fileOverview This file implements a Genkit flow for generating personalized game recommendations.
- *
- * - personalizedGameRecommendations - A function that analyzes user play history and suggests dynamic, quirky genre tags and game recommendations.
- * - PersonalizedGameRecommendationsInput - The input type for the personalizedGameRecommendations function.
- * - PersonalizedGameRecommendationsOutput - The return type for the personalizedGameRecommendations function.
+ * @fileOverview Refactored AI flow for static export compatibility.
+ * 
+ * - personalizedGameRecommendations - A client-side function that calls an external API.
+ * - PersonalizedGameRecommendationsInput - The input type for the function.
+ * - PersonalizedGameRecommendationsOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { z } from 'zod';
 
 const PersonalizedGameRecommendationsInputSchema = z.object({
   playHistory: z
@@ -31,34 +29,33 @@ export type PersonalizedGameRecommendationsOutput = z.infer<
   typeof PersonalizedGameRecommendationsOutputSchema
 >;
 
+/**
+ * Standard client-side function for personalized recommendations.
+ * In a static export environment, this calls an external API endpoint.
+ */
 export async function personalizedGameRecommendations(
   input: PersonalizedGameRecommendationsInput
 ): Promise<PersonalizedGameRecommendationsOutput> {
-  return personalizedGameRecommendationsFlow(input);
-}
+  try {
+    const response = await fetch('/api/ai/recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
 
-const personalizedGameRecommendationsPrompt = ai.definePrompt({
-  name: 'personalizedGameRecommendationsPrompt',
-  input: {schema: PersonalizedGameRecommendationsInputSchema},
-  output: {schema: PersonalizedGameRecommendationsOutputSchema},
-  prompt: `You are an expert game recommendation AI, specializing in unique and quirky suggestions.
-Analyze the user's play history below and generate:
-1. A list of dynamic, quirky, and creative genre tags that best describe the user's preferences, going beyond standard genres.
-2. A list of highly relevant game recommendations based on their play history, that they might enjoy. Focus on lesser-known gems or unique takes on familiar styles.
+    if (!response.ok) {
+      throw new Error(`AI Recommendation Uplink Failed: ${response.statusText}`);
+    }
 
-User's Play History:
-{{#each playHistory}}- {{this}}
-{{/each}}`,
-});
-
-const personalizedGameRecommendationsFlow = ai.defineFlow(
-  {
-    name: 'personalizedGameRecommendationsFlow',
-    inputSchema: PersonalizedGameRecommendationsInputSchema,
-    outputSchema: PersonalizedGameRecommendationsOutputSchema,
-  },
-  async input => {
-    const {output} = await personalizedGameRecommendationsPrompt(input);
-    return output!;
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to execute AI recommendations:', error);
+    // Return a fallback structure for static environments
+    return {
+      quirkyGenreTags: [],
+      recommendedGames: []
+    };
   }
-);
+}

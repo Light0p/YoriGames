@@ -1,9 +1,13 @@
-'use server';
+/**
+ * @fileOverview Refactored AI flow for static export compatibility.
+ * 
+ * - gameSearchByDescription - A client-side function that calls an external API.
+ * - GameSearchByDescriptionInput - The input type for the function.
+ * - GameSearchByDescriptionOutput - The return type for the function.
+ */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { z } from 'zod';
 
-// Genkit flow for natural language game discovery
 const GameSearchByDescriptionInputSchema = z.object({
   description: z
     .string()
@@ -34,33 +38,33 @@ export type GameSearchByDescriptionOutput = z.infer<
   typeof GameSearchByDescriptionOutputSchema
 >;
 
+/**
+ * Standard client-side function for game search.
+ * In a static export environment, this calls an external API endpoint.
+ */
 export async function gameSearchByDescription(
   input: GameSearchByDescriptionInput
 ): Promise<GameSearchByDescriptionOutput> {
-  return gameSearchByDescriptionFlow(input);
-}
+  try {
+    const response = await fetch('/api/ai/game-search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
 
-const gameSearchByDescriptionPrompt = ai.definePrompt({
-  name: 'gameSearchByDescriptionPrompt',
-  input: {schema: GameSearchByDescriptionInputSchema},
-  output: {schema: GameSearchByDescriptionOutputSchema},
-  prompt: `You are an AI assistant specialized in recommending video games. Your task is to analyze a user's natural language description of a desired game and provide highly relevant game suggestions.
+    if (!response.ok) {
+      throw new Error(`AI Search Uplink Failed: ${response.statusText}`);
+    }
 
-First, extract key characteristics, genres, and themes from the user's description and list them as keywords.
-
-Then, based on these keywords, suggest three distinct, imaginative, and highly relevant game titles. For each suggested game, provide a plausible name, its genre, and a brief summary that matches the input description.
-
-User's desired game description: {{{description}}}`,
-});
-
-const gameSearchByDescriptionFlow = ai.defineFlow(
-  {
-    name: 'gameSearchByDescriptionFlow',
-    inputSchema: GameSearchByDescriptionInputSchema,
-    outputSchema: GameSearchByDescriptionOutputSchema,
-  },
-  async input => {
-    const {output} = await gameSearchByDescriptionPrompt(input);
-    return output!;
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to execute AI game search:', error);
+    // Return a fallback structure to prevent UI crashes in the static build
+    return {
+      keywords: [],
+      suggestedGames: []
+    };
   }
-);
+}
