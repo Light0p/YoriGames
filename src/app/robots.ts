@@ -1,9 +1,8 @@
 import { MetadataRoute } from 'next';
 
-/**
- * Standard Robots.txt for YoriGames.
- * Allows all crawlers and points to the dynamic sitemap.
- */
+// Static export ke liye zaroori line
+export const dynamic = 'force-static';
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -11,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/profile/', '/admin/'],
     },
-    sitemap: 'https://yorigamesonline.online/sitemap.xml',
+    sitemap: 'https://www.yorigamesonline.online/sitemap.xml',
   };
 }
