@@ -11,7 +11,7 @@ import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 import { getTotalGameCount } from '@/lib/games';
 import { ClientEnhancements } from '@/components/layout/ClientEnhancements';
-import { PWAInstallPrompt } from '@/components/layout/PWAInstallPrompt';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -101,13 +101,12 @@ export default async function RootLayout({
               <div className="relative z-10 overflow-x-hidden w-full">
                 {children}
               </div>
-              <ClientEnhancements>
-                <PWAInstallPrompt />
-              </ClientEnhancements>
+              <ClientEnhancements />
             </GameProvider>
           </FirebaseClientProvider>
         )}
         <Analytics />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
