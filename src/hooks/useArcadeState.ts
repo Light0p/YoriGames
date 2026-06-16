@@ -10,8 +10,13 @@ export interface ArcadeGame {
   timestamp: number;
 }
 
+interface ArcadeState {
+  recent: ArcadeGame[];
+  favorites: Record<string, ArcadeGame>;
+}
+
 const STORAGE_KEY_RECENT = 'yori_recent_plays';
-const STORAGE_KEY_FAVORITES = 'yori_favorites';
+const STORAGE_KEY_FAVORITES = 'yori_favorites_map';
 
 function subscribe(callback: () => void) {
   window.addEventListener('storage', callback);
@@ -22,35 +27,40 @@ function subscribe(callback: () => void) {
   };
 }
 
-// Module-level cache for getSnapshot to maintain reference stability
-let cachedSnapshot = { recent: [] as ArcadeGame[], favorites: [] as ArcadeGame[] };
-let prevRecentStr: string | null = null;
-let prevFavoritesStr: string | null = null;
+const getDefaultState = (): ArcadeState => ({
+  recent: [],
+  favorites: {},
+});
 
-function getSnapshot() {
-  if (typeof window === 'undefined') return cachedSnapshot;
-  
-  const recentStr = localStorage.getItem(STORAGE_KEY_RECENT);
-  const favoritesStr = localStorage.getItem(STORAGE_KEY_FAVORITES);
-  
-  // Only update the object reference if the data in localStorage has changed
-  if (recentStr !== prevRecentStr || favoritesStr !== prevFavoritesStr) {
+// Module-level caches for reference stability
+let _rawCache: string | null = null;
+let _parsedCache: ArcadeState | null = null;
+
+function getSnapshot(): ArcadeState {
+  if (typeof window === 'undefined') return getDefaultState();
+
+  const recentRaw = localStorage.getItem(STORAGE_KEY_RECENT) ?? '[]';
+  const favoritesRaw = localStorage.getItem(STORAGE_KEY_FAVORITES) ?? '{}';
+  const combinedRaw = `${recentRaw}|${favoritesRaw}`;
+
+  if (combinedRaw !== _rawCache) {
+    _rawCache = combinedRaw;
     try {
-      const recent = recentStr ? JSON.parse(recentStr) : [];
-      const favorites = favoritesStr ? JSON.parse(favoritesStr) : [];
-      cachedSnapshot = { recent, favorites };
-      prevRecentStr = recentStr;
-      prevFavoritesStr = favoritesStr;
+      _parsedCache = {
+        recent: JSON.parse(recentRaw),
+        favorites: JSON.parse(favoritesRaw),
+      };
     } catch (e) {
-      console.error("Arcade state sync failed", e);
+      console.error("Arcade state parse failed", e);
+      _parsedCache = getDefaultState();
     }
   }
-  
-  return cachedSnapshot;
+
+  return _parsedCache!;
 }
 
 function getServerSnapshot() {
-  return { recent: [], favorites: [] };
+  return getDefaultState();
 }
 
 export function useArcadeState() {
@@ -65,25 +75,31 @@ export function useArcadeState() {
   }, []);
 
   const toggleFavorite = useCallback((game: Omit<ArcadeGame, 'timestamp'>) => {
-    const current = JSON.parse(localStorage.getItem(STORAGE_KEY_FAVORITES) || '[]') as ArcadeGame[];
-    const isFav = current.some((g) => g.slug === game.slug);
-    let updated;
-    if (isFav) {
-      updated = current.filter((g) => g.slug !== game.slug);
-    } else {
-      updated = [{ ...game, timestamp: Date.now() }, ...current];
+    const currentRaw = localStorage.getItem(STORAGE_KEY_FAVORITES) || '{}';
+    let current: Record<string, ArcadeGame> = {};
+    try {
+      current = JSON.parse(currentRaw);
+    } catch (e) {
+      current = {};
     }
-    localStorage.setItem(STORAGE_KEY_FAVORITES, JSON.stringify(updated));
+
+    if (current[game.slug]) {
+      delete current[game.slug];
+    } else {
+      current[game.slug] = { ...game, timestamp: Date.now() };
+    }
+
+    localStorage.setItem(STORAGE_KEY_FAVORITES, JSON.stringify(current));
     window.dispatchEvent(new Event('arcade-state-update'));
   }, []);
 
   const isFavorite = useCallback((slug: string) => {
-    return state.favorites.some((g) => g.slug === slug);
+    return !!state.favorites[slug];
   }, [state.favorites]);
 
   return {
     recent: state.recent,
-    favorites: state.favorites,
+    favorites: Object.values(state.favorites).sort((a, b) => b.timestamp - a.timestamp),
     addRecent,
     toggleFavorite,
     isFavorite,
