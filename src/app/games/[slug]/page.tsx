@@ -1,6 +1,6 @@
 export const dynamic = 'force-static';
 export const revalidate = 3600;
-export const dynamicParams = true;
+export const dynamicParams = false;
 
 import React from 'react';
 import { Metadata } from 'next';
