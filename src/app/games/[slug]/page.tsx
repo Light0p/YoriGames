@@ -1,10 +1,9 @@
 export const dynamic = 'force-static';
-export const revalidate = 3600;
 export const dynamicParams = false;
 
 import React from 'react';
 import { Metadata } from 'next';
-import { getGameBySlug, getDiscoveryGames } from '@/lib/games'; 
+import { getGameBySlug, getDiscoveryGames, getSearchableGames } from '@/lib/games'; 
 import { notFound } from 'next/navigation';
 import { GameView } from '@/components/game/GameView';
 
@@ -41,6 +40,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [game.thumbnail || game.thumb || ''],
     },
   };
+}
+
+export async function generateStaticParams() {
+  const games = await getSearchableGames();
+  return games.map((game) => ({
+    slug: game.slug,
+  }));
 }
 
 export default async function GamePage({ params }: Props) {
