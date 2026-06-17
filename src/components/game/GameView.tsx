@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Game } from '@/types/game';
-import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Zap, Copy, Check } from 'lucide-react';
+import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Zap, Check } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -117,7 +117,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
       <div className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 sm:py-6">
         <div className="mb-4 flex items-center gap-3">
-          <Link href="/games" className="font-pixel text-[8px] text-muted hover:text-white flex items-center gap-2 uppercase transition-colors py-2">
+          <Link href="/games/" className="font-pixel text-[8px] text-muted hover:text-white flex items-center gap-2 uppercase transition-colors py-2">
             <ArrowLeft className="w-3 h-3" /> Back
           </Link>
           <div className="w-1 h-1 bg-muted rounded-full" />
@@ -154,7 +154,6 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
               </div>
             </div>
 
-            {/* Action Bar */}
             <div className="mt-4 flex flex-wrap gap-4 items-center justify-between bg-[#140A2E] p-4 border-2 border-[#1B123D] shadow-[4px_4px_0_0_#000]">
               <div className="flex gap-4">
                 <button 
@@ -189,7 +188,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
           <div className="hidden lg:grid lg:col-span-3 grid-cols-2 grid-rows-3 gap-3">
             {displayGames.slice(0, 6).map((g) => (
-              <Link key={`side-${g.id}`} href={`/games/${g.slug}`} className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl">
+              <Link key={`side-${g.id}`} href={`/games/${g.slug}/`} className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl">
                 <Image 
                   src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'} 
                   alt={g.title} 
@@ -221,7 +220,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
             {displayGames.slice(6).map((g) => (
               <Link 
                 key={`floor-${g.id}`} 
-                href={`/games/${g.slug}`} 
+                href={`/games/${g.slug}/`} 
                 className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-purple hover:scale-105 transition-all group rounded-2xl shadow-lg"
               >
                 <Image 
@@ -272,11 +271,16 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 <h3 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">About this game</h3>
                 <p className="font-body text-base">{game.description}</p>
                 <div className="flex flex-wrap gap-2 pt-4">
+                  {/* Phase 2: Hashtag Navigation Logic */}
                   {game.tags?.map(tag => (
-                    <Link href={`/search?q=${tag}`} key={tag} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-cyan transition-colors uppercase rounded-lg">
+                    <Link href={`/search/?q=${encodeURIComponent('#' + tag)}`} key={tag} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-cyan transition-colors uppercase rounded-lg">
                       #{tag}
                     </Link>
                   ))}
+                  {/* Always include category as a searchable tag */}
+                  <Link href={`/search/?q=${encodeURIComponent('#' + game.category)}`} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-pink transition-colors uppercase rounded-lg">
+                    #{game.category}
+                  </Link>
                 </div>
               </div>
               <div className="space-y-6">

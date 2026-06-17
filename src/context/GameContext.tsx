@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useMemo, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Game } from '@/types/game';
 import { db } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, setDoc } from 'firebase/firestore';
@@ -19,7 +19,8 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-const SYNC_INTERVAL = 3 * 60 * 1000; // 3 minutes
+// Persistent version for the session to prevent cache collisions
+const buildVersion = typeof window !== 'undefined' ? Date.now() : 0;
 
 export function GameProvider({ 
   children, 
@@ -30,13 +31,36 @@ export function GameProvider({
   initialGames?: Game[];
   initialTotalGames?: number;
 }) {
-  const [allGames] = useState<Game[]>(initialGames);
-  const [totalGames] = useState<number>(initialTotalGames);
+  const [allGames, setAllGames] = useState<Game[]>(initialGames);
+  const [totalGames, setTotalGames] = useState<number>(initialTotalGames);
   const [totalPlays, setTotalPlays] = useState(0);
+  const [loading, setLoading] = useState(allGames.length === 0);
   const [error, setError] = useState<string | null>(null);
   
   const pendingPlaysRef = useRef(0);
   const isSyncingRef = useRef(false);
+
+  // Phase 2: One-time client-side fetch of the entire library
+  useEffect(() => {
+    const loadLibrary = async () => {
+      try {
+        const response = await fetch(`/games.json?v=${buildVersion}`);
+        if (!response.ok) throw new Error('Uplink failed');
+        const data = await response.json();
+        setAllGames(data);
+        setTotalGames(data.length);
+      } catch (err) {
+        console.error("Failed to load game library:", err);
+        setError("SEARCH_OFFLINE");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (allGames.length === 0) {
+      loadLibrary();
+    }
+  }, [allGames.length]);
 
   useEffect(() => {
     const fetchGlobalStats = async () => {
@@ -94,18 +118,8 @@ export function GameProvider({
   };
 
   useEffect(() => {
-    const interval = setInterval(syncPendingPlays, SYNC_INTERVAL);
+    const interval = setInterval(syncPendingPlays, 180000); // 3 mins
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const handleUnload = () => {
-      if (pendingPlaysRef.current > 0) {
-        syncPendingPlays();
-      }
-    };
-    window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
 
   const recordPlay = () => {
@@ -113,7 +127,7 @@ export function GameProvider({
     pendingPlaysRef.current += 1;
   };
 
-  const categories = useMemo(() => {
+  const categories = React.useMemo(() => {
     const set = new Set(allGames.map(g => g.category));
     const cats = Array.from(set).sort();
     return ['All', ...cats.filter(c => c !== 'All')];
@@ -123,7 +137,7 @@ export function GameProvider({
     <GameContext.Provider value={{ 
       allGames,
       totalGames,
-      loading: false, 
+      loading, 
       error, 
       categories, 
       totalPlays,

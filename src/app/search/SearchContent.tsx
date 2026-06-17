@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameCard } from '@/components/pixel/GameCard';
-import { Search, Gamepad2, Loader2, Sparkles } from 'lucide-react';
+import { Search, Gamepad2, Loader2, Sparkles, Hash } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 import Link from 'next/link';
 import Fuse from 'fuse.js';
@@ -15,10 +15,12 @@ export function SearchContent() {
   
   const [query, setQuery] = useState(initialQuery);
 
+  // Phase 2: High-performance fuzzy search configuration
   const fuse = useMemo(() => {
     return new Fuse(allGames, {
       keys: ['title', 'category', 'tags'],
-      threshold: 0.3,
+      threshold: 0.35,
+      minMatchCharLength: 2,
     });
   }, [allGames]);
 
@@ -28,12 +30,29 @@ export function SearchContent() {
 
   const filteredGames = useMemo(() => {
     if (!query.trim()) return [];
-    return fuse.search(query).map(r => r.item);
-  }, [query, fuse]);
+    
+    // Check if it's a hashtag search from hashtag navigation
+    if (query.startsWith('#')) {
+      const tag = query.substring(1).toLowerCase();
+      return allGames.filter(g => 
+        g.tags?.some(t => t.toLowerCase() === tag) || 
+        g.category.toLowerCase() === tag
+      );
+    }
+
+    // Standard Fuzzy Search
+    const results = fuse.search(query);
+    
+    // PHASE 2 SAFETY RULE: Unwrap Fuse result safely
+    return results.map(r => {
+      const actualGame = r.item ? r.item : r;
+      return actualGame;
+    }).filter(g => !!g.slug);
+  }, [query, fuse, allGames]);
 
   const recommendations = useMemo(() => {
     if (filteredGames.length > 0 || !allGames.length) return [];
-    return [...allGames].sort(() => Math.random() - 0.5).slice(0, 16); // Denser rows
+    return [...allGames].sort(() => Math.random() - 0.5).slice(0, 16);
   }, [filteredGames, allGames]);
 
   if (loading && allGames.length === 0) {
@@ -55,19 +74,21 @@ export function SearchContent() {
           className="w-full bg-[#140A2E] border-4 border-[#1B123D] px-4 sm:px-12 py-4 sm:py-6 text-white font-headline text-xl sm:text-2xl uppercase focus:outline-none focus:border-neon-purple transition-all shadow-[8px_8px_0_0_#000]"
           placeholder="SEARCH UNIVERSE..."
         />
-        <Search className="absolute right-4 sm:left-4 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 text-muted" />
+        <div className="absolute right-4 sm:left-4 top-1/2 -translate-y-1/2 opacity-30">
+          {query.startsWith('#') ? <Hash className="w-6 h-6 sm:w-8 sm:h-8 text-neon-cyan" /> : <Search className="w-6 h-6 sm:w-8 sm:h-8 text-muted" />}
+        </div>
       </div>
 
       {query && filteredGames.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-          {filteredGames.map(game => (
-            <Link key={game.id} href={`/games/${game.slug}/`}>
+          {filteredGames.map((game, idx) => (
+            <Link key={`${game.id || game.slug}-${idx}`} href={`/games/${game.slug}/`}>
               <GameCard 
                 slug={game.slug}
                 title={game.title}
                 genre={game.category}
                 rating={game.rating || 5.0}
-                imageUrl={game.thumbnail || ''}
+                imageUrl={game.thumbnail || game.thumb || ''}
               />
             </Link>
           ))}
@@ -78,7 +99,7 @@ export function SearchContent() {
         <div className="space-y-16">
           <div className="text-center py-20 bg-[#140A2E]/50 border-2 border-dashed border-[#1B123D]">
             <Gamepad2 className="w-16 h-16 text-muted mx-auto mb-4 opacity-30" />
-            <p className="font-pixel text-[10px] text-muted uppercase tracking-widest px-4">No anomalies found for "{query}"</p>
+            <p className="font-pixel text-[10px] text-muted uppercase tracking-widest px-4">No signals detected for "{query}"</p>
           </div>
 
           {recommendations.length > 0 && (
@@ -88,14 +109,14 @@ export function SearchContent() {
                 <h2 className="font-pixel text-lg text-white uppercase">Alternative Missions</h2>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-                {recommendations.map(game => (
-                  <Link key={game.id} href={`/games/${game.slug}/`}>
+                {recommendations.map((game, idx) => (
+                  <Link key={`${game.id || game.slug}-${idx}`} href={`/games/${game.slug}/`}>
                     <GameCard 
                       slug={game.slug}
                       title={game.title}
                       genre={game.category}
                       rating={game.rating || 5.0}
-                      imageUrl={game.thumbnail || ''}
+                      imageUrl={game.thumbnail || game.thumb || ''}
                     />
                   </Link>
                 ))}
