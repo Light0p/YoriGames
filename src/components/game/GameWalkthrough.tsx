@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useEffect, useState } from 'react';
@@ -6,8 +5,8 @@ import { Video } from 'lucide-react';
 
 /**
  * GameWalkthrough Component
- * Simplified Phase 3 version: Removed custom overlay button to let native 
- * GameMonetize walkthrough controls handle playback.
+ * Nukes custom overlays to prevent click blocking and uses strict aspect-video 
+ * constraints to prevent horizontal squishing on mobile.
  */
 export const GameWalkthrough = ({ gameUrl }: { gameUrl: string, thumbnail?: string }) => {
   const [extractedId, setExtractedId] = useState<string>("");
@@ -33,7 +32,6 @@ export const GameWalkthrough = ({ gameUrl }: { gameUrl: string, thumbnail?: stri
     }
   }, [gameUrl]);
 
-  // Phase 3: Automatically initialize video uplink when ID is ready
   useEffect(() => {
     if (!extractedId || hasFailed) return;
 
@@ -53,6 +51,7 @@ export const GameWalkthrough = ({ gameUrl }: { gameUrl: string, thumbnail?: stri
     script.async = true;
     document.body.appendChild(script);
 
+    // Watchdog to check if iframe fails to load
     const watchdogTimer = setTimeout(() => {
       const container = document.getElementById("gamemonetize-video");
       if (container && !container.querySelector('iframe')) {
@@ -78,13 +77,9 @@ export const GameWalkthrough = ({ gameUrl }: { gameUrl: string, thumbnail?: stri
         <Video className="w-4 h-4 text-neon-purple" /> Mission Walkthrough
       </h3>
       
-      {/* Responsive aspect-video container - Phase 3 */}
-      <div className="w-full aspect-video bg-black/20 flex items-center justify-center overflow-hidden border border-white/5 rounded-lg relative">
-        <div id="gamemonetize-video" className="w-full h-full z-10 relative">
-           <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
-             <div className="font-pixel text-[8px] text-muted animate-pulse uppercase">Syncing Visual Stream...</div>
-           </div>
-        </div>
+      {/* Responsive aspect-video container - Fixed Squishing & Blocked Clicks */}
+      <div className="relative w-full aspect-video rounded-md overflow-hidden bg-black/20">
+        <div id="gamemonetize-video" className="absolute top-0 left-0 w-full h-full" />
       </div>
       
       <div className="mt-6 flex items-center justify-between opacity-40">
