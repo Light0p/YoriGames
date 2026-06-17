@@ -34,10 +34,13 @@ export function SearchContent() {
     // Check if it's a hashtag search from hashtag navigation
     if (query.startsWith('#')) {
       const tag = query.substring(1).toLowerCase();
-      return allGames.filter(g => 
-        g.tags?.some(t => t.toLowerCase() === tag) || 
-        g.category.toLowerCase() === tag
-      );
+      return allGames.filter(g => {
+        // Defensive check: Ensure tags is an array
+        const gameTags = Array.isArray(g.tags) ? g.tags : [];
+        const gameCategory = (g.category || "").toLowerCase();
+        return gameTags.some(t => String(t).toLowerCase() === tag) || 
+               gameCategory === tag;
+      });
     }
 
     // Standard Fuzzy Search
@@ -45,7 +48,7 @@ export function SearchContent() {
     
     // PHASE 2 SAFETY RULE: Unwrap Fuse result safely
     return results.map(r => {
-      const actualGame = r.item ? r.item : r;
+      const actualGame = (r as any).item ? (r as any).item : r;
       return actualGame;
     }).filter(g => !!g.slug);
   }, [query, fuse, allGames]);

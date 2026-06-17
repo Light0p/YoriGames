@@ -47,8 +47,25 @@ export function GameProvider({
         const response = await fetch(`/games.json?v=${buildVersion}`);
         if (!response.ok) throw new Error('Uplink failed');
         const data = await response.json();
-        setAllGames(data);
-        setTotalGames(data.length);
+
+        // Data Normalization Layer
+        const normalized = (data as any[]).map(g => {
+          let tags: string[] = [];
+          if (Array.isArray(g.tags)) {
+            tags = g.tags;
+          } else if (typeof g.tags === 'string') {
+            tags = g.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+          }
+          
+          return {
+            ...g,
+            slug: g.slug || (g.title ? String(g.title).toLowerCase().replace(/\s+/g, '-') : g.id),
+            tags
+          };
+        });
+
+        setAllGames(normalized);
+        setTotalGames(normalized.length);
       } catch (err) {
         console.error("Failed to load game library:", err);
         setError("SEARCH_OFFLINE");
