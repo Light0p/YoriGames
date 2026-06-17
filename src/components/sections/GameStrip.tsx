@@ -1,18 +1,46 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameCard } from '@/components/pixel/GameCard';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { shuffleArray } from '@/lib/utils';
 
 interface GameStripProps {
   title: string;
   category?: string;
   games?: any[];
   viewAllHref?: string;
+  randomize?: boolean;
 }
 
-export const GameStrip = ({ title, category = "FEATURED", games = [], viewAllHref = "/games" }: GameStripProps) => {
+export const GameStrip = ({ 
+  title, 
+  category = "FEATURED", 
+  games = [], 
+  viewAllHref = "/games/", 
+  randomize = false 
+}: GameStripProps) => {
+  const [displayGames, setDisplayGames] = useState<any[]>([]);
+
+  /**
+   * CRITICAL GUARDRAIL: Strict randomization logic.
+   * depends ONLY on the source 'games' array.
+   * Includes early return guard and ABSOLUTELY NO recursive state dependencies.
+   */
+  useEffect(() => {
+    if (!games || games.length === 0) return;
+
+    if (randomize) {
+      const shuffled = shuffleArray([...games]).slice(0, 8);
+      setDisplayGames(shuffled);
+    } else {
+      setDisplayGames(games.slice(0, 8));
+    }
+  }, [games, randomize]);
+
+  if (displayGames.length === 0) return null;
+
   return (
     <div className="w-full py-16 px-6 sm:px-8">
       <div className="mx-auto max-w-7xl">
@@ -30,8 +58,8 @@ export const GameStrip = ({ title, category = "FEATURED", games = [], viewAllHre
         </div>
 
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-          {games.map((game: any) => (
-            <Link key={game.id} href={`/games/${game.slug}`} className="block">
+          {displayGames.map((game: any) => (
+            <Link key={game.id} href={`/games/${game.slug}/`} className="block">
               <GameCard 
                 slug={game.slug}
                 title={game.title}

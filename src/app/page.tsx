@@ -10,11 +10,12 @@ import { YourArcade } from '@/components/sections/YourArcade';
 import { ClientEnhancements } from '@/components/layout/ClientEnhancements';
 
 export default async function Home() {
-  // Optimized Parallel fetch using ISR to minimize hits on request
-  const [featuredGames, trendingGames, newGames, discoveryGames] = await Promise.all([
+  // Parallel fetch using server-side caching (ISR)
+  // We fetch a larger pool of discovery games to allow for quality randomization on the client.
+  const [featuredGames, trendingGames, newGames, discoveryPool] = await Promise.all([
     getFeaturedGames(8),
-    getTrendingGames(8),
-    getNewArrivals(8),
+    getTrendingGames(100), // Larger pool for randomization
+    getNewArrivals(100),   // Larger pool for randomization
     getDiscoveryGames(100)
   ]);
 
@@ -35,7 +36,8 @@ export default async function Home() {
             title="New Arrivals" 
             category="LATEST" 
             games={newGames} 
-            viewAllHref="/games"
+            viewAllHref="/games/"
+            randomize={true}
           />
         </section>
         
@@ -44,7 +46,8 @@ export default async function Home() {
             title="Trending" 
             category="POPULAR" 
             games={trendingGames} 
-            viewAllHref="/trending"
+            viewAllHref="/trending/"
+            randomize={true}
           />
         </section>
 
@@ -57,7 +60,7 @@ export default async function Home() {
             title="Featured" 
             category="CURATED" 
             games={featuredGames} 
-            viewAllHref="/arcade"
+            viewAllHref="/arcade/"
           />
         </section>
 
@@ -71,5 +74,4 @@ export default async function Home() {
   );
 }
 
-// 🚀 REVALIDATION: ISR Caching - Fetches data once per hour instead of every request.
 export const revalidate = 3600;
