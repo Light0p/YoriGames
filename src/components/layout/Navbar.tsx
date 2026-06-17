@@ -41,7 +41,6 @@ export const Navbar = () => {
     { href: '/contact/', label: 'Contact', color: 'text-neon-gold' },
   ];
 
-  // Phase 2: Use client-side library for suggestions
   const fuse = useMemo(() => {
     return new Fuse(allGames, {
       keys: ['title', 'category'],
@@ -182,7 +181,6 @@ export const Navbar = () => {
                   <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar">
                     {searchResults.length > 0 ? (
                       searchResults.map((result: any, idx) => {
-                        // PHASE 2 SAFETY RULE: Unwrap Fuse result
                         const game = result.item ? result.item : result;
                         if (!game.slug) return null;
 
@@ -322,6 +320,15 @@ export const Navbar = () => {
                     {link.label}
                   </Link>
                 ))}
+                {user && (
+                  <Link 
+                    href="/profile/" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-neon-cyan transition-all py-3 w-full text-center"
+                  >
+                    Profile Settings
+                  </Link>
+                )}
               </div>
 
               <div className="mt-12 w-full">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -122,7 +121,7 @@ export default function ProfilePage() {
       <Navbar />
 
       <div className="max-w-2xl mx-auto px-4 py-12 sm:py-20">
-        <div className="bg-[#140A2E] border-4 border-[#1B123D] p-6 sm:p-10 shadow-[8px_8px_0_0_#000]">
+        <div className="bg-[#140A2E]/80 backdrop-blur-xl border-4 border-[#1B123D] p-6 sm:p-10 shadow-[8px_8px_0_0_#000]">
           <div className="flex flex-col items-center mb-12">
             <div className="relative group">
               <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.4)]">

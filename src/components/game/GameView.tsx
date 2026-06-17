@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -6,7 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Game } from '@/types/game';
-import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Zap, Check } from 'lucide-react';
+import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Zap, Check, Info } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -103,13 +102,29 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           text: `Check out this game: ${game.title}`,
           url: url,
         });
-      } catch (err) {}
+      } catch (err) {
+        // Fallback if share is cancelled or fails
+        copyToClipboard(url);
+      }
     } else {
-      try { 
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {}
+      copyToClipboard(url);
+    }
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try { 
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Clipboard failed", err);
+    }
+  };
+
+  const handleAboutScroll = () => {
+    const element = document.getElementById('about-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -182,8 +197,15 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   onClick={handleShare}
                   className="flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase bg-[#09061B] border-2 border-[#1B123D] text-muted hover:text-neon-cyan hover:border-neon-cyan transition-all active:scale-95"
                 >
-                  {copied ? <Check className="w-3 h-3 text-green-500" /> : <Zap className="w-3 h-3 text-neon-cyan" />}
-                  {copied ? 'COPIED' : 'CHALLENGE A FRIEND'}
+                  {copied ? <Check className="w-3 h-3 text-green-500" /> : <Share2 className="w-3 h-3 text-neon-cyan" />}
+                  {copied ? 'COPIED' : 'SHARE'}
+                </button>
+                <button 
+                  onClick={handleAboutScroll}
+                  className="flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase bg-[#09061B] border-2 border-[#1B123D] text-muted hover:text-neon-gold hover:border-neon-gold transition-all active:scale-95"
+                >
+                  <Info className="w-3 h-3 text-neon-gold" />
+                  ABOUT GAME
                 </button>
               </div>
               <div className="hidden sm:flex items-center gap-4 text-muted font-pixel text-[6px] uppercase tracking-widest">
@@ -246,7 +268,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           </div>
         </div>
 
-        <div className="border-t-4 border-[#1B123D] pt-12 pb-16 bg-[#0d051c]/50 rounded-b-3xl px-6 sm:px-12">
+        <div id="about-section" className="border-t-4 border-[#1B123D] pt-12 pb-16 bg-[#0d051c]/50 rounded-b-3xl px-6 sm:px-12">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
               <div className="flex-1">
