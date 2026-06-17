@@ -14,19 +14,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const gameEntries = allGames
       .filter(game => game && (game.slug || game.id))
       .map((game) => ({
-        url: `${baseUrl}/games/${game.slug || game.id}`,
+        url: `${baseUrl}/games/${game.slug || game.id}/`,
         lastModified: currentDate,
         changeFrequency: 'monthly' as const,
         priority: 0.7,
       }));
 
     const staticPages = [
-      { url: baseUrl, lastModified: currentDate, changeFrequency: 'daily', priority: 1.0 },
-      { url: `${baseUrl}/games`, lastModified: currentDate, changeFrequency: 'daily', priority: 0.9 },
+      { 
+        url: `${baseUrl}/`, 
+        lastModified: currentDate, 
+        changeFrequency: 'daily' as const, 
+        priority: 1.0 
+      },
+      { 
+        url: `${baseUrl}/games/`, 
+        lastModified: currentDate, 
+        changeFrequency: 'daily' as const, 
+        priority: 0.9 
+      },
     ];
 
     return [...staticPages, ...gameEntries];
   } catch (error) {
-    return [{ url: baseUrl, lastModified: currentDate, changeFrequency: 'daily', priority: 1.0 }];
+    return [{ 
+      url: `${baseUrl}/`, 
+      lastModified: currentDate, 
+      changeFrequency: 'daily' as const, 
+      priority: 1.0 
+    }];
   }
 }
