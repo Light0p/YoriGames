@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GameCard } from '@/components/pixel/GameCard';
-import { Search, Gamepad2, Loader2, Sparkles, Hash } from 'lucide-react';
+import { Search, Gamepad2, Loader2, Sparkles, Hash, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 import Link from 'next/link';
 import Fuse from 'fuse.js';
+import { cn } from '@/lib/utils';
 
 export function SearchContent() {
   const searchParams = useSearchParams();
@@ -14,6 +15,8 @@ export function SearchContent() {
   const { allGames, loading } = useGameStore();
   
   const [query, setQuery] = useState(initialQuery);
+  const [currentPage, setCurrentPage] = useState(1);
+  const gamesPerPage = 36;
 
   // Phase 2: High-performance fuzzy search configuration
   const fuse = useMemo(() => {
@@ -24,8 +27,10 @@ export function SearchContent() {
     });
   }, [allGames]);
 
+  // Reset page whenever the URL search param changes
   useEffect(() => {
     setQuery(initialQuery);
+    setCurrentPage(1);
   }, [initialQuery]);
 
   const filteredGames = useMemo(() => {
@@ -53,6 +58,17 @@ export function SearchContent() {
     }).filter(g => !!g.slug);
   }, [query, fuse, allGames]);
 
+  // Pagination Calculations
+  const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+  const indexOfLastGame = currentPage * gamesPerPage;
+  const indexOfFirstGame = indexOfLastGame - gamesPerPage;
+  const currentGames = filteredGames.slice(indexOfFirstGame, indexOfLastGame);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const recommendations = useMemo(() => {
     if (filteredGames.length > 0 || !allGames.length) return [];
     return [...allGames].sort(() => Math.random() - 0.5).slice(0, 16);
@@ -73,7 +89,10 @@ export function SearchContent() {
         <input 
           type="text" 
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setCurrentPage(1); // Reset page on input
+          }}
           className="w-full bg-[#140A2E] border-4 border-[#1B123D] px-4 sm:px-12 py-4 sm:py-6 text-white font-headline text-xl sm:text-2xl uppercase focus:outline-none focus:border-neon-purple transition-all shadow-[8px_8px_0_0_#000]"
           placeholder="SEARCH UNIVERSE..."
         />
@@ -83,19 +102,74 @@ export function SearchContent() {
       </div>
 
       {query && filteredGames.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-          {filteredGames.map((game, idx) => (
-            <Link key={`${game.id || game.slug}-${idx}`} href={`/games/${game.slug}/`}>
-              <GameCard 
-                slug={game.slug}
-                title={game.title}
-                genre={game.category}
-                rating={game.rating || 5.0}
-                imageUrl={game.thumbnail || game.thumb || ''}
-              />
-            </Link>
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
+            {currentGames.map((game, idx) => (
+              <Link key={`${game.id || game.slug}-${idx}`} href={`/games/${game.slug}/`}>
+                <GameCard 
+                  slug={game.slug}
+                  title={game.title}
+                  genre={game.category}
+                  rating={game.rating || 5.0}
+                  imageUrl={game.thumbnail || game.thumb || ''}
+                />
+              </Link>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-16 flex flex-wrap items-center justify-center gap-2 sm:gap-4">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-3 bg-[#140A2E] border-2 border-[#1B123D] text-white disabled:opacity-30 disabled:cursor-not-allowed hover:border-neon-purple transition-all active:scale-95"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum = currentPage;
+                  if (currentPage <= 3) pageNum = i + 1;
+                  else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                  else pageNum = currentPage - 2 + i;
+
+                  if (pageNum < 1 || pageNum > totalPages) return null;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={cn(
+                        "min-w-[44px] h-11 flex items-center justify-center font-pixel text-[10px] border-2 transition-all active:scale-95",
+                        currentPage === pageNum 
+                          ? "bg-neon-purple border-neon-purple text-white shadow-[2px_2px_0_0_#000]" 
+                          : "bg-[#140A2E] border-[#1B123D] text-muted hover:text-white"
+                      )}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-3 bg-[#140A2E] border-2 border-[#1B123D] text-white disabled:opacity-30 disabled:cursor-not-allowed hover:border-neon-purple transition-all active:scale-95"
+                aria-label="Next Page"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              <div className="w-full text-center mt-4 font-pixel text-[8px] text-muted-foreground uppercase tracking-widest">
+                Sector {currentPage} of {totalPages}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {query && filteredGames.length === 0 && (
