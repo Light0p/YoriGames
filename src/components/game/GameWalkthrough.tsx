@@ -1,18 +1,17 @@
+
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { Play, Video } from 'lucide-react';
-import Image from 'next/image';
+import { Video } from 'lucide-react';
 
 /**
  * GameWalkthrough Component
- * Performance-optimized version with high-contrast event listeners.
- * Features an interactive overlay to prevent background script overhead during initial load.
+ * Simplified Phase 3 version: Removed custom overlay button to let native 
+ * GameMonetize walkthrough controls handle playback.
  */
-export const GameWalkthrough = ({ gameUrl, thumbnail }: { gameUrl: string, thumbnail?: string }) => {
+export const GameWalkthrough = ({ gameUrl }: { gameUrl: string, thumbnail?: string }) => {
   const [extractedId, setExtractedId] = useState<string>("");
   const [hasFailed, setHasFailed] = useState(false);
-  const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
     if (!gameUrl) {
@@ -34,15 +33,15 @@ export const GameWalkthrough = ({ gameUrl, thumbnail }: { gameUrl: string, thumb
     }
   }, [gameUrl]);
 
-  // Script injection only occurs once the user clicks "Initialize"
+  // Phase 3: Automatically initialize video uplink when ID is ready
   useEffect(() => {
-    if (!extractedId || hasFailed || !isActive) return;
+    if (!extractedId || hasFailed) return;
 
     // Set the Global Config required by the GameMonetize API
     (window as any).VIDEO_OPTIONS = {
       gameid: extractedId,
       width: "100%",
-      height: "480px",
+      height: "100%",
       color: "#A855F7",
       getAds: "false"
     };
@@ -54,7 +53,6 @@ export const GameWalkthrough = ({ gameUrl, thumbnail }: { gameUrl: string, thumb
     script.async = true;
     document.body.appendChild(script);
 
-    // Watchdog: If no iframe is injected within 8s, fallback
     const watchdogTimer = setTimeout(() => {
       const container = document.getElementById("gamemonetize-video");
       if (container && !container.querySelector('iframe')) {
@@ -70,7 +68,7 @@ export const GameWalkthrough = ({ gameUrl, thumbnail }: { gameUrl: string, thumb
       const container = document.getElementById("gamemonetize-video");
       if (container) container.innerHTML = ''; 
     };
-  }, [extractedId, hasFailed, isActive]);
+  }, [extractedId, hasFailed]);
 
   if (hasFailed) return null;
 
@@ -80,43 +78,13 @@ export const GameWalkthrough = ({ gameUrl, thumbnail }: { gameUrl: string, thumb
         <Video className="w-4 h-4 text-neon-purple" /> Mission Walkthrough
       </h3>
       
-      <div className="w-full relative min-h-[480px] bg-black/20 flex items-center justify-center overflow-hidden border border-white/5 rounded-lg">
-        
-        {!isActive ? (
-          /* High-Contrast Event Listener Overlay */
-          <button 
-            onClick={() => setIsActive(true)}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center group/btn outline-none focus-visible:ring-4 focus-visible:ring-neon-purple"
-            aria-label="Load Game Walkthrough"
-          >
-            {thumbnail && (
-              <div className="absolute inset-0 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700 pointer-events-none">
-                <Image 
-                  src={thumbnail} 
-                  alt="" 
-                  fill 
-                  className="object-cover" 
-                />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors pointer-events-none" />
-            
-            <div className="relative z-30 bg-[#A855F7] p-6 rounded-full border-4 border-black shadow-[0_0_30px_rgba(168,85,247,0.4)] group-hover:scale-110 transition-transform duration-300">
-              <Play className="w-8 h-8 text-white fill-white ml-1" />
-            </div>
-            
-            <span className="relative z-30 font-pixel text-[10px] text-white mt-6 uppercase tracking-[0.2em] drop-shadow-lg group-hover:text-neon-cyan transition-colors">
-              Initialize Video Uplink
-            </span>
-          </button>
-        ) : (
-          /* The GameMonetize Video Target */
-          <div id="gamemonetize-video" className="w-full h-full z-10 relative">
-             <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
-               <div className="font-pixel text-[8px] text-muted animate-pulse uppercase">Syncing Visual Stream...</div>
-             </div>
-          </div>
-        )}
+      {/* Responsive aspect-video container - Phase 3 */}
+      <div className="w-full aspect-video bg-black/20 flex items-center justify-center overflow-hidden border border-white/5 rounded-lg relative">
+        <div id="gamemonetize-video" className="w-full h-full z-10 relative">
+           <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
+             <div className="font-pixel text-[8px] text-muted animate-pulse uppercase">Syncing Visual Stream...</div>
+           </div>
+        </div>
       </div>
       
       <div className="mt-6 flex items-center justify-between opacity-40">

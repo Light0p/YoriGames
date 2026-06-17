@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -9,7 +10,7 @@ import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Za
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { useGameStore } from '@/context/GameContext';
+import { useGameStore } from '@/context/GameStore';
 import { GameWalkthrough } from './GameWalkthrough';
 import { useArcadeState } from '@/hooks/useArcadeState';
 
@@ -21,6 +22,7 @@ interface GameViewProps {
 export function GameView({ game, discoveryPool }: GameViewProps) {
   const [loading, setLoading] = useState(true);
   const [displayGames, setDisplayGames] = useState<Game[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { recordPlay } = useGameStore();
   const { addRecent, toggleFavorite, isFavorite } = useArcadeState();
@@ -83,11 +85,11 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   }, [game.id, recordPlay, addRecent, game]);
 
   const toggleFullscreen = () => {
-    if (iframeRef.current) {
-      if (iframeRef.current.requestFullscreen) {
-        iframeRef.current.requestFullscreen();
-      } else if ((iframeRef.current as any).webkitRequestFullscreen) {
-        (iframeRef.current as any).webkitRequestFullscreen();
+    if (containerRef.current) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen();
+      } else if ((containerRef.current as any).webkitRequestFullscreen) {
+        (containerRef.current as any).webkitRequestFullscreen();
       }
     }
   };
@@ -126,28 +128,40 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
           <div className="lg:col-span-9">
-            <div className="relative w-full aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl">
-              {!showIframe && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c]">
-                  <Loader2 className="w-10 h-10 text-neon-purple animate-spin mb-4" />
-                  <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
+            {/* Fullscreen Wrapper Fix - Phase 3 */}
+            <div 
+              ref={containerRef}
+              className="relative w-full aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center fullscreen:h-screen fullscreen:w-screen fullscreen:rounded-none fullscreen:border-0"
+            >
+              {/* Internal aspect-ratio keeper - Phase 3 */}
+              <div className="w-full h-full max-h-full max-w-full aspect-video mx-auto relative flex items-center justify-center">
+                {!showIframe && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c]">
+                    <Loader2 className="w-10 h-10 text-neon-purple animate-spin mb-4" />
+                    <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
+                  </div>
+                )}
+                {showIframe && (
+                  <iframe 
+                    ref={iframeRef}
+                    src={game.iframe_url || game.url || ''}
+                    className="absolute inset-0 w-full h-full border-none z-10"
+                    allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
+                    onLoad={() => setLoading(false)}
+                    loading="eager"
+                  />
+                )}
+
+                {/* Ad Layer Isolation - z-50 - Phase 3 */}
+                <div className="absolute inset-0 z-50 pointer-events-none">
+                  <div id="game-ad-container" className="pointer-events-auto" />
                 </div>
-              )}
-              {showIframe && (
-                <iframe 
-                  ref={iframeRef}
-                  src={game.iframe_url || game.url || ''}
-                  className="absolute inset-0 w-full h-full border-none z-10"
-                  allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
-                  onLoad={() => setLoading(false)}
-                  loading="eager"
-                />
-              )}
-              <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+
+                {/* Fullscreen Toggle Button - explicitly positioned z-40 - Phase 3 */}
                 <button 
                   onClick={toggleFullscreen}
-                  className="bg-black/80 p-3 border-2 border-white/20 hover:border-white transition-all backdrop-blur-sm rounded-lg"
-                  title="Fullscreen"
+                  className="absolute bottom-4 right-4 z-40 bg-black/80 p-3 border-2 border-white/20 hover:border-white transition-all backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 active:scale-95"
+                  title="Toggle Fullscreen"
                 >
                   <Maximize2 className="w-5 h-5 text-white" />
                 </button>
@@ -244,7 +258,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2 bg-neon-gold/10 px-3 py-1 border border-neon-gold/30">
                     <Star className="w-4 h-4 text-neon-gold fill-neon-gold" />
-                    <span className="font-pixel text-xs text-neon-gold">{game.rating.toFixed(1)}</span>
+                    <span className="font-pixel text-xs text-neon-gold">{(game.rating || 5.0).toFixed(1)}</span>
                   </div>
                   <div className="font-pixel text-[10px] text-muted uppercase tracking-widest">
                     {(game.play_count || 0).toLocaleString()} Verified Plays
@@ -271,13 +285,11 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 <h3 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">About this game</h3>
                 <p className="font-body text-base">{game.description}</p>
                 <div className="flex flex-wrap gap-2 pt-4">
-                  {/* Phase 2: Hashtag Navigation Logic */}
                   {game.tags?.map(tag => (
                     <Link href={`/search/?q=${encodeURIComponent('#' + tag)}`} key={tag} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-cyan transition-colors uppercase rounded-lg">
                       #{tag}
                     </Link>
                   ))}
-                  {/* Always include category as a searchable tag */}
                   <Link href={`/search/?q=${encodeURIComponent('#' + game.category)}`} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-pink transition-colors uppercase rounded-lg">
                     #{game.category}
                   </Link>
