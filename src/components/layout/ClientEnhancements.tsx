@@ -6,7 +6,7 @@ import { useState, useEffect, ReactNode } from 'react';
  * Ensures children are only rendered on the client after hydration.
  * This prevents UI flickering and mismatch errors with Cloudflare ISR cache.
  */
-export function ClientEnhancements({ children }: { children: ReactNode }) {
+export function ClientEnhancements({ children }: { children?: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
