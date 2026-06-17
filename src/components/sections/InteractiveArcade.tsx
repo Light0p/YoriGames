@@ -93,8 +93,7 @@ export const InteractiveArcade = () => {
                   title={game.title}
                   genre={game.category}
                   rating={game.rating}
-                  imageUrl={game.thumbnail || (game as any).thumb}
-                />
+                  imageUrl={game.thumbnail || (game as any).thumb} slug={''}                />
               </Link>
             ))}
           </div>
