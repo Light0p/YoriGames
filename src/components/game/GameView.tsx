@@ -10,7 +10,7 @@ import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Za
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { useGameStore } from '@/context/GameStore';
+import { useGameStore } from '@/context/GameContext';
 import { GameWalkthrough } from './GameWalkthrough';
 import { useArcadeState } from '@/hooks/useArcadeState';
 
@@ -128,12 +128,10 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
           <div className="lg:col-span-9">
-            {/* Fullscreen Wrapper Fix - Phase 3 */}
             <div 
               ref={containerRef}
               className="relative w-full aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center fullscreen:h-screen fullscreen:w-screen fullscreen:rounded-none fullscreen:border-0"
             >
-              {/* Internal aspect-ratio keeper - Phase 3 */}
               <div className="w-full h-full max-h-full max-w-full aspect-video mx-auto relative flex items-center justify-center">
                 {!showIframe && (
                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c]">
@@ -152,12 +150,10 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   />
                 )}
 
-                {/* Ad Layer Isolation - z-50 - Phase 3 */}
                 <div className="absolute inset-0 z-50 pointer-events-none">
                   <div id="game-ad-container" className="pointer-events-auto" />
                 </div>
 
-                {/* Fullscreen Toggle Button - explicitly positioned z-40 - Phase 3 */}
                 <button 
                   onClick={toggleFullscreen}
                   className="absolute bottom-4 right-4 z-40 bg-black/80 p-3 border-2 border-white/20 hover:border-white transition-all backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 active:scale-95"
