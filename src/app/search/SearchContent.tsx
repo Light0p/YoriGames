@@ -61,12 +61,13 @@ export function SearchContent() {
       {query && filteredGames.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
           {filteredGames.map(game => (
-            <Link key={game.id} href={`/games/${game.slug}`}>
+            <Link key={game.id} href={`/games/${game.slug}/`}>
               <GameCard 
+                slug={game.slug}
                 title={game.title}
                 genre={game.category}
                 rating={game.rating || 5.0}
-                imageUrl={game.thumbnail}
+                imageUrl={game.thumbnail || ''}
               />
             </Link>
           ))}
@@ -88,12 +89,13 @@ export function SearchContent() {
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
                 {recommendations.map(game => (
-                  <Link key={game.id} href={`/games/${game.slug}`}>
+                  <Link key={game.id} href={`/games/${game.slug}/`}>
                     <GameCard 
+                      slug={game.slug}
                       title={game.title}
                       genre={game.category}
                       rating={game.rating || 5.0}
-                      imageUrl={game.thumbnail}
+                      imageUrl={game.thumbnail || ''}
                     />
                   </Link>
                 ))}
