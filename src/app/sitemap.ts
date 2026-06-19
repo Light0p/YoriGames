@@ -1,47 +1,38 @@
 import { MetadataRoute } from 'next';
 import { getSearchableGames } from '@/lib/games';
 
-// Static export ke liye yeh line compulsory hai
 export const dynamic = 'force-static';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://yorigamesonline.online';
-  const currentDate = new Date().toISOString();
+  const games = await getSearchableGames(5000);
 
-  try {
-    const allGames = await getSearchableGames(49000);
+  const staticPages: MetadataRoute.Sitemap = [
+    {
+      url: 'https://yorigamesonline.online',
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
+    {
+      url: 'https://yorigamesonline.online/games',
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: 'https://yorigamesonline.online/categories',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+  ];
 
-    const gameEntries = allGames
-      .filter(game => game && (game.slug || game.id))
-      .map((game) => ({
-        url: `${baseUrl}/games/${game.slug || game.id}/`,
-        lastModified: currentDate,
-        changeFrequency: 'monthly' as const,
-        priority: 0.7,
-      }));
+  const gameUrls: MetadataRoute.Sitemap = games.map((game) => ({
+    url: `https://yorigamesonline.online/games/${game.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }));
 
-    const staticPages = [
-      { 
-        url: `${baseUrl}/`, 
-        lastModified: currentDate, 
-        changeFrequency: 'daily' as const, 
-        priority: 1.0 
-      },
-      { 
-        url: `${baseUrl}/games/`, 
-        lastModified: currentDate, 
-        changeFrequency: 'daily' as const, 
-        priority: 0.9 
-      },
-    ];
-
-    return [...staticPages, ...gameEntries];
-  } catch (error) {
-    return [{ 
-      url: `${baseUrl}/`, 
-      lastModified: currentDate, 
-      changeFrequency: 'daily' as const, 
-      priority: 1.0 
-    }];
-  }
+  return [...staticPages, ...gameUrls];
 }
