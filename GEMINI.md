@@ -24,11 +24,16 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - Added "Share" and "About Game" actions to the Game View player.
 - Configured native Next.js sitemap to prevent HTML injection.
 
+## Bugs Already Fixed
+- **Fullscreen iframe remount**: `GameView.tsx` no longer conditionally restructures the player DOM or keys inner wrappers on fullscreen toggles. The iframe stays mounted in a stable React tree; the Fullscreen API targets `playerContainerRef` only, preserving in-game state on exit.
+- **ESC fullscreen desync**: A `fullscreenchange` listener syncs React UI state when the browser exits fullscreen natively (e.g. ESC), preventing grey-screen UI drift.
+- **Mobile touch "hidden wall"**: Absolute overlay containers (control bar, ad wrapper) use `pointer-events-none` on outer wrappers. `pointer-events-auto` is applied only to interactive `<button>` elements and the `#game-ad-container` mount point. No forced `w-full`/`h-full` on the ad container — the GameMonetize SDK dictates ad size when injected.
+- **Portrait orientation lock removed**: CSS-forced mobile rotation prompts were removed to support native portrait HTML5 games (e.g. Subway Surfers). Player sizing relies on Tailwind `w-full h-full` and native `:fullscreen` styles.
+
 ## Known Remaining Bugs
-1. **Mobile Rotation**: Game player canvas does not resize correctly on orientation change.
+1. **Mobile Rotation**: Game player canvas may still not resize perfectly on some devices during orientation change (no forced lock; relies on natural CSS).
 2. **z-index Conflict**: The "Skip Ad" button from GameMonetize is sometimes hidden behind our custom fullscreen button.
-3. **Fullscreen Exit**: Exiting fullscreen via ESC key occasionally leaves the UI in a greyed-out state.
-4. **Search Latency**: Initializing the 5,000+ game index on the search page can cause a minor main-thread block on low-end mobile devices.
+3. **Search Latency**: Initializing the 5,000+ game index on the search page can cause a minor main-thread block on low-end mobile devices.
 
 ## Strict Rules — Never Break
 - **No SSR**: Never add server-side API routes, `cookies()`, or `headers()`.
@@ -36,6 +41,8 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - **Client Safety**: Always wrap `useSearchParams()` in a `<Suspense>` boundary.
 - **Storage Privacy**: `localStorage` keys must be user-scoped: `yori_${uid}_keyname`.
 - **Clean Sitemaps**: Keep scripts and providers only in `layout.tsx`; verify `sitemap.xml` remains valid XML.
+- **Stable Game Iframe**: Never unmount/remount the game iframe on fullscreen or resize events; use a single stable container ref and native Fullscreen API.
+- **Pointer Events on Overlays**: Absolute player overlays must use `pointer-events-none` on wrappers; only buttons and SDK-injected ad UI may use `pointer-events-auto`. Never apply full-size dimensions to empty ad mount containers.
 
 ## What Does NOT Exist (Deleted / Non-Existent)
 - `src/app/(main)/`: This folder and its separate layout were removed to fix parallel route conflicts.

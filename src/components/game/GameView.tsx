@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
 import { Game } from '@/types/game';
-import { Star, Play, Share2, Maximize2, ArrowLeft, Loader2, RefreshCw, Heart, Zap, Check, Info } from 'lucide-react';
+import { Star, Play, Share2, Maximize2, Minimize2, ArrowLeft, Loader2, RefreshCw, Heart, Check, Info } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -18,10 +18,15 @@ interface GameViewProps {
   discoveryPool: Game[];
 }
 
+/** Cross-browser helper — client-only, static-export safe. */
+function getFullscreenElement(): Element | null {
+  const doc = document as Document & { webkitFullscreenElement?: Element | null };
+  return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+}
+
 export function GameView({ game, discoveryPool }: GameViewProps) {
-  const [loading, setLoading] = useState(true);
   const [displayGames, setDisplayGames] = useState<Game[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { recordPlay } = useGameStore();
   const { addRecent, toggleFavorite, isFavorite } = useArcadeState();
@@ -31,6 +36,9 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   const sdkReady = useRef(false);
   const iframeMounted = useRef(false);
   const [showIframe, setShowIframe] = useState(false);
+
+  // UI-only flag for control icons; never used to conditionally render player DOM.
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     function mountIframe() {
@@ -58,6 +66,25 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     };
   }, []);
 
+  // Keep React in sync when the browser exits fullscreen via ESC or native UI.
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!getFullscreenElement()) {
+        setIsFullscreen(false);
+      } else {
+        setIsFullscreen(true);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   useEffect(() => {
     shuffleDiscovery();
   }, [discoveryPool, game.id]);
@@ -73,23 +100,33 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       recordPlay();
-      addRecent({ 
-        slug: game.slug, 
-        title: game.title, 
-        category: game.category, 
-        thumb: game.thumbnail || game.thumb || '' 
+      addRecent({
+        slug: game.slug,
+        title: game.title,
+        category: game.category,
+        thumb: game.thumbnail || game.thumb || ''
       });
     }, 5000);
     return () => clearTimeout(timer);
   }, [game.id, recordPlay, addRecent, game]);
 
-  const toggleFullscreen = () => {
-    if (containerRef.current) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
-      } else if ((containerRef.current as any).webkitRequestFullscreen) {
-        (containerRef.current as any).webkitRequestFullscreen();
+  const toggleFullscreen = async () => {
+    const el = playerContainerRef.current;
+    if (!el) return;
+
+    const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> };
+
+    try {
+      if (getFullscreenElement()) {
+        if (doc.exitFullscreen) await doc.exitFullscreen();
+        else if (doc.webkitExitFullscreen) await doc.webkitExitFullscreen();
+      } else if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if ((el as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }).webkitRequestFullscreen) {
+        await (el as HTMLElement & { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen();
       }
+    } catch {
+      setIsFullscreen(false);
     }
   };
 
@@ -103,7 +140,6 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           url: url,
         });
       } catch (err) {
-        // Fallback if share is cancelled or fails
         copyToClipboard(url);
       }
     } else {
@@ -112,7 +148,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   };
 
   const copyToClipboard = async (url: string) => {
-    try { 
+    try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -143,64 +179,98 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
           <div className="lg:col-span-9">
-            <div 
-              ref={containerRef}
-              className="relative w-full aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center fullscreen:h-screen fullscreen:w-screen fullscreen:rounded-none fullscreen:border-0"
+            {/*
+              Stable player shell: fullscreen API targets this ref only.
+              Never conditionally mount/unmount iframe or swap keys on fullscreen changes.
+            */}
+            <div
+              ref={playerContainerRef}
+              className="relative w-full aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center [&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
             >
-              <div className="w-full h-full max-h-full max-w-full aspect-video mx-auto relative flex items-center justify-center">
+              <div className="w-full h-full max-h-full max-w-full aspect-video mx-auto relative flex items-center justify-center [&:fullscreen]:aspect-auto [&:fullscreen]:h-full [&:fullscreen]:w-full">
                 {!showIframe && (
-                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c]">
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c] pointer-events-none">
                     <Loader2 className="w-10 h-10 text-neon-purple animate-spin mb-4" />
                     <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
                   </div>
                 )}
                 {showIframe && (
-                  <iframe 
+                  <iframe
                     ref={iframeRef}
                     src={game.iframe_url || game.url || ''}
                     className="absolute inset-0 w-full h-full border-none z-10"
                     allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
-                    onLoad={() => setLoading(false)}
                     loading="eager"
                   />
                 )}
 
-                <div className="absolute inset-0 z-50 pointer-events-none">
-                  <div id="game-ad-container" className="pointer-events-auto" />
+                {/* Ad mount point — outer wrapper is fully click-through; inner has no forced size so empty state cannot trap touches */}
+                <div className="absolute inset-0 z-40 pointer-events-none">
+                  <div id="game-ad-container" className="pointer-events-auto inline-block w-auto h-auto" />
                 </div>
 
-                <button 
-                  onClick={toggleFullscreen}
-                  className="absolute bottom-4 right-4 z-40 bg-black/80 p-3 border-2 border-white/20 hover:border-white transition-all backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 active:scale-95"
-                  title="Toggle Fullscreen"
+                {/* Top-right controls — outer bar is click-through; only buttons capture touch/click */}
+                <div
+                  className={cn(
+                    "absolute top-0 right-0 z-50 p-3",
+                    "pointer-events-none opacity-0 transition-opacity duration-200",
+                    "max-md:opacity-100 md:group-hover:opacity-100",
+                    isFullscreen && "opacity-100"
+                  )}
                 >
-                  <Maximize2 className="w-5 h-5 text-white" />
-                </button>
+                  <div className="flex flex-wrap items-center gap-2 pointer-events-none rounded-lg bg-black/80 p-1.5 border-2 border-white/20 backdrop-blur-sm">
+                    <button
+                      type="button"
+                      onClick={toggleFullscreen}
+                      className="pointer-events-auto touch-manipulation p-2 hover:bg-white/10 rounded-md transition-all active:scale-95"
+                      title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                      aria-pressed={isFullscreen}
+                    >
+                      {isFullscreen ? (
+                        <Minimize2 className="w-5 h-5 text-white" />
+                      ) : (
+                        <Maximize2 className="w-5 h-5 text-white" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="pointer-events-auto touch-manipulation p-2 hover:bg-white/10 rounded-md transition-all active:scale-95 sm:hidden"
+                      title="Share game"
+                    >
+                      {copied ? (
+                        <Check className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <Share2 className="w-5 h-5 text-neon-cyan" />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-4 items-center justify-between bg-[#140A2E] p-4 border-2 border-[#1B123D] shadow-[4px_4px_0_0_#000]">
               <div className="flex gap-4">
-                <button 
+                <button
                   onClick={() => toggleFavorite({ slug: game.slug, title: game.title, category: game.category, thumb: game.thumbnail || game.thumb || '' })}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase border-2 transition-all active:scale-95",
-                    isFav 
-                      ? "bg-neon-pink border-neon-pink text-white" 
+                    isFav
+                      ? "bg-neon-pink border-neon-pink text-white"
                       : "bg-[#09061B] border-[#1B123D] text-muted hover:text-white"
                   )}
                 >
                   <Heart className={cn("w-3 h-3", isFav && "fill-current")} />
                   {isFav ? 'SAVED' : 'SAVE'}
                 </button>
-                <button 
+                <button
                   onClick={handleShare}
                   className="flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase bg-[#09061B] border-2 border-[#1B123D] text-muted hover:text-neon-cyan hover:border-neon-cyan transition-all active:scale-95"
                 >
                   {copied ? <Check className="w-3 h-3 text-green-500" /> : <Share2 className="w-3 h-3 text-neon-cyan" />}
                   {copied ? 'COPIED' : 'SHARE'}
                 </button>
-                <button 
+                <button
                   onClick={handleAboutScroll}
                   className="flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase bg-[#09061B] border-2 border-[#1B123D] text-muted hover:text-neon-gold hover:border-neon-gold transition-all active:scale-95"
                 >
@@ -221,12 +291,12 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           <div className="hidden lg:grid lg:col-span-3 grid-cols-2 grid-rows-3 gap-3">
             {displayGames.slice(0, 6).map((g) => (
               <Link key={`side-${g.id}`} href={`/games/${g.slug}/`} className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl">
-                <Image 
-                  src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'} 
-                  alt={g.title} 
-                  fill 
+                <Image
+                  src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'}
+                  alt={g.title}
+                  fill
                   unoptimized={true}
-                  className="object-cover group-hover:scale-110 transition-transform" 
+                  className="object-cover group-hover:scale-110 transition-transform"
                   sizes="15vw"
                 />
               </Link>
@@ -239,7 +309,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
             <h2 className="font-pixel text-xs text-white uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-neon-cyan animate-pulse rounded-full" /> Suggested Missions
             </h2>
-            <button 
+            <button
               onClick={shuffleDiscovery}
               className="flex items-center gap-2 font-pixel text-[8px] text-muted hover:text-neon-cyan transition-colors uppercase group"
             >
@@ -250,17 +320,17 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3">
             {displayGames.slice(6).map((g) => (
-              <Link 
-                key={`floor-${g.id}`} 
-                href={`/games/${g.slug}/`} 
+              <Link
+                key={`floor-${g.id}`}
+                href={`/games/${g.slug}/`}
                 className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-purple hover:scale-105 transition-all group rounded-2xl shadow-lg"
               >
-                <Image 
-                  src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'} 
-                  alt={g.title} 
-                  fill 
+                <Image
+                  src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'}
+                  alt={g.title}
+                  fill
                   unoptimized={true}
-                  className="object-cover" 
+                  className="object-cover"
                   sizes="(max-width: 640px) 33vw, 12vw"
                 />
               </Link>
@@ -293,8 +363,8 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
               </div>
             </div>
 
-            <GameWalkthrough 
-              gameUrl={game.iframe_url || game.url || ''} 
+            <GameWalkthrough
+              gameUrl={game.iframe_url || game.url || ''}
               thumbnail={game.thumbnail || game.thumb}
             />
 
