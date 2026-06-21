@@ -77,6 +77,14 @@ export default async function RootLayout({
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/service-worker.js');
               });
+
+              // Prevent stale bundle crashes by reloading when a new worker takes over
+              let refreshing = false;
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+              });
             }
           `}
         </Script>

@@ -1,11 +1,11 @@
 # YoriGames — Technical Architecture Documentation
 
-**Last Verified:** 2026-06-22
+**Last Verified:** 2024-03-22
 
 ## SECTION 1: Executive Project Summary
 YoriGames is a static, high-performance arcade for indie pixel-art games.
 - **Target Journey:** Land on home -> Discovery via AI or Category -> Instant Play in Iframe -> Save to Favorites.
-- **Architecture Benefit:** `output: 'export'` ensures zero server costs and instant edge-loading via CDNs (Vercel/Cloudflare).
+- **Architecture Benefit:** `output: 'export'` ensures zero server costs and instant edge-loading via CDNs.
 - **Technical Boundaries:** No Node.js runtime. No Server Actions. No Middleware. No dynamic headers.
 
 ## SECTION 2: Architecture Decision Record (ADR)
@@ -14,20 +14,14 @@ YoriGames is a static, high-performance arcade for indie pixel-art games.
 **Why:** Eliminate operational costs and maximize speed for a catalog of 5,000+ games.
 
 **Decision:** Web Worker Data Pipeline (`gameData.worker.ts`)
-**Why:** Parsing a 1.2MB+ JSON file and building a Fuse.js index for 5,000 items is a synchronous task that blocks the main thread.
-**Consequence:** UI remains interactive during data load; fuzzy search does not cause frame drops.
+**Why:** Parsing a 1.2MB+ JSON file and indexing 5,000 items blocks the main thread.
+**Consequence:** UI remains interactive during data load; search does not cause frame drops.
 
 **Decision:** Unitary Root Layout
-**Why:** Simplifies route management and prevents parallel page conflicts.
-**Consequence:** Sitemap purity must be maintained via `MetadataRoute.Sitemap`.
+**Why:** Prevents parallel page conflicts and simplifies route management for static output.
 
-**Decision:** Stable Game Iframe Shell (`GameView.tsx`)
-**Why:** Fullscreen toggles and orientation changes must not restart games.
-**Consequence:** One persistent `playerContainerRef` drives the native Fullscreen API; the `<iframe>` never unmounts.
-
-**Decision:** Memoized Visual Background (`GalaxyBackground.tsx`)
-**Why:** The complex star field uses `Math.random()` and trig logic. Without memoization, elements "jump" on parent re-renders.
-**Consequence:** Background is computationally cheap after initial mount; visual stability is preserved.
+**Decision:** native PWA Sync Logic
+**Why:** Resolves Webpack chunk-mismatch errors by forcing a reload when the Service Worker updates.
 
 ## SECTION 3: Folder & File Structure
 
@@ -35,7 +29,7 @@ YoriGames is a static, high-performance arcade for indie pixel-art games.
 src/
 ├── ai/                     # Genkit AI flows for game discovery
 ├── app/
-│   ├── layout.tsx          # Heavy Root Layout (Providers + Scripts)
+│   ├── layout.tsx          # Root Layout (Providers + Scripts + SW Reg)
 │   ├── sitemap.ts          # XML Generator (MetadataRoute.Sitemap)
 │   ├── games/              # Individual game player and directory
 │   ├── search/             # Off-thread fuzzy search interface
@@ -54,44 +48,37 @@ src/
 ```
 
 ## SECTION 4: Complete Tech Stack
-
-- **Next.js 15.5.9**: Uses App Router with `generateStaticParams` for 5,000+ game pages.
-- **Firebase 11.9.1**: Handles Auth (Google/Email) and Firestore (Global Stats).
-- **Fuse.js 7.0.0**: High-performance fuzzy search running in a Web Worker.
-- **GameMonetize SDK**: Deferred via `DeferredGameMonetizeSDK` (interaction or 5s fallback).
+- **Next.js 15.5.9**: Uses App Router with `generateStaticParams`.
+- **Firebase 11.9.1**: Handles Auth and Firestore (Global Stats).
+- **Fuse.js 7.0.0**: Fuzzy search running in a Web Worker.
+- **GameMonetize SDK**: Deferred via `DeferredGameMonetizeSDK`.
 
 ## SECTION 5: Data Flow
-
 **Flow: Game Discovery & Search**
 1. `GameProvider` spawns `gameData.worker.ts`.
-2. Worker fetches `/games.json` -> `JSON.parse` -> Normalize -> Builds Fuse index.
-3. Worker sends `allGames` back to `GameContext` (Main thread).
-4. User types in `SearchContent.tsx` -> `searchGames(query)` called via context.
-5. `useGameDataWorker` hook debounces query and sends `postMessage` to worker.
-6. Worker executes Fuse search -> returns `results` via `id`-tracked message.
-7. UI renders `results` without ever blocking the main thread for indexing or heavy filtering.
+2. Worker fetches `/games.json` -> `JSON.parse` -> Builds Fuse index.
+3. Worker sends `allGames` to main thread.
+4. User types -> `searchGames(query)` posts message to worker -> worker returns results.
 
-**Flow: Fullscreen (Client-Only)**
-1. User clicks Fullscreen -> `requestFullscreen()` on `playerContainerRef`.
-2. Browser applies native `:fullscreen` styling via Tailwind arbitrary variants.
-3. `fullscreenchange` listener syncs React state; iframe is never remounted.
+**Flow: PWA Update**
+1. New deploy triggers browser to find new SW version.
+2. New SW calls `skipWaiting()`.
+3. Client layout listens for `controllerchange` -> calls `window.location.reload()`.
+4. Page reloads with new JS bundles, preventing "e[o] is not a function" crash.
 
 ## SECTION 6: Rules for Future Development
-
 **NEVER DO:**
 - Add `api/` routes that require a Node.js runtime.
-- Perform `JSON.parse` or heavy `Fuse.js` operations on the main thread for datasets >1MB.
-- Put `pointer-events-auto` on full-size absolute wrapper divs above the game iframe.
-- Re-generate `GalaxyBackground` elements on re-render (use stable memoized data).
+- Perform heavy `Fuse.js` operations on the main thread.
+- Put `pointer-events-auto` on full-size absolute wrapper divs above the iframe.
 
 **ALWAYS DO:**
 - Use `force-static` on new routes.
 - Wrap `useSearchParams()` in `<Suspense>`.
 - Use `LazyGrid` for any grid listing more than ~12 games.
-- Add `decoding="async"` and tight `sizes` on thumbnail `next/image` components.
+- Add `decoding="async"` to thumbnails.
 
-## SECTION 7: Bugs Already Fixed (Performance)
-
+## SECTION 7: Bugs Already Fixed
+- **GalaxyBackground Jitter**: Memoized random generation to prevent star repositioning.
 - **Main Thread Blocking**: Off-loaded JSON parsing and search indexing to a Web Worker.
-- **Visual Jitter**: Memoized `GalaxyBackground` to prevent star repositioning during normalization yields.
-- **DOM Bloat**: Implemented `IntersectionObserver` lazy-mounting for cards, while keeping pagination slices small (≤50 items).
+- **Service Worker Stale Runtime**: Implemented client-side reload on worker activation to sync JS bundles.
