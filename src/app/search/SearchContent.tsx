@@ -7,57 +7,40 @@ import { GameCard } from '@/components/pixel/GameCard';
 import { Search, Gamepad2, Loader2, Sparkles, Hash, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
 import Link from 'next/link';
-import Fuse from 'fuse.js';
 import { cn } from '@/lib/utils';
+import { Game } from '@/types/game';
 
 export function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
-  const { allGames, loading } = useGameStore();
+  const { allGames, loading: libraryLoading, searchGames } = useGameStore();
   
   const [query, setQuery] = useState(initialQuery);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filteredGames, setFilteredGames] = useState<Game[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const gamesPerPage = 36;
 
-  // Phase 2: High-performance fuzzy search configuration
-  const fuse = useMemo(() => {
-    return new Fuse(allGames, {
-      keys: ['title', 'category', 'tags'],
-      threshold: 0.35,
-      minMatchCharLength: 2,
-    });
-  }, [allGames]);
-
-  // Reset page whenever the URL search param changes
+  // Sync query from URL
   useEffect(() => {
     setQuery(initialQuery);
     setCurrentPage(1);
   }, [initialQuery]);
 
-  const filteredGames = useMemo(() => {
-    if (!query.trim()) return [];
-    
-    // Check if it's a hashtag search from hashtag navigation
-    if (query.startsWith('#')) {
-      const tag = query.substring(1).toLowerCase();
-      return allGames.filter(g => {
-        // Defensive check: Ensure tags is an array
-        const gameTags = Array.isArray(g.tags) ? g.tags : [];
-        const gameCategory = (g.category || "").toLowerCase();
-        return gameTags.some(t => String(t).toLowerCase() === tag) || 
-               gameCategory === tag;
-      });
+  // Execute Search via Web Worker
+  useEffect(() => {
+    if (!query.trim()) {
+      setFilteredGames([]);
+      setIsSearching(false);
+      return;
     }
 
-    // Standard Fuzzy Search
-    const results = fuse.search(query);
-    
-    // PHASE 2 SAFETY RULE: Unwrap Fuse result safely
-    return results.map(r => {
-      const actualGame = (r as any).item ? (r as any).item : r;
-      return actualGame;
-    }).filter(g => !!g.slug);
-  }, [query, fuse, allGames]);
+    setIsSearching(true);
+    searchGames(query).then(results => {
+      setFilteredGames(results);
+      setIsSearching(false);
+    });
+  }, [query, searchGames]);
 
   // Pagination Calculations
   const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
@@ -71,11 +54,11 @@ export function SearchContent() {
   };
 
   const recommendations = useMemo(() => {
-    if (filteredGames.length > 0 || !allGames.length) return [];
+    if (filteredGames.length > 0 || !allGames.length || isSearching) return [];
     return [...allGames].sort(() => Math.random() - 0.5).slice(0, 16);
-  }, [filteredGames, allGames]);
+  }, [filteredGames, allGames, isSearching]);
 
-  if (loading && allGames.length === 0) {
+  if (libraryLoading && allGames.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-32 text-center">
         <Loader2 className="w-12 h-12 text-neon-purple animate-spin mx-auto mb-6" />
@@ -92,13 +75,15 @@ export function SearchContent() {
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            setCurrentPage(1); // Reset page on input
+            setCurrentPage(1); 
           }}
           className="w-full bg-[#140A2E] border-4 border-[#1B123D] px-4 sm:px-12 py-4 sm:py-6 text-white font-headline text-xl sm:text-2xl uppercase focus:outline-none focus:border-neon-purple transition-all shadow-[8px_8px_0_0_#000]"
           placeholder="SEARCH UNIVERSE..."
         />
         <div className="absolute right-4 sm:left-4 top-1/2 -translate-y-1/2 opacity-30">
-          {query.startsWith('#') ? <Hash className="w-6 h-6 sm:w-8 sm:h-8 text-neon-cyan" /> : <Search className="w-6 h-6 sm:w-8 sm:h-8 text-muted" />}
+          {isSearching ? <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-neon-purple animate-spin" /> : 
+           query.startsWith('#') ? <Hash className="w-6 h-6 sm:w-8 sm:h-8 text-neon-cyan" /> : 
+           <Search className="w-6 h-6 sm:w-8 sm:h-8 text-muted" />}
         </div>
       </div>
 
@@ -176,7 +161,7 @@ export function SearchContent() {
         </>
       )}
 
-      {query && filteredGames.length === 0 && (
+      {query && filteredGames.length === 0 && !isSearching && (
         <div className="space-y-16">
           <div className="text-center py-20 bg-[#140A2E]/50 border-2 border-dashed border-[#1B123D]">
             <Gamepad2 className="w-16 h-16 text-muted mx-auto mb-4 opacity-30" />

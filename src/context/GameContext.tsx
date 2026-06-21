@@ -1,12 +1,12 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { Game } from '@/types/game';
 import { db } from '@/firebase';
 import { doc, getDoc, updateDoc, increment, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { yieldToMain } from '@/lib/yieldToMain';
+import { useGameDataWorker } from '@/hooks/useGameDataWorker';
 
 interface GameContextType {
   allGames: Game[];
@@ -16,45 +16,10 @@ interface GameContextType {
   categories: string[];
   totalPlays: number;
   recordPlay: () => void;
+  searchGames: (query: string) => Promise<Game[]>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
-
-const buildVersion = typeof window !== 'undefined' ? Date.now() : 0;
-const NORMALIZE_CHUNK_SIZE = 250;
-
-function normalizeGame(g: Record<string, unknown>): Game {
-  let tags: string[] = [];
-  if (Array.isArray(g.tags)) {
-    tags = g.tags as string[];
-  } else if (typeof g.tags === 'string') {
-    tags = g.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
-  }
-
-  const title = g.title as string | undefined;
-  return {
-    ...(g as unknown as Game),
-    slug: (g.slug as string) || (title ? String(title).toLowerCase().replace(/\s+/g, '-') : String(g.id)),
-    tags,
-  };
-}
-
-/** Process 5,000+ games in chunks so the main thread can paint between batches. */
-async function normalizeLibraryInChunks(raw: Record<string, unknown>[]): Promise<Game[]> {
-  const result: Game[] = [];
-
-  for (let i = 0; i < raw.length; i += NORMALIZE_CHUNK_SIZE) {
-    const end = Math.min(i + NORMALIZE_CHUNK_SIZE, raw.length);
-    for (let j = i; j < end; j++) {
-      result.push(normalizeGame(raw[j]));
-    }
-    if (end < raw.length) {
-      await yieldToMain();
-    }
-  }
-
-  return result;
-}
 
 export function GameProvider({ 
   children, 
@@ -65,46 +30,27 @@ export function GameProvider({
   initialGames?: Game[];
   initialTotalGames?: number;
 }) {
+  const { allGames: workerGames, loading: workerLoading, error: workerError, searchGames } = useGameDataWorker();
   const [allGames, setAllGames] = useState<Game[]>(initialGames);
   const [totalGames, setTotalGames] = useState<number>(initialTotalGames);
   const [totalPlays, setTotalPlays] = useState(0);
-  const [loading, setLoading] = useState(allGames.length === 0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const pendingPlaysRef = useRef(0);
   const isSyncingRef = useRef(false);
 
+  // Sync worker data to context state
   useEffect(() => {
-    let cancelled = false;
-
-    const loadLibrary = async () => {
-      try {
-        const response = await fetch(`/games.json?v=${buildVersion}`);
-        if (!response.ok) throw new Error('Uplink failed');
-        const data = await response.json();
-
-        const normalized = await normalizeLibraryInChunks(data as Record<string, unknown>[]);
-        if (cancelled) return;
-
-        setAllGames(normalized);
-        setTotalGames(normalized.length);
-      } catch (err) {
-        console.error("Failed to load game library:", err);
-        if (!cancelled) setError("SEARCH_OFFLINE");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    if (allGames.length === 0) {
-      loadLibrary();
+    if (!workerLoading) {
+      setAllGames(workerGames);
+      setTotalGames(workerGames.length);
+      setLoading(false);
+      setError(workerError);
     }
+  }, [workerLoading, workerGames, workerError]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [allGames.length]);
-
+  // Fetch Global Stats (Main Thread only as it uses Firebase Auth/SDK)
   useEffect(() => {
     const fetchGlobalStats = async () => {
       try {
@@ -114,7 +60,7 @@ export function GameProvider({
         if (snap.exists()) {
           setTotalPlays(snap.data().totalPlays || 0);
         } else {
-          setDoc(statsRef, { totalPlays: 0 }, { merge: true }).catch((err: { code?: string }) => {
+          setDoc(statsRef, { totalPlays: 0 }, { merge: true }).catch((err: any) => {
             if (err.code === 'permission-denied') {
               const permissionError = new FirestorePermissionError({
                 path: statsRef.path,
@@ -145,7 +91,7 @@ export function GameProvider({
     .then(() => {
       pendingPlaysRef.current -= playsToSync;
     })
-    .catch(async (err: { code?: string }) => {
+    .catch(async (err: any) => {
       if (err.code === 'permission-denied') {
         const permissionError = new FirestorePermissionError({
           path: statsRef.path,
@@ -170,7 +116,7 @@ export function GameProvider({
     pendingPlaysRef.current += 1;
   };
 
-  const categories = React.useMemo(() => {
+  const categories = useMemo(() => {
     const set = new Set(allGames.map(g => g.category));
     const cats = Array.from(set).sort();
     return ['All', ...cats.filter(c => c !== 'All')];
@@ -184,7 +130,8 @@ export function GameProvider({
       error, 
       categories, 
       totalPlays,
-      recordPlay
+      recordPlay,
+      searchGames
     }}>
       {children}
     </GameContext.Provider>
