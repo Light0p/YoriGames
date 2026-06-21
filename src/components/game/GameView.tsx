@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PixelButton } from '@/components/pixel/PixelButton';
@@ -18,10 +18,18 @@ interface GameViewProps {
   discoveryPool: Game[];
 }
 
+const GM_SDK_SRC = 'https://api.gamemonetize.com/sdk.js';
+const GM_SDK_SELECTOR = 'script[src*="gamemonetize.com/sdk.js"]';
+
 /** Cross-browser helper — client-only, static-export safe. */
 function getFullscreenElement(): Element | null {
   const doc = document as Document & { webkitFullscreenElement?: Element | null };
   return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+}
+
+function isGameMonetizeReady(): boolean {
+  const win = window as Window & { GameMonetize?: unknown };
+  return Boolean(win.GameMonetize);
 }
 
 export function GameView({ game, discoveryPool }: GameViewProps) {
@@ -37,6 +45,9 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   const iframeMounted = useRef(false);
   const [showIframe, setShowIframe] = useState(false);
 
+  const gameUrl = game.iframe_url || game.url || '';
+  const hasGameUrl = gameUrl.length > 0;
+
   // UI-only flag for control icons; never used to conditionally render player DOM.
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -47,16 +58,29 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
       setShowIframe(true);
     }
 
+    if (!hasGameUrl) return;
+
     const handleSDKReady = () => {
       sdkReady.current = true;
       mountIframe();
     };
+
+    // SDK already initialized — mount immediately (gmSDKReady may have fired on a prior page).
+    if (isGameMonetizeReady()) {
+      sdkReady.current = true;
+      mountIframe();
+      return;
+    }
+
     window.addEventListener('gmSDKReady', handleSDKReady);
 
-    const script = document.createElement('script');
-    script.src = 'https://api.gamemonetize.com/sdk.js';
-    script.async = true;
-    document.head.appendChild(script);
+    const existingScript = document.querySelector(GM_SDK_SELECTOR);
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = GM_SDK_SRC;
+      script.async = true;
+      document.head.appendChild(script);
+    }
 
     const fallback = setTimeout(mountIframe, 2000);
 
@@ -64,7 +88,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
       clearTimeout(fallback);
       window.removeEventListener('gmSDKReady', handleSDKReady);
     };
-  }, []);
+  }, [hasGameUrl]);
 
   // Keep React in sync when the browser exits fullscreen via ESC or native UI.
   useEffect(() => {
@@ -85,17 +109,17 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     };
   }, []);
 
-  useEffect(() => {
-    shuffleDiscovery();
-  }, [discoveryPool, game.id]);
-
-  const shuffleDiscovery = () => {
+  const shuffleDiscovery = useCallback(() => {
     const shuffled = [...discoveryPool]
       .filter(g => g.id !== game.id)
       .sort(() => Math.random() - 0.5)
       .slice(0, 36);
     setDisplayGames(shuffled);
-  };
+  }, [discoveryPool, game.id]);
+
+  useEffect(() => {
+    shuffleDiscovery();
+  }, [shuffleDiscovery]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -126,7 +150,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
         await (el as any).webkitRequestFullscreen();
       }
     } catch {
-      setIsFullscreen(false);
+      setIsFullscreen(!!getFullscreenElement());
     }
   };
 
@@ -185,19 +209,34 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
             */}
             <div
               ref={playerContainerRef}
-              className="relative w-full aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center [&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
+              className="relative w-full aspect-[4/3] md:aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center [&:fullscreen]:h-[100dvh] [&:fullscreen]:w-[100dvw] [&:fullscreen]:rounded-none [&:fullscreen]:border-0 [&:fullscreen]:aspect-auto"
             >
-              <div className="w-full h-full max-h-full max-w-full aspect-video mx-auto relative flex items-center justify-center [&:fullscreen]:aspect-auto [&:fullscreen]:h-full [&:fullscreen]:w-full">
-                {!showIframe && (
+              <div className="w-full h-full">
+                {!hasGameUrl && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c] px-6 text-center">
+                    <Info className="w-10 h-10 text-neon-pink mb-4" />
+                    <p className="font-pixel text-[10px] text-white uppercase tracking-widest mb-2">Game Link Unavailable</p>
+                    <p className="font-body text-sm text-muted max-w-xs">
+                      This game&apos;s play link is missing. Try another title from the arcade.
+                    </p>
+                    <Link
+                      href="/games/"
+                      className="mt-6 font-pixel text-[8px] uppercase text-neon-cyan hover:text-white transition-colors"
+                    >
+                      Browse Games
+                    </Link>
+                  </div>
+                )}
+                {hasGameUrl && !showIframe && (
                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c] pointer-events-none">
                     <Loader2 className="w-10 h-10 text-neon-purple animate-spin mb-4" />
                     <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
                   </div>
                 )}
-                {showIframe && (
+                {hasGameUrl && showIframe && (
                   <iframe
                     ref={iframeRef}
-                    src={game.iframe_url || game.url || ''}
+                    src={gameUrl}
                     className="absolute inset-0 w-full h-full border-none z-10"
                     allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
                     loading="eager"
@@ -306,9 +345,9 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
         <div className="space-y-6 mb-12">
           <div className="flex items-center justify-between">
-            <h2 className="font-pixel text-xs text-white uppercase tracking-widest flex items-center gap-2">
+            <div className="font-pixel text-xs text-white uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-neon-cyan animate-pulse rounded-full" /> Suggested Missions
-            </h2>
+            </div>
             <button
               onClick={shuffleDiscovery}
               className="flex items-center gap-2 font-pixel text-[8px] text-muted hover:text-neon-cyan transition-colors uppercase group"
@@ -346,7 +385,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2 bg-neon-gold/10 px-3 py-1 border border-neon-gold/30">
                     <Star className="w-4 h-4 text-neon-gold fill-neon-gold" />
-                    <span className="font-pixel text-xs text-neon-gold">{(game.rating || 5.0).toFixed(1)}</span>
+                    <span className="font-pixel text-xs text-neon-gold">{(game.rating ?? 5.0).toFixed(1)}</span>
                   </div>
                   <div className="font-pixel text-[10px] text-muted uppercase tracking-widest">
                     {(game.play_count || 0).toLocaleString()} Verified Plays
@@ -364,13 +403,13 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
             </div>
 
             <GameWalkthrough
-              gameUrl={game.iframe_url || game.url || ''}
+              gameUrl={gameUrl}
               thumbnail={game.thumbnail || game.thumb}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-muted leading-relaxed">
               <div className="space-y-6">
-                <h3 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">About this game</h3>
+                <h2 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">About this game</h2>
                 <p className="font-body text-base">{game.description}</p>
                 <div className="flex flex-wrap gap-2 pt-4">
                   {game.tags?.map(tag => (
@@ -384,7 +423,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                 </div>
               </div>
               <div className="space-y-6">
-                <h3 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">Controls & Guide</h3>
+                <h2 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">Controls & Guide</h2>
                 <p className="font-body text-base italic">{game.instructions || "Follow the in-game tutorial to master this mission."}</p>
                 <div className="bg-[#140A2E] p-6 border-l-4 border-neon-pink mt-4">
                   <p className="font-pixel text-[8px] text-white uppercase mb-2">Pro Tip:</p>
