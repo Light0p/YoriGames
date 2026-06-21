@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useRef } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { GameCard } from './GameCard';
+import { LazyGrid } from './LazyGrid';
 import { Game } from '@/types/game';
 
 interface GameGridProps {
@@ -10,26 +11,26 @@ interface GameGridProps {
 }
 
 export const GameGrid = ({ games }: GameGridProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
   return (
-    <div ref={containerRef} className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-      {games.map((game) => (
-        <Link 
-          key={game.id} 
-          href={`/games/${game.slug}`} 
+    <LazyGrid
+      items={games}
+      getKey={(game) => game.id || game.slug}
+      className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3"
+      renderItem={(game) => (
+        <Link
+          href={`/games/${game.slug}/`}
           className="block focus:outline-none focus-visible:ring-4 focus-visible:ring-neon-cyan"
           aria-label={`Play ${game.title} - ${game.category} game`}
         >
-          <GameCard 
+          <GameCard
             slug={game.slug}
             title={game.title}
             genre={game.category}
             rating={game.rating}
-            imageUrl={game.thumbnail || (game as any).thumb}
+            imageUrl={game.thumbnail || game.thumb || ''}
           />
         </Link>
-      ))}
-    </div>
+      )}
+    />
   );
 };

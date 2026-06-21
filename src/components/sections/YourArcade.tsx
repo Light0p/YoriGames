@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useArcadeState } from '@/hooks/useArcadeState';
 import { GameCard } from '@/components/pixel/GameCard';
+import { LazyGrid } from '@/components/pixel/LazyGrid';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Sparkles, History, Heart } from 'lucide-react';
@@ -74,9 +75,12 @@ export function YourArcade() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {displayGames.map((game) => (
-                  <Link key={game.slug} href={`/games/${game.slug}/`}>
+              <LazyGrid
+                items={displayGames}
+                getKey={(game) => game.slug}
+                className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3"
+                renderItem={(game) => (
+                  <Link href={`/games/${game.slug}/`}>
                     <GameCard
                       slug={game.slug}
                       title={game.title}
@@ -85,8 +89,8 @@ export function YourArcade() {
                       imageUrl={game.thumb}
                     />
                   </Link>
-                ))}
-              </div>
+                )}
+              />
             )}
           </div>
         </div>

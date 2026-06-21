@@ -24,12 +24,18 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - Added "Share" and "About Game" actions to the Game View player.
 - Configured native Next.js sitemap to prevent HTML injection.
 
+## Performance Overhaul
+- **IntersectionObserver lazy grids**: `LazyGrid.tsx` defers mounting game cards until slots enter (or near) the viewport. Used by `GameGrid`, Home strips (`GameStrip`, `YourArcade`), Search, and Category/arcade pages — prevents DOM bloat during fast mobile scrolling.
+- **Async image decoding**: All `GameCard` thumbnails use `loading="lazy"` and `decoding="async"` with tight `sizes` hints (`110px`–`180px`) so the main thread is not blocked decoding high-res art for tiny tiles.
+- **Chunked library normalization**: `GameProvider` processes `games.json` in 250-item batches via `requestIdleCallback` / `setTimeout` yields (`yieldToMain.ts`) so the Hero UI paints before 5,000+ records finish normalizing.
+- **Deferred SDK initialization**: GameMonetize `sdk.js` removed from eager `layout.tsx` `<Script>` load. `DeferredGameMonetizeSDK` loads after first scroll/click/touch/keydown or 5s fallback — improves LCP/FID. AdSense moved to `strategy="lazyOnload"`.
+
 ## Bugs Already Fixed
 - **Fullscreen iframe remount**: `GameView.tsx` no longer conditionally restructures the player DOM or keys inner wrappers on fullscreen toggles. The iframe stays mounted in a stable React tree; the Fullscreen API targets `playerContainerRef` only, preserving in-game state on exit.
 - **ESC fullscreen desync**: A `fullscreenchange` listener syncs React UI state when the browser exits fullscreen natively (e.g. ESC), preventing grey-screen UI drift.
 - **Mobile touch "hidden wall"**: Absolute overlay containers (control bar, ad wrapper) use `pointer-events-none` on outer wrappers. `pointer-events-auto` is applied only to interactive `<button>` elements and the `#game-ad-container` mount point. No forced `w-full`/`h-full` on the ad container — the GameMonetize SDK dictates ad size when injected.
 - **Portrait orientation lock removed**: CSS-forced mobile rotation prompts were removed to support native portrait HTML5 games (e.g. Subway Surfers). Player sizing relies on Tailwind `w-full h-full` and native `:fullscreen` styles.
-- **Dynamic native aspect ratio**: Resolved iframe squishing/leaking UI by removing hardcoded Tailwind aspect classes (`aspect-[4/3]`, `aspect-video`). `GameView.tsx` now parses `game.width` / `game.height` strings to compute an inline `aspectRatio`, with portrait games centered via `h-[70dvh] w-auto` and landscape games using `w-full` (16:9 fallback when dims are missing).
+- **Dynamic native aspect ratio**: Resolved iframe squishing/leaking UI by removing hardcoded Tailwind aspect classes. `GameView.tsx` parses `game.width` / `game.height` strings for inline `aspectRatio`, with portrait games centered via `h-[70dvh] w-auto` and landscape games using `w-full`.
 - **GameMonetize SDK script duplication / memory leak**: `GameView.tsx` queries `script[src*="gamemonetize.com/sdk.js"]` before append; if `window.GameMonetize` exists, the iframe mounts immediately instead of re-injecting or missing a stale `gmSDKReady` event.
 - **SEO heading hierarchy**: "Suggested Missions" is no longer an `<h2>` appearing before the page `<h1>` (game title); section labels use styled `<div>` elements to preserve correct H1 → H2 document order.
 - **Falsy-zero ratings**: Game rating display uses nullish coalescing (`game.rating ?? 5.0`) so a legitimate `0` rating is not replaced with `5.0`.
@@ -38,7 +44,7 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 ## Known Remaining Bugs
 1. **Mobile Rotation**: Game player canvas may still not resize perfectly on some devices during orientation change (no forced lock; relies on natural CSS).
 2. **z-index Conflict**: The "Skip Ad" button from GameMonetize is sometimes hidden behind our custom fullscreen button.
-3. **Search Latency**: Initializing the 5,000+ game index on the search page can cause a minor main-thread block on low-end mobile devices.
+3. **Fuse.js cold start**: First search after library load may still spike briefly while the index builds (mitigated by chunked normalization, not eliminated).
 
 ## Strict Rules — Never Break
 - **No SSR**: Never add server-side API routes, `cookies()`, or `headers()`.
@@ -51,6 +57,8 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - **Native Player Aspect Ratio**: Derive container `aspectRatio` from parsed `game.width` / `game.height` strings — never hardcode a single Tailwind aspect class for all games.
 - **SDK Script Idempotency**: Never append duplicate GameMonetize `sdk.js` tags; query for existing scripts and honor already-loaded SDK state on remount.
 - **Heading Order**: Page `<h1>` (game title) must appear before any `<h2>` in the DOM; use non-heading elements for decorative section labels above the fold.
+- **Lazy Grid by Default**: All large game grids must use `LazyGrid` — never map-render hundreds of `GameCard` nodes eagerly.
+- **Defer Non-Critical Scripts**: Ad/analytics SDKs load after interaction or idle — never block Hero paint.
 
 ## What Does NOT Exist (Deleted / Non-Existent)
 - `src/app/(main)/`: This folder and its separate layout were removed to fix parallel route conflicts.

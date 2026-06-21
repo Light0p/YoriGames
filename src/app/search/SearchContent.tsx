@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { LazyGrid } from '@/components/pixel/LazyGrid';
 import { GameCard } from '@/components/pixel/GameCard';
 import { Search, Gamepad2, Loader2, Sparkles, Hash, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
@@ -103,19 +104,22 @@ export function SearchContent() {
 
       {query && filteredGames.length > 0 && (
         <>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-            {currentGames.map((game, idx) => (
-              <Link key={`${game.id || game.slug}-${idx}`} href={`/games/${game.slug}/`}>
-                <GameCard 
+          <LazyGrid
+            items={currentGames}
+            getKey={(game, idx) => `${game.id || game.slug}-${idx}`}
+            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3"
+            renderItem={(game) => (
+              <Link href={`/games/${game.slug}/`}>
+                <GameCard
                   slug={game.slug}
                   title={game.title}
                   genre={game.category}
-                  rating={game.rating || 5.0}
+                  rating={game.rating ?? 5.0}
                   imageUrl={game.thumbnail || game.thumb || ''}
                 />
               </Link>
-            ))}
-          </div>
+            )}
+          />
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
@@ -185,19 +189,22 @@ export function SearchContent() {
                 <Sparkles className="w-5 h-5 text-neon-gold" />
                 <h2 className="font-pixel text-lg text-white uppercase">Alternative Missions</h2>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-                {recommendations.map((game, idx) => (
-                  <Link key={`${game.id || game.slug}-${idx}`} href={`/games/${game.slug}/`}>
-                    <GameCard 
+              <LazyGrid
+                items={recommendations}
+                getKey={(game, idx) => `${game.id || game.slug}-${idx}`}
+                className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3"
+                renderItem={(game) => (
+                  <Link href={`/games/${game.slug}/`}>
+                    <GameCard
                       slug={game.slug}
                       title={game.title}
                       genre={game.category}
-                      rating={game.rating || 5.0}
+                      rating={game.rating ?? 5.0}
                       imageUrl={game.thumbnail || game.thumb || ''}
                     />
                   </Link>
-                ))}
-              </div>
+                )}
+              />
             </section>
           )}
         </div>

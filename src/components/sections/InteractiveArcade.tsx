@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { GameCard } from '@/components/pixel/GameCard';
+import { LazyGrid } from '@/components/pixel/LazyGrid';
 import { cn } from '@/lib/utils';
 import { Gamepad2, Loader2 } from 'lucide-react';
 import { useGameStore } from '@/context/GameContext';
@@ -81,22 +82,26 @@ export const InteractiveArcade = () => {
         </div>
 
         {currentGames.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-16 sm:mb-24">
-            {currentGames.map((game) => (
-              <Link 
-                key={game.id} 
-                href={`/games/${game.slug}`} 
+          <LazyGrid
+            items={currentGames}
+            getKey={(game) => game.id || game.slug}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-16 sm:mb-24"
+            renderItem={(game) => (
+              <Link
+                href={`/games/${game.slug}/`}
                 className="block focus:outline-none"
                 aria-label={`Play ${game.title}`}
               >
-                <GameCard 
+                <GameCard
+                  slug={game.slug}
                   title={game.title}
                   genre={game.category}
                   rating={game.rating}
-                  imageUrl={game.thumbnail || (game as any).thumb} slug={''}                />
+                  imageUrl={game.thumbnail || (game as { thumb?: string }).thumb || ''}
+                />
               </Link>
-            ))}
-          </div>
+            )}
+          />
         ) : (
           <div className="text-center py-32 border-4 border-dashed border-[#1B123D] mx-4 bg-[#140A2E]/30">
             <Gamepad2 className="w-16 h-16 text-muted mx-auto mb-6 opacity-20" />

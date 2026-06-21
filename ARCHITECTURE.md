@@ -32,12 +32,20 @@ YoriGames is a static, high-performance arcade for indie pixel-art games.
 **Consequence:** Outer overlay wrappers use `pointer-events-none`. Only `<button>` elements and `#game-ad-container` (SDK-sized, no forced full dimensions) use `pointer-events-auto`.
 
 **Decision:** Dynamic Native Aspect Ratio (Game Player)
-**Why:** Hardcoded Tailwind aspect classes (`aspect-video`, `aspect-[4/3]`) forced landscape games into portrait containers (and vice versa), causing iframe squishing and in-game UI leaking outside bounds.
+**Why:** Hardcoded Tailwind aspect classes forced landscape games into portrait containers (and vice versa), causing iframe squishing and in-game UI leaking outside bounds.
 **Consequence:** Parse optional `game.width` / `game.height` strings with `parseInt`; set `style={{ aspectRatio: width/height }}` on `playerContainerRef`. Portrait (`ratio < 1`): `h-[70dvh] w-auto max-w-full`, centered in a flex wrapper. Landscape: `w-full`. Fallback ratio: `16/9` when dimensions are missing or invalid.
 
 **Decision:** Idempotent GameMonetize SDK Loading
-**Why:** `GameView` remounts and root `layout.tsx` both load `sdk.js`; duplicate script tags and missed `gmSDKReady` events caused memory leaks and stuck loaders.
+**Why:** `GameView` remounts and root layout both load `sdk.js`; duplicate script tags and missed `gmSDKReady` events caused memory leaks and stuck loaders.
 **Consequence:** Query `script[src*="gamemonetize.com/sdk.js"]` before append; if `window.GameMonetize` exists, mount iframe immediately. Never render `<iframe src="">` — guard with a fallback UI when both URL fields are absent.
+
+**Decision:** Performance Overhaul — Lazy Grids, Chunked Data, Deferred SDK
+**Why:** Mobile scroll felt choppy due to DOM bloat (hundreds of cards mounted at once), main-thread blocks during 5,000-item normalization, and eager ad SDK loading competing with Hero paint.
+**Consequence:**
+- `LazyGrid.tsx` uses `IntersectionObserver` (`rootMargin: 200px`) to mount cards only when near viewport.
+- `GameProvider` normalizes library in 250-item chunks with `yieldToMain()` between batches.
+- `DeferredGameMonetizeSDK` loads on first interaction or 5s timeout; dispatches `gmSDKReady` for `GameView` compatibility.
+- `GameCard` images use `decoding="async"` and tight `sizes` for thumbnail tiles.
 
 ## SECTION 3: Folder & File Structure
 
@@ -55,14 +63,14 @@ src/
 ├── components/
 │   ├── ai/                 # AI Search components
 │   ├── game/               # Iframe player logic
-│   ├── layout/             # Navigation and Backgrounds
-│   ├── pixel/              # Pixel-art UI primitives
+│   ├── layout/             # Navigation, DeferredGameMonetizeSDK, Backgrounds
+│   ├── pixel/              # GameCard, GameGrid, LazyGrid primitives
 │   └── sections/           # Homepage layout blocks
 ├── context/
-│   └── GameContext.tsx     # Global game state & library loader
+│   └── GameContext.tsx     # Global game state & chunked library loader
 ├── firebase/               # Firebase SDK initialization and hooks
 ├── hooks/                  # useArcadeState (Storage) & useMobile
-├── lib/                    # Data utilities & image compression
+├── lib/                    # yieldToMain, data utilities & image compression
 └── types/                  # TypeScript interfaces for Games/Users
 ```
 
@@ -71,7 +79,7 @@ src/
 - **Next.js 15.5.9**: Uses App Router with `generateStaticParams` for 5,000+ game pages.
 - **Firebase 11.9.1**: Handles Auth (Google/Email) and Firestore (Global Stats).
 - **Tailwind CSS 3.4.1**: Uses a "Neon Arcade" palette defined in `globals.css`.
-- **GameMonetize SDK**: Injected via `next/script` in the root layout.
+- **GameMonetize SDK**: Deferred via `DeferredGameMonetizeSDK` (interaction or 5s fallback).
 
 ## SECTION 5: Data Flow
 
@@ -102,12 +110,23 @@ src/
 5. Inner wrapper: `w-full h-full relative`; iframe: `absolute inset-0 w-full h-full`.
 6. Fullscreen: `[&:fullscreen]:!h-[100dvh] !w-[100dvw] !aspect-auto`.
 
-**Flow: GameMonetize SDK Bootstrap (Client-Only)**
-1. Root layout may already inject `sdk.js` via `next/script`.
-2. On `GameView` mount, query `script[src*="gamemonetize.com/sdk.js"]` — append only if absent.
-3. If `window.GameMonetize` exists, call `mountIframe()` immediately (handles stale `gmSDKReady`).
-4. Otherwise listen for `gmSDKReady` + 2s fallback.
-5. If game has no `iframe_url`/`url`, skip iframe mount and show "Game Link Unavailable" fallback.
+**Flow: Lazy Grid Rendering**
+1. Page passes game array to `LazyGrid` (or `GameGrid` wrapper).
+2. Each slot renders a lightweight pulse placeholder until `IntersectionObserver` fires.
+3. Card + `next/image` mount only when within ~200px of viewport.
+4. Observer disconnects after first intersection (no ongoing overhead).
+
+**Flow: Chunked Library Load (`GameProvider`)**
+1. Fetch `/games.json` once on mount.
+2. Normalize tags/slugs in batches of 250 via `normalizeLibraryInChunks()`.
+3. `yieldToMain()` (`requestIdleCallback` or `setTimeout(0)`) between batches.
+4. Single `setAllGames()` when complete; Fuse.js index builds on finalized array.
+
+**Flow: Deferred GameMonetize SDK**
+1. `layout.tsx` mounts `<DeferredGameMonetizeSDK />` — no eager `<Script>` for GM SDK.
+2. Listen for scroll, click, touchstart, keydown (capture, passive).
+3. On first event OR 5s timeout: inject `sdk.js` if absent, dispatch `gmSDKReady`.
+4. `GameView` listens for `gmSDKReady` or detects existing `window.GameMonetize`.
 
 ## SECTION 6: Rules for Future Development
 
@@ -124,6 +143,8 @@ src/
 - Render `<iframe src="">` when game URLs are missing.
 - Place `<h2>` (or higher) section headings above the page `<h1>` in the DOM.
 - Use `||` for numeric defaults where `0` is a valid value — prefer `??`.
+- Eagerly map-render 50+ game cards without `LazyGrid`.
+- Load ad SDKs with `afterInteractive` if they are not required for first paint.
 
 **ALWAYS DO:**
 - Use `force-static` on new routes.
@@ -133,13 +154,23 @@ src/
 - Place player controls (Fullscreen, Share) in a top-right bar: outer `pointer-events-none`, buttons `pointer-events-auto` only.
 - Derive player `aspectRatio` from parsed `game.width` / `game.height`; portrait vs landscape layout via `isPortrait` boolean.
 - Memoize discovery shuffle helpers with `useCallback` and include them in effect dependency arrays.
+- Use `LazyGrid` for any grid listing more than ~12 games.
+- Add `decoding="async"` and tight `sizes` on thumbnail `next/image` components.
+- Chunk heavy client-side data transforms with `yieldToMain()`.
 
 ## SECTION 7: Bugs Already Fixed (Game Player)
 
 - **Iframe unmount on fullscreen exit**: Resolved by keeping a stable React tree and using the Fullscreen API on a single container ref instead of conditional JSX/layout keys.
 - **CSS-forced mobile orientation locks removed**: Portrait HTML5 games (e.g. endless runners) now play naturally without a rotate-device overlay.
 - **Mobile touch "hidden wall"**: Resolved by applying `pointer-events-none` to absolute overlay wrappers and `pointer-events-auto` only to interactive buttons and the SDK ad mount point (no forced full-size ad container).
-- **Iframe squishing / leaking UI**: Resolved by removing hardcoded Tailwind aspect classes. Implemented dynamic native `aspectRatio` calculation from parsed `game.width` / `game.height` strings, with distinct portrait (`h-[70dvh] w-auto`, centered) vs landscape (`w-full`) layouts.
+- **Iframe squishing / leaking UI**: Resolved by dynamic native `aspectRatio` from parsed `game.width` / `game.height` strings, with distinct portrait vs landscape layouts.
 - **GameMonetize SDK duplication / memory leak**: Resolved by idempotent script detection and immediate mount when `window.GameMonetize` is already loaded on remount.
 - **SEO heading hierarchy (H1/H2 order)**: "Suggested Missions" demoted from `<h2>` to a styled `<div>` so the game title `<h1>` is the first heading in document order.
 - **Falsy-zero ratings**: `(game.rating ?? 5.0)` preserves a legitimate zero rating display.
+
+## SECTION 8: Performance Overhaul (Site-Wide)
+
+- **IntersectionObserver lazy grids**: `LazyGrid.tsx` prevents DOM bloat on Home, Search, Category, and Games pages — cards mount only when scrolled into view.
+- **Chunked data processing**: `GameProvider` normalizes 5,000+ games in 250-item batches with idle yields — UI stays responsive during library hydration.
+- **Deferred SDK initialization**: GameMonetize loads after first user interaction or 5s delay; AdSense uses `lazyOnload` — improves Core Web Vitals (LCP/FID) by prioritizing Hero render.
+- **Async thumbnail decoding**: `GameCard` uses `decoding="async"` and pixel-accurate `sizes` to avoid main-thread decode stalls during rapid scroll.

@@ -11,6 +11,7 @@ import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 import { getTotalGameCount } from '@/lib/games';
 import { ClientEnhancements } from '@/components/layout/ClientEnhancements';
+import { DeferredGameMonetizeSDK } from '@/components/layout/DeferredGameMonetizeSDK';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const inter = Inter({ 
@@ -63,17 +64,12 @@ export default async function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        {/* Google AdSense */}
+        {/* Google AdSense — lazy load after initial paint */}
         <Script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7395050320323237"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-        {/* GameMonetize Ad SDK */}
-        <Script 
-          src="https://api.gamemonetize.com/sdk.js"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
         <Script id="register-sw" strategy="afterInteractive">
           {`
@@ -92,6 +88,7 @@ export default async function RootLayout({
         pressStart.variable
       )}>
         <ScrollToTop />
+        <DeferredGameMonetizeSDK />
         {isMaintenanceMode ? (
           <MaintenanceMode />
         ) : (

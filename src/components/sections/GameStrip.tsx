@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { GameCard } from '@/components/pixel/GameCard';
+import { LazyGrid } from '@/components/pixel/LazyGrid';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { shuffleArray } from '@/lib/utils';
@@ -57,10 +58,13 @@ export const GameStrip = ({
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-          {displayGames.map((game: any) => (
-            <Link key={game.id} href={`/games/${game.slug}/`} className="block">
-              <GameCard 
+        <LazyGrid
+          items={displayGames}
+          getKey={(game) => game.id || game.slug}
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3"
+          renderItem={(game) => (
+            <Link href={`/games/${game.slug}/`} className="block">
+              <GameCard
                 slug={game.slug}
                 title={game.title}
                 genre={game.category}
@@ -68,8 +72,8 @@ export const GameStrip = ({
                 imageUrl={game.thumbnail || game.thumb}
               />
             </Link>
-          ))}
-        </div>
+          )}
+        />
       </div>
     </div>
   );

@@ -41,8 +41,9 @@ const GameCardComponent = ({ slug, title, genre, rating, imageUrl, className }: 
           fill
           unoptimized={true}
           className="object-cover transition-transform duration-500 group-hover:brightness-110"
-          sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 16vw, 12vw"
+          sizes="(max-width: 640px) 110px, (max-width: 768px) 130px, (max-width: 1024px) 150px, 180px"
           loading="lazy"
+          decoding="async"
         />
         
         {/* Heart Toggle Badge */}
