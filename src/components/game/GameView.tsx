@@ -122,8 +122,8 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
         else if (doc.webkitExitFullscreen) await doc.webkitExitFullscreen();
       } else if (el.requestFullscreen) {
         await el.requestFullscreen();
-      } else if ((el as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }).webkitRequestFullscreen) {
-        await (el as HTMLElement & { webkitRequestFullscreen: () => Promise<void> }).webkitRequestFullscreen();
+      } else if ((el as any).webkitRequestFullscreen) {
+        await (el as any).webkitRequestFullscreen();
       }
     } catch {
       setIsFullscreen(false);
