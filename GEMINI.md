@@ -1,44 +1,43 @@
-# YoriGames — Project Context for Gemini
+# YoriGames — Project Memory
 
-## Project Overview
-- **What this project is**: A high-performance web-based arcade platform for indie pixel-art games, designed for instant browser play with zero installations.
-- **Live URL**: https://yorigamesonline.online
-- **Tech Stack**: Next.js 15.5.9 (App Router), Firebase 11.9.1 (Auth, Firestore, Storage), Tailwind CSS 3.4.1, ShadCN UI, Lucide Icons, and Genkit for AI features.
+## What This Project Is
+A high-performance web-native arcade platform specializing in indie pixel-art games. It offers an "instant-play" experience with zero installation, optimized for desktop and mobile browsers.
 
-## Architecture Decisions (CRITICAL)
-- **output: 'export'**: The application is configured for a static export. This means **ZERO** server-side features are supported. No API routes (except during build), no `cookies()`, no `headers()`, and no middleware.
-- **Client-Side Data Strategy**: Since the app is static, the entire game library (5,000+ games) is fetched once as a JSON file from `/games.json` and managed in a client-side React Context (`GameContext.tsx`) for instant searching and filtering.
-- **Route Group (main)**: User-facing UI and "heavy" scripts are isolated inside the `(main)` route group. This ensures that global scripts (AdSense, GameMonetize) and Providers (Firebase, GameStore) only inject HTML into the website pages, leaving system files like `sitemap.xml` clean and valid.
-- **Persistence**: User data (Recently Played, Favorites) is stored in `localStorage` using UID-scoped keys to ensure cross-device consistency via Firebase synchronization.
+## Tech Stack (Verified)
+- **Framework**: Next.js 15.5.9 (App Router)
+- **Deployment**: Static Export (`output: 'export'`)
+- **Database/Auth**: Firebase 11.9.1 (Auth, Firestore, Storage)
+- **Styling**: Tailwind CSS 3.4.1
+- **Icons**: Lucide React
+- **AI**: Genkit 1.28.0
 
-## Current File Structure (Key Files Only)
-- `src/app/layout.tsx`: Minimal root shell for system-wide compatibility.
-- `src/app/(main)/layout.tsx`: The primary UI wrapper containing fonts, analytics, scripts, and context providers.
-- `src/context/GameContext.tsx`: The engine that loads the library and handles global game stats.
-- `src/lib/games.ts`: Server-side logic for generating static paths and sitemaps during build.
-- `src/hooks/useArcadeState.ts`: Manages `localStorage` with strict authentication isolation.
-- `src/components/game/GameView.tsx`: The core game player component with fullscreen and orientation logic.
-- `public/games.json`: The static database generated from the GameMonetize uplink.
+## Current Architecture
+- **Static Export**: The app is configured for full static generation. No server-side features (`cookies()`, `headers()`) are allowed.
+- **Flat Route Structure**: All pages are located directly in `src/app/`. The `(main)` route group does NOT exist in this version.
+- **Data Layer**: Game data is fetched once from `public/games.json` and managed via `GameContext.tsx`.
+- **Pure XML Sitemap**: `sitemap.ts` uses `MetadataRoute.Sitemap` to ensure script-free XML generation.
 
-## Bugs Already Fixed (Do Not Redo These)
-- **Tags Runtime Error**: Fixed `g.tags.some is not a function` by normalizing tags into arrays during the library fetch in `GameContext.tsx`.
-- **Sitemap Corruption**: Resolved XML syntax errors by moving scripts out of the root layout and into the `(main)` route group.
-- **Fullscreen Distortion**: Fixed game stretching in landscape mode by using `aspect-video` containers and `max-h-full` constraints.
-- **Walkthrough UI Conflict**: Removed custom overlay shields that were blocking clicks on the walkthrough video iframe.
-- **Pagination Performance**: Implemented client-side pagination on the search results to prevent UI lag when viewing large categories.
+## Completed Work (Confirmed via Git Log)
+- Added high-performance fuzzy search with `Fuse.js` and client-side pagination.
+- Restored the Profile page with client-side authentication and avatar uploads.
+- Implemented `useArcadeState.ts` for UID-scoped `localStorage` (Favorites/Recent).
+- Added "Share" and "About Game" actions to the Game View player.
+- Configured native Next.js sitemap to prevent HTML injection.
 
-## Bugs Still Pending (In Priority Order)
-1. **Parallel Route Conflict**: Need to ensure all root-level folders (`games/`, `search/`) are fully migrated to `(main)/` to clear Next.js build warnings.
-2. **Profile Sync Delay**: Investigating a race condition where avatar updates take a few seconds to reflect in the navigation bar.
+## Known Remaining Bugs
+1. **Mobile Rotation**: Game player canvas does not resize correctly on orientation change.
+2. **z-index Conflict**: The "Skip Ad" button from GameMonetize is sometimes hidden behind our custom fullscreen button.
+3. **Fullscreen Exit**: Exiting fullscreen via ESC key occasionally leaves the UI in a greyed-out state.
+4. **Search Latency**: Initializing the 5,000+ game index on the search page can cause a minor main-thread block on low-end mobile devices.
 
-## Rules — Never Break These
-- **No SSR**: Never add server-side features (API routes, `cookies()`, `headers()`, `middleware`).
-- **Static Config**: Always add `export const dynamic = 'force-static'` to new page files to ensure they are included in the export.
-- **Error Transparency**: Never set `ignoreBuildErrors: true` in `next.config.ts`.
-- **Search Hooks**: Always wrap `useSearchParams()` in a `<Suspense>` boundary to prevent hydration mismatches during static generation.
-- **Storage Privacy**: Always use user-specific localStorage keys: `yori_${uid}_keyname`.
-- **Icon Integrity**: Use Lucide icons only. Do not hallucinate icons like `Tooth` or `Asteroid`; use SVGs if not available.
+## Strict Rules — Never Break
+- **No SSR**: Never add server-side API routes, `cookies()`, or `headers()`.
+- **Static First**: Always add `export const dynamic = 'force-static'` to new page files.
+- **Client Safety**: Always wrap `useSearchParams()` in a `<Suspense>` boundary.
+- **Storage Privacy**: `localStorage` keys must be user-scoped: `yori_${uid}_keyname`.
+- **Clean Sitemaps**: Keep scripts and providers only in `layout.tsx`; verify `sitemap.xml` remains valid XML.
 
-## What Has Been Deployed vs What Is Local Only
-- **Deployed**: Core arcade engine, mobile-responsive layout, and Firebase authentication.
-- **Local/Pending Push**: Finalized Route Group structure and high-performance fuzzy search pagination improvements.
+## What Does NOT Exist (Deleted / Non-Existent)
+- `src/app/(main)/`: This folder and its separate layout were removed to fix parallel route conflicts.
+- `src/app/api/search-index/route.ts`: This was renamed to `_route.ts` or disabled to prevent static build failures.
+- `FirebaseErrorListener.tsx`: Functionality was merged into the provider.
