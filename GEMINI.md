@@ -16,8 +16,11 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - **Flat Route Structure**: All pages are located directly in `src/app/`. No `(main)` route group exists.
 - **Data Layer**: Game data is fetched once from `public/games.json` and managed via a Web Worker.
 - **Pure XML Sitemap**: `sitemap.ts` uses `MetadataRoute.Sitemap` for native pure XML generation.
+- **Ghost Mode SDK**: GameMonetize SDK is deferred until user interaction via `DeferredGameMonetizeSDK.tsx` to maximize site speed and user experience.
 
 ## Completed Work (Confirmed via Git Log)
+- Implemented **Ghost Mode** SDK optimization: deferred GameMonetize script loading and removed layout-blocking ad containers.
+- Fixed service worker chunk-mismatch crash ('e[o] is not a function') by implementing a `controllerchange` reload listener in the root layout.
 - Added high-performance fuzzy search with `Fuse.js` and client-side pagination.
 - Restored the Profile page with client-side authentication and avatar uploads.
 - Implemented `useArcadeState.ts` for UID-scoped `localStorage` (Favorites/Recent).
@@ -25,7 +28,6 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - Configured native Next.js sitemap to prevent HTML injection.
 - **Off-Thread Data Pipeline**: Moved `games.json` fetch, parse, and `Fuse.js` indexing to a dedicated Web Worker (`src/workers/gameData.worker.ts`).
 - **Stable Background Rendering**: Fixed `GalaxyBackground` re-render bug via stable `useMemo` data and `React.memo`.
-- **Service Worker Sync**: Fixed chunk-mismatch crash ('e[o] is not a function') by implementing a `controllerchange` reload listener in the root layout.
 
 ## Known Remaining Bugs
 1. **Mobile Rotation**: Game player canvas may still not resize perfectly on some devices during orientation change.
@@ -35,7 +37,7 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 ## Strict Rules — Never Break
 - **No SSR**: Never add server-side API routes, `cookies()`, or `headers()`.
 - **Static First**: Always add `export const dynamic = 'force-static'` to new page files.
-- **Client Safety**: Always wrap `useSearchParams()` in a `<Suspense>` boundary.
+- **Client Safety**: Always wrap `useSearchParams()` in `<Suspense>` boundary.
 - **Storage Privacy**: `localStorage` keys must be user-scoped: `yori_${uid}_keyname`.
 - **Clean Sitemaps**: Use `MetadataRoute.Sitemap` for native pure XML generation.
 - **Stable Game Iframe**: Never unmount/remount the game iframe on fullscreen or resize events.

@@ -6,8 +6,9 @@ const GM_SDK_SRC = 'https://api.gamemonetize.com/sdk.js';
 const GM_SDK_SELECTOR = 'script[src*="gamemonetize.com/sdk.js"]';
 
 /**
- * Defers GameMonetize SDK until first user interaction or 5s after load.
- * Keeps the main thread free for Hero paint and improves LCP/FID on mobile.
+ * 'Ghost Mode' GameMonetize SDK Loader.
+ * Defers SDK until first user interaction or 5s after load.
+ * Ensures it only loads once and signals readiness to the GameView components.
  */
 export function DeferredGameMonetizeSDK() {
   const loadedRef = useRef(false);
@@ -17,6 +18,7 @@ export function DeferredGameMonetizeSDK() {
       if (loadedRef.current) return;
       loadedRef.current = true;
 
+      // Check for existing script in DOM (e.g., from a different navigation cycle)
       if (document.querySelector(GM_SDK_SELECTOR)) {
         window.dispatchEvent(new Event('gmSDKReady'));
         return;
@@ -27,6 +29,10 @@ export function DeferredGameMonetizeSDK() {
       script.async = true;
       script.onload = () => {
         window.dispatchEvent(new Event('gmSDKReady'));
+      };
+      script.onerror = () => {
+        console.warn('GameMonetize SDK failed to load. Entering fallback mode.');
+        window.dispatchEvent(new Event('gmSDKReady')); // Signal readiness even on fail to unblock iframes
       };
       document.head.appendChild(script);
     };
@@ -45,10 +51,12 @@ export function DeferredGameMonetizeSDK() {
       clearTimeout(fallbackTimer);
     };
 
+    // Attach interaction listeners for just-in-time loading
     events.forEach((event) =>
       window.addEventListener(event, onInteraction, { capture: true, passive: true })
     );
 
+    // Safety fallback to ensure the SDK is available eventually
     const fallbackTimer = setTimeout(() => {
       cleanup();
       loadSdk();

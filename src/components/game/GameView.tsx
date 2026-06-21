@@ -18,16 +18,15 @@ interface GameViewProps {
   discoveryPool: Game[];
 }
 
-const GM_SDK_SRC = 'https://api.gamemonetize.com/sdk.js';
-const GM_SDK_SELECTOR = 'script[src*="gamemonetize.com/sdk.js"]';
-
 /** Cross-browser helper — client-only, static-export safe. */
 function getFullscreenElement(): Element | null {
+  if (typeof document === 'undefined') return null;
   const doc = document as Document & { webkitFullscreenElement?: Element | null };
   return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
 }
 
 function isGameMonetizeReady(): boolean {
+  if (typeof window === 'undefined') return false;
   const win = window as Window & { GameMonetize?: unknown };
   return Boolean(win.GameMonetize);
 }
@@ -48,7 +47,6 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   const gameUrl = game.iframe_url || game.url || '';
   const hasGameUrl = gameUrl.length > 0;
 
-  // UI-only flag for control icons; never used to conditionally render player DOM.
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
@@ -65,24 +63,18 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
       mountIframe();
     };
 
-    // SDK already initialized — mount immediately (gmSDKReady may have fired on a prior page).
+    // If SDK is already available, mount immediately
     if (isGameMonetizeReady()) {
       sdkReady.current = true;
       mountIframe();
       return;
     }
 
+    // Wait for the global deferred SDK to signal readiness
     window.addEventListener('gmSDKReady', handleSDKReady);
 
-    const existingScript = document.querySelector(GM_SDK_SELECTOR);
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = GM_SDK_SRC;
-      script.async = true;
-      document.head.appendChild(script);
-    }
-
-    const fallback = setTimeout(mountIframe, 2000);
+    // Fallback to ensure the game loads even if SDK fails or is blocked
+    const fallback = setTimeout(mountIframe, 3000);
 
     return () => {
       clearTimeout(fallback);
@@ -90,14 +82,9 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     };
   }, [hasGameUrl]);
 
-  // Keep React in sync when the browser exits fullscreen via ESC or native UI.
   useEffect(() => {
     const handleFullscreenChange = () => {
-      if (!getFullscreenElement()) {
-        setIsFullscreen(false);
-      } else {
-        setIsFullscreen(true);
-      }
+      setIsFullscreen(!!getFullscreenElement());
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -211,7 +198,6 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
           <div className="lg:col-span-9">
             <div className="flex justify-center">
-              {/* Stable player shell with dynamic native aspect ratio */}
               <div
                 ref={playerContainerRef}
                 style={{ aspectRatio: containerRatio }}
@@ -255,12 +241,11 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   />
                 )}
 
-                {/* Ad mount point — outer wrapper is fully click-through; inner has no forced size so empty state cannot trap touches */}
+                {/* Ad mount point - Ghost Mode: click-through by default, no fixed height */}
                 <div className="absolute inset-0 z-40 pointer-events-none">
                   <div id="game-ad-container" className="pointer-events-auto inline-block w-auto h-auto" />
                 </div>
 
-                {/* Top-right controls — outer bar is click-through; only buttons capture touch/click */}
                 <div
                   className={cn(
                     "absolute top-0 right-0 z-50 p-3",
