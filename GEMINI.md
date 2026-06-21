@@ -29,7 +29,7 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - **ESC fullscreen desync**: A `fullscreenchange` listener syncs React UI state when the browser exits fullscreen natively (e.g. ESC), preventing grey-screen UI drift.
 - **Mobile touch "hidden wall"**: Absolute overlay containers (control bar, ad wrapper) use `pointer-events-none` on outer wrappers. `pointer-events-auto` is applied only to interactive `<button>` elements and the `#game-ad-container` mount point. No forced `w-full`/`h-full` on the ad container — the GameMonetize SDK dictates ad size when injected.
 - **Portrait orientation lock removed**: CSS-forced mobile rotation prompts were removed to support native portrait HTML5 games (e.g. Subway Surfers). Player sizing relies on Tailwind `w-full h-full` and native `:fullscreen` styles.
-- **Mobile layout overlap / squishing**: Replaced forced vertical height (`h-[65dvh]`) with a stable `aspect-[4/3] md:aspect-video` mobile layout to prevent UI overlap with sections below and iframe squishing. Desktop retains classic 16:9.
+- **Dynamic native aspect ratio**: Resolved iframe squishing/leaking UI by removing hardcoded Tailwind aspect classes (`aspect-[4/3]`, `aspect-video`). `GameView.tsx` now parses `game.width` / `game.height` strings to compute an inline `aspectRatio`, with portrait games centered via `h-[70dvh] w-auto` and landscape games using `w-full` (16:9 fallback when dims are missing).
 - **GameMonetize SDK script duplication / memory leak**: `GameView.tsx` queries `script[src*="gamemonetize.com/sdk.js"]` before append; if `window.GameMonetize` exists, the iframe mounts immediately instead of re-injecting or missing a stale `gmSDKReady` event.
 - **SEO heading hierarchy**: "Suggested Missions" is no longer an `<h2>` appearing before the page `<h1>` (game title); section labels use styled `<div>` elements to preserve correct H1 → H2 document order.
 - **Falsy-zero ratings**: Game rating display uses nullish coalescing (`game.rating ?? 5.0`) so a legitimate `0` rating is not replaced with `5.0`.
@@ -48,7 +48,7 @@ A high-performance web-native arcade platform specializing in indie pixel-art ga
 - **Clean Sitemaps**: Keep scripts and providers only in `layout.tsx`; verify `sitemap.xml` remains valid XML.
 - **Stable Game Iframe**: Never unmount/remount the game iframe on fullscreen or resize events; use a single stable container ref and native Fullscreen API.
 - **Pointer Events on Overlays**: Absolute player overlays must use `pointer-events-none` on wrappers; only buttons and SDK-injected ad UI may use `pointer-events-auto`. Never apply full-size dimensions to empty ad mount containers.
-- **Responsive Player Sizing**: Use `aspect-[4/3] md:aspect-video` on the outer player shell — never use forced viewport heights like `h-[65dvh]` that overlap page content on mobile.
+- **Native Player Aspect Ratio**: Derive container `aspectRatio` from parsed `game.width` / `game.height` strings — never hardcode a single Tailwind aspect class for all games.
 - **SDK Script Idempotency**: Never append duplicate GameMonetize `sdk.js` tags; query for existing scripts and honor already-loaded SDK state on remount.
 - **Heading Order**: Page `<h1>` (game title) must appear before any `<h2>` in the DOM; use non-heading elements for decorative section labels above the fold.
 

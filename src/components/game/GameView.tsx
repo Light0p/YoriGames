@@ -188,6 +188,13 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     }
   };
 
+  const parsedWidth = game.width ? parseInt(game.width, 10) : NaN;
+  const parsedHeight = game.height ? parseInt(game.height, 10) : NaN;
+  const hasValidDims = !isNaN(parsedWidth) && !isNaN(parsedHeight) && parsedHeight > 0;
+  const numericRatio = hasValidDims ? parsedWidth / parsedHeight : null;
+  const isPortrait = numericRatio !== null && numericRatio < 1;
+  const containerRatio = numericRatio ?? 16 / 9;
+
   return (
     <main className="min-h-screen w-full overflow-x-hidden relative flex flex-col bg-[#09061B]">
       <Navbar />
@@ -203,15 +210,20 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
           <div className="lg:col-span-9">
-            {/*
-              Stable player shell: fullscreen API targets this ref only.
-              Never conditionally mount/unmount iframe or swap keys on fullscreen changes.
-            */}
-            <div
-              ref={playerContainerRef}
-              className="relative w-full aspect-[4/3] md:aspect-video bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center [&:fullscreen]:h-[100dvh] [&:fullscreen]:w-[100dvw] [&:fullscreen]:rounded-none [&:fullscreen]:border-0 [&:fullscreen]:aspect-auto"
-            >
-              <div className="w-full h-full">
+            <div className="flex justify-center">
+              {/* Stable player shell with dynamic native aspect ratio */}
+              <div
+                ref={playerContainerRef}
+                style={{ aspectRatio: containerRatio }}
+                className={cn(
+                  "relative bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center",
+                  "[&:fullscreen]:!h-[100dvh] [&:fullscreen]:!w-[100dvw] [&:fullscreen]:rounded-none [&:fullscreen]:border-0 [&:fullscreen]:!aspect-auto",
+                  isPortrait
+                    ? "h-[70dvh] md:h-[75dvh] w-auto max-w-full"
+                    : "w-full"
+                )}
+              >
+                <div className="w-full h-full relative flex items-center justify-center">
                 {!hasGameUrl && (
                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c] px-6 text-center">
                     <Info className="w-10 h-10 text-neon-pink mb-4" />
@@ -284,6 +296,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                       )}
                     </button>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
