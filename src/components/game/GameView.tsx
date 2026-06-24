@@ -8,6 +8,7 @@ import { Game } from '@/types/game';
 import { Star, Play, Share2, Maximize2, Minimize2, ArrowLeft, Loader2, RefreshCw, Heart, Check, Info } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Script from 'next/script';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/context/GameContext';
 import { GameWalkthrough } from './GameWalkthrough';
@@ -18,17 +19,10 @@ interface GameViewProps {
   discoveryPool: Game[];
 }
 
-/** Cross-browser helper — client-only, static-export safe. */
 function getFullscreenElement(): Element | null {
   if (typeof document === 'undefined') return null;
   const doc = document as Document & { webkitFullscreenElement?: Element | null };
   return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
-}
-
-function isGameMonetizeReady(): boolean {
-  if (typeof window === 'undefined') return false;
-  const win = window as Window & { GameMonetize?: unknown };
-  return Boolean(win.GameMonetize);
 }
 
 export function GameView({ game, discoveryPool }: GameViewProps) {
@@ -39,57 +33,39 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   const { addRecent, toggleFavorite, isFavorite } = useArcadeState();
   const isFav = isFavorite(game.slug);
   const [copied, setCopied] = useState(false);
-
-  const sdkReady = useRef(false);
-  const iframeMounted = useRef(false);
-  const [showIframe, setShowIframe] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
 
   const gameUrl = game.iframe_url || game.url || '';
   const hasGameUrl = gameUrl.length > 0;
 
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
+  // Targeted SDK Initialization for GameMonetize
   useEffect(() => {
-    function mountIframe() {
-      if (iframeMounted.current) return;
-      iframeMounted.current = true;
-      setShowIframe(true);
+    if (typeof window !== 'undefined') {
+      (window as any).SDK_OPTIONS = {
+        gameId: game.gameId || game.id.replace('gm_', ''),
+        onEvent: (event: any) => {
+          switch (event.name) {
+            case 'SDK_READY':
+              console.log('GameMonetize SDK Ready');
+              setSdkLoaded(true);
+              break;
+            case 'SDK_ERROR':
+              console.warn('GameMonetize SDK Error');
+              setSdkLoaded(true); // Proceed anyway to unblock iframe
+              break;
+          }
+        },
+      };
     }
-
-    if (!hasGameUrl) return;
-
-    const handleSDKReady = () => {
-      sdkReady.current = true;
-      mountIframe();
-    };
-
-    // If SDK is already available, mount immediately
-    if (isGameMonetizeReady()) {
-      sdkReady.current = true;
-      mountIframe();
-      return;
-    }
-
-    // Wait for the global deferred SDK to signal readiness
-    window.addEventListener('gmSDKReady', handleSDKReady);
-
-    // Fallback to ensure the game loads even if SDK fails or is blocked
-    const fallback = setTimeout(mountIframe, 3000);
-
-    return () => {
-      clearTimeout(fallback);
-      window.removeEventListener('gmSDKReady', handleSDKReady);
-    };
-  }, [hasGameUrl]);
+  }, [game.id, game.gameId]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!getFullscreenElement());
     };
-
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -124,9 +100,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
   const toggleFullscreen = async () => {
     const el = playerContainerRef.current;
     if (!el) return;
-
     const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> };
-
     try {
       if (getFullscreenElement()) {
         if (doc.exitFullscreen) await doc.exitFullscreen();
@@ -175,16 +149,16 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
     }
   };
 
-  const parsedWidth = game.width ? parseInt(game.width, 10) : NaN;
-  const parsedHeight = game.height ? parseInt(game.height, 10) : NaN;
-  const hasValidDims = !isNaN(parsedWidth) && !isNaN(parsedHeight) && parsedHeight > 0;
-  const numericRatio = hasValidDims ? parsedWidth / parsedHeight : null;
-  const isPortrait = numericRatio !== null && numericRatio < 1;
-  const containerRatio = numericRatio ?? 16 / 9;
-
   return (
     <main className="min-h-screen w-full overflow-x-hidden relative flex flex-col bg-[#09061B]">
       <Navbar />
+      
+      {/* Targeted SDK Script */}
+      <Script 
+        src="https://api.gamemonetize.com/sdk.js" 
+        strategy="afterInteractive" 
+        onLoad={() => console.log('GM SDK Script Loaded')}
+      />
 
       <div className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 sm:py-6">
         <div className="mb-4 flex items-center gap-3">
@@ -195,106 +169,53 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           <span className="font-pixel text-[8px] text-neon-purple uppercase">{game.category}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-          <div className="lg:col-span-9">
-            <div className="flex justify-center">
-              <div
-                ref={playerContainerRef}
-                style={{ aspectRatio: containerRatio }}
-                className={cn(
-                  "relative bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center",
-                  "[&:fullscreen]:!h-[100dvh] [&:fullscreen]:!w-[100dvw] [&:fullscreen]:rounded-none [&:fullscreen]:border-0 [&:fullscreen]:!aspect-auto",
-                  isPortrait
-                    ? "h-[70dvh] md:h-[75dvh] w-auto max-w-full"
-                    : "w-full"
-                )}
-              >
-                <div className="w-full h-full relative flex items-center justify-center">
-                {!hasGameUrl && (
-                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c] px-6 text-center">
-                    <Info className="w-10 h-10 text-neon-pink mb-4" />
-                    <p className="font-pixel text-[10px] text-white uppercase tracking-widest mb-2">Game Link Unavailable</p>
-                    <p className="font-body text-sm text-muted max-w-xs">
-                      This game&apos;s play link is missing. Try another title from the arcade.
-                    </p>
-                    <Link
-                      href="/games/"
-                      className="mt-6 font-pixel text-[8px] uppercase text-neon-cyan hover:text-white transition-colors"
-                    >
-                      Browse Games
-                    </Link>
-                  </div>
-                )}
-                {hasGameUrl && !showIframe && (
-                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0d051c] pointer-events-none">
-                    <Loader2 className="w-10 h-10 text-neon-purple animate-spin mb-4" />
-                    <div className="font-pixel text-[8px] text-white uppercase animate-pulse">Initializing Interface...</div>
-                  </div>
-                )}
-                {hasGameUrl && showIframe && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          {/* Main Player Area - 75% on Desktop */}
+          <div className="lg:col-span-9 flex flex-col gap-4">
+            <div
+              ref={playerContainerRef}
+              className={cn(
+                "relative w-full aspect-video max-h-[75vh] bg-black border-4 border-[#1B123D] shadow-[8px_8px_0_0_#000] overflow-hidden group rounded-xl flex items-center justify-center mx-auto",
+                "[&:fullscreen]:max-h-none [&:fullscreen]:!h-[100dvh] [&:fullscreen]:!w-[100dvw] [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
+              )}
+            >
+              {!hasGameUrl ? (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  <Info className="w-10 h-10 text-neon-pink mb-4" />
+                  <p className="font-pixel text-[10px] text-white uppercase tracking-widest">Link Unavailable</p>
+                </div>
+              ) : (
+                <>
                   <iframe
                     ref={iframeRef}
                     src={gameUrl}
-                    className="absolute inset-0 w-full h-full border-none z-10"
+                    className="w-full h-full border-none z-10"
                     allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
-                    loading="eager"
                   />
-                )}
-
-                {/* Ad mount point - Ghost Mode: click-through by default, no fixed height */}
-                <div className="absolute inset-0 z-40 pointer-events-none">
-                  <div id="game-ad-container" className="pointer-events-auto inline-block w-auto h-auto" />
-                </div>
-
-                <div
-                  className={cn(
-                    "absolute top-0 right-0 z-50 p-3",
-                    "pointer-events-none opacity-0 transition-opacity duration-200",
-                    "max-md:opacity-100 md:group-hover:opacity-100",
+                  
+                  {/* Fullscreen Overlay Controls */}
+                  <div className={cn(
+                    "absolute top-0 right-0 z-50 p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100",
                     isFullscreen && "opacity-100"
-                  )}
-                >
-                  <div className="flex flex-wrap items-center gap-2 pointer-events-none rounded-lg bg-black/80 p-1.5 border-2 border-white/20 backdrop-blur-sm">
-                    <button
-                      type="button"
-                      onClick={toggleFullscreen}
-                      className="pointer-events-auto touch-manipulation p-2 hover:bg-white/10 rounded-md transition-all active:scale-95"
-                      title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-                      aria-pressed={isFullscreen}
-                    >
-                      {isFullscreen ? (
-                        <Minimize2 className="w-5 h-5 text-white" />
-                      ) : (
-                        <Maximize2 className="w-5 h-5 text-white" />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleShare}
-                      className="pointer-events-auto touch-manipulation p-2 hover:bg-white/10 rounded-md transition-all active:scale-95 sm:hidden"
-                      title="Share game"
-                    >
-                      {copied ? (
-                        <Check className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Share2 className="w-5 h-5 text-neon-cyan" />
-                      )}
-                    </button>
+                  )}>
+                    <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md p-1.5 border border-white/10 rounded-lg">
+                      <button onClick={toggleFullscreen} className="p-2 hover:bg-white/10 rounded-md transition-colors">
+                        {isFullscreen ? <Minimize2 className="w-5 h-5 text-white" /> : <Maximize2 className="w-5 h-5 text-white" />}
+                      </button>
+                    </div>
                   </div>
-                </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-4 items-center justify-between bg-[#140A2E] p-4 border-2 border-[#1B123D] shadow-[4px_4px_0_0_#000]">
+            {/* Quick Actions Bar */}
+            <div className="flex flex-wrap gap-4 items-center justify-between bg-[#140A2E] p-4 border-2 border-[#1B123D] shadow-[4px_4px_0_0_#000] rounded-xl">
               <div className="flex gap-4">
                 <button
                   onClick={() => toggleFavorite({ slug: game.slug, title: game.title, category: game.category, thumb: game.thumbnail || game.thumb || '' })}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase border-2 transition-all active:scale-95",
-                    isFav
-                      ? "bg-neon-pink border-neon-pink text-white"
-                      : "bg-[#09061B] border-[#1B123D] text-muted hover:text-white"
+                    isFav ? "bg-neon-pink border-neon-pink text-white" : "bg-[#09061B] border-[#1B123D] text-muted hover:text-white"
                   )}
                 >
                   <Heart className={cn("w-3 h-3", isFav && "fill-current")} />
@@ -312,62 +233,70 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                   className="flex items-center gap-2 px-4 py-2 font-pixel text-[8px] uppercase bg-[#09061B] border-2 border-[#1B123D] text-muted hover:text-neon-gold hover:border-neon-gold transition-all active:scale-95"
                 >
                   <Info className="w-3 h-3 text-neon-gold" />
-                  ABOUT GAME
+                  ABOUT
                 </button>
               </div>
-              <div className="hidden sm:flex items-center gap-4 text-muted font-pixel text-[6px] uppercase tracking-widest">
-                <span>Direct Link Established</span>
-                <div className="flex gap-1">
-                  <div className="w-1 h-1 bg-green-500 animate-pulse" />
-                  <div className="w-1 h-1 bg-green-500 animate-pulse delay-75" />
-                </div>
+              <div className="hidden sm:flex items-center gap-2 text-muted font-pixel text-[6px] uppercase tracking-widest">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                Live Uplink Active
               </div>
             </div>
           </div>
 
-          <div className="hidden lg:grid lg:col-span-3 grid-cols-2 grid-rows-3 gap-3">
-            {displayGames.slice(0, 6).map((g) => (
-              <Link key={`side-${g.id}`} href={`/games/${g.slug}/`} className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl">
-                <Image
-                  src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'}
-                  alt={g.title}
-                  fill
-                  unoptimized={true}
-                  className="object-cover group-hover:scale-110 transition-transform"
-                  sizes="15vw"
-                />
-              </Link>
-            ))}
+          {/* Recommended Sidebar - 25% on Desktop */}
+          <div className="lg:col-span-3">
+            <div className="flex flex-col gap-4">
+              <div className="font-pixel text-[8px] text-white uppercase tracking-widest mb-2 px-2">Recommended</div>
+              <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+                {displayGames.slice(0, 6).map((g) => (
+                  <Link 
+                    key={`side-${g.id}`} 
+                    href={`/games/${g.slug}/`} 
+                    className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-cyan transition-all group rounded-2xl bg-black"
+                  >
+                    <Image
+                      src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'}
+                      alt={g.title}
+                      fill
+                      unoptimized={true}
+                      className="object-cover group-hover:scale-110 transition-transform opacity-80 group-hover:opacity-100"
+                      sizes="15vw"
+                    />
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Shuffled Bottom Grid */}
         <div className="space-y-6 mb-12">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-[#1B123D] pb-4">
             <div className="font-pixel text-xs text-white uppercase tracking-widest flex items-center gap-2">
-              <span className="w-2 h-2 bg-neon-cyan animate-pulse rounded-full" /> Suggested Missions
+              <span className="w-2 h-2 bg-neon-cyan animate-pulse rounded-full" /> Discovery Sector
             </div>
             <button
               onClick={shuffleDiscovery}
               className="flex items-center gap-2 font-pixel text-[8px] text-muted hover:text-neon-cyan transition-colors uppercase group"
             >
               <RefreshCw className="w-3 h-3 group-active:rotate-180 transition-transform duration-500" />
-              Refresh Shroud
+              Recalibrate
             </button>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-4">
             {displayGames.slice(6).map((g) => (
               <Link
                 key={`floor-${g.id}`}
                 href={`/games/${g.slug}/`}
-                className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-purple hover:scale-105 transition-all group rounded-2xl shadow-lg"
+                className="relative aspect-square overflow-hidden border-2 border-[#1B123D] hover:border-neon-purple hover:scale-105 transition-all group rounded-2xl shadow-lg bg-black"
               >
                 <Image
                   src={g.thumbnail || g.thumb || 'https://picsum.photos/seed/yori/400/400'}
                   alt={g.title}
                   fill
                   unoptimized={true}
-                  className="object-cover"
+                  className="object-cover opacity-70 group-hover:opacity-100"
                   sizes="(max-width: 640px) 33vw, 12vw"
                 />
               </Link>
@@ -375,6 +304,7 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
           </div>
         </div>
 
+        {/* Game Details Section */}
         <div id="about-section" className="border-t-4 border-[#1B123D] pt-12 pb-16 bg-[#0d051c]/50 rounded-b-3xl px-6 sm:px-12">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
@@ -386,16 +316,13 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
                     <span className="font-pixel text-xs text-neon-gold">{(game.rating ?? 5.0).toFixed(1)}</span>
                   </div>
                   <div className="font-pixel text-[10px] text-muted uppercase tracking-widest">
-                    {(game.play_count || 0).toLocaleString()} Verified Plays
+                    {(game.play_count || 0).toLocaleString()} Active Sessions
                   </div>
                 </div>
               </div>
               <div className="flex gap-4 w-full md:w-auto">
                 <PixelButton variant="primary" className="flex-1 md:flex-none py-4" onClick={() => iframeRef.current?.focus()}>
-                  <Play className="w-4 h-4 fill-white" /> FOCUS ENGINE
-                </PixelButton>
-                <PixelButton variant="secondary" className="px-6" onClick={handleShare}>
-                  <Share2 className="w-4 h-4" />
+                  <Play className="w-4 h-4 fill-white" /> FOCUS INPUT
                 </PixelButton>
               </div>
             </div>
@@ -407,26 +334,12 @@ export function GameView({ game, discoveryPool }: GameViewProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-muted leading-relaxed">
               <div className="space-y-6">
-                <h2 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">About this game</h2>
+                <h2 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">Intelligence Briefing</h2>
                 <p className="font-body text-base">{game.description}</p>
-                <div className="flex flex-wrap gap-2 pt-4">
-                  {game.tags?.map(tag => (
-                    <Link href={`/search/?q=${encodeURIComponent('#' + tag)}`} key={tag} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-cyan transition-colors uppercase rounded-lg">
-                      #{tag}
-                    </Link>
-                  ))}
-                  <Link href={`/search/?q=${encodeURIComponent('#' + game.category)}`} className="font-pixel text-[7px] px-3 py-2 bg-[#1B123D] border border-white/5 text-muted hover:text-neon-pink transition-colors uppercase rounded-lg">
-                    #{game.category}
-                  </Link>
-                </div>
               </div>
               <div className="space-y-6">
-                <h2 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">Controls & Guide</h2>
-                <p className="font-body text-base italic">{game.instructions || "Follow the in-game tutorial to master this mission."}</p>
-                <div className="bg-[#140A2E] p-6 border-l-4 border-neon-pink mt-4">
-                  <p className="font-pixel text-[8px] text-white uppercase mb-2">Pro Tip:</p>
-                  <p className="text-xs">Use the Focus button above to capture your keyboard input directly into the game engine.</p>
-                </div>
+                <h2 className="font-pixel text-xs text-white uppercase border-b border-[#1B123D] pb-2">Mission Parameters</h2>
+                <p className="font-body text-base italic">{game.instructions || "Manual calibration required. Follow in-game cues."}</p>
               </div>
             </div>
           </div>

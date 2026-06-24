@@ -11,7 +11,6 @@ import { MaintenanceMode } from '@/components/layout/MaintenanceMode';
 import ScrollToTop from '@/components/layout/ScrollToTop';
 import { getTotalGameCount } from '@/lib/games';
 import { ClientEnhancements } from '@/components/layout/ClientEnhancements';
-import { DeferredGameMonetizeSDK } from '@/components/layout/DeferredGameMonetizeSDK';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const inter = Inter({ 
@@ -96,7 +95,6 @@ export default async function RootLayout({
         pressStart.variable
       )}>
         <ScrollToTop />
-        <DeferredGameMonetizeSDK />
         {isMaintenanceMode ? (
           <MaintenanceMode />
         ) : (
